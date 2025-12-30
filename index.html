@@ -1,391 +1,481 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>E.D.E.N. Globe</title>
-  <style>
-    html, body { height:100%; margin:0; background:#000; overflow:hidden; }
-    canvas { display:block; width:100vw; height:100vh; }
-    #hud{
-      position:fixed; left:12px; right:12px; bottom:12px;
-      padding:10px 12px; border-radius:12px;
-      font: 13px/1.35 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.12);
-      color: rgba(255,255,255,.9);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-    }
-    #hud b { color:#fff; }
-    #hud .err { color:#ff6b6b; }
-    #hud .ok { color:#7CFFB2; }
-    #hud .tip { color: rgba(255,255,255,.75); display:block; margin-top:6px; }
-  </style>
-</head>
-<body>
-  <div id="hud">
-    <div><b>Status:</b> <span id="status" class="ok">Loading…</span></div>
-    <div id="detail"></div>
-    <span class="tip">Tip: If you see errors, screenshot them and send them here.</span>
-  </div>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>E.D.E.N. Globe</title>
 
-  <script type="module">
-    // ---------- CDN imports (explicit URLs to avoid "three does not resolve") ----------
-    import * as THREE from "https://unpkg.com/three@0.161.0/build/three.module.js";
-    import { OrbitControls } from "https://unpkg.com/three@0.161.0/examples/jsm/controls/OrbitControls.js";
-    import { EffectComposer } from "https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/EffectComposer.js";
-    import { RenderPass } from "https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/RenderPass.js";
-    import { ShaderPass } from "https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/ShaderPass.js";
-    import { UnrealBloomPass } from "https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/UnrealBloomPass.js";
+    <style>
+      html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
+      canvas { display:block; width:100vw !important; height:100vh !important; }
 
-    const hudStatus = document.getElementById("status");
-    const hudDetail = document.getElementById("detail");
-
-    function setStatus(text, ok=true, detail=""){
-      hudStatus.textContent = text;
-      hudStatus.className = ok ? "ok" : "err";
-      hudDetail.innerHTML = detail ? `<div class="${ok ? "ok" : "err"}">${detail}</div>` : "";
-    }
-
-    // ---------- Tweakables (your requested bloom + lights gain) ----------
-    const BLOOM = {
-      strength: 1.15,   // more/less glow
-      threshold: 0.10,  // higher = glow only brightest pixels
-      radius: 0.55
-    };
-    const LIGHTS_GAIN = 2.4; // brighter city lights
-
-    // ---------- Paths (these MUST exist in your repo) ----------
-    const TEX = {
-      atmos:   "./textures/planets/earth_atmos_4096.jpg",
-      lights:  "./textures/planets/earth_lights_2048.png",
-      normal:  "./textures/planets/earth_normal_2048.jpg",
-      spec:    "./textures/planets/earth_specular_2048.jpg",
-      clouds:  "./textures/planets/earth_clouds_2048.png",
-
-      // Optional: if you add your own sharper day map later, set it here:
-      // day: "./textures/earth_day_4096.jpg",
-    };
-
-    // If you DON'T have a separate day map, we’ll reuse atmos as a decent day/albedo fallback.
-    const DAY_FALLBACK = TEX.atmos;
-
-    // ---------- Renderer / Scene / Camera ----------
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); // iPhone-friendly
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
-    document.body.appendChild(renderer.domElement);
-
-    const scene = new THREE.Scene();
-
-    const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 0, 3.6);
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.enablePan = false;
-    controls.minDistance = 2.3;
-    controls.maxDistance = 7.0;
-    controls.rotateSpeed = 0.6;
-
-    // ---------- Lights (terminator comes from this direction) ----------
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.35);
-    sunLight.position.set(3.5, 0.3, 2.2);
-    scene.add(sunLight);
-
-    const fill = new THREE.AmbientLight(0x224466, 0.35);
-    scene.add(fill);
-
-    // ---------- Star field (simple + cheap) ----------
-    {
-      const starGeo = new THREE.BufferGeometry();
-      const COUNT = 1400;
-      const pos = new Float32Array(COUNT * 3);
-      for (let i = 0; i < COUNT; i++){
-        const r = 80 + Math.random() * 220;
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(THREE.MathUtils.randFloatSpread(2));
-        pos[i*3+0] = r * Math.sin(phi) * Math.cos(theta);
-        pos[i*3+1] = r * Math.cos(phi);
-        pos[i*3+2] = r * Math.sin(phi) * Math.sin(theta);
+      /* Debug HUD (shows JS errors on iPhone) */
+      #hud{
+        position:fixed; left:10px; bottom:10px; z-index:9999;
+        font-family:-apple-system, system-ui, Segoe UI, Roboto, Arial;
+        font-size:12px; line-height:1.25;
+        color:#d7d7d7; background:rgba(0,0,0,0.55);
+        border:1px solid rgba(255,255,255,0.12);
+        border-radius:10px; padding:10px 12px; max-width:88vw;
+        backdrop-filter:blur(6px);
       }
-      starGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-      const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.6, sizeAttenuation: true, transparent:true, opacity:0.85 });
-      const stars = new THREE.Points(starGeo, starMat);
-      scene.add(stars);
-    }
+      #hud b{ color:#fff; }
+      #errors{ margin-top:8px; color:#ff9c9c; white-space:pre-wrap; display:none; }
+      #hint{ margin-top:6px; color:#a9c7ff; }
+    </style>
 
-    // ---------- Texture loading ----------
-    const loader = new THREE.TextureLoader();
-    const loadTex = (url) => new Promise((resolve, reject) => {
-      loader.load(
-        url,
-        tex => resolve(tex),
-        undefined,
-        err => reject({ url, err })
-      );
-    });
-
-    function prepTexture(tex){
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
-      tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
-      tex.needsUpdate = true;
-      return tex;
-    }
-
-    let dayMap, normalMap, specMap, cloudsMap, atmosMap, lightsMap;
-
-    try {
-      setStatus("Loading textures…", true);
-
-      // Load required textures (dayMap can be swapped later for sharper continents)
-      const [
-        tAtmos,
-        tLights,
-        tNormal,
-        tSpec,
-        tClouds,
-        tDayMaybe
-      ] = await Promise.all([
-        loadTex(TEX.atmos),
-        loadTex(TEX.lights),
-        loadTex(TEX.normal),
-        loadTex(TEX.spec),
-        loadTex(TEX.clouds),
-        loadTex(TEX.day || DAY_FALLBACK)
-      ]);
-
-      atmosMap  = prepTexture(tAtmos);
-      lightsMap = prepTexture(tLights);
-      dayMap    = prepTexture(tDayMaybe);
-
-      // normal/spec are NOT color textures
-      normalMap = tNormal; normalMap.colorSpace = THREE.NoColorSpace; normalMap.anisotropy = 8; normalMap.needsUpdate = true;
-      specMap   = tSpec;   specMap.colorSpace   = THREE.NoColorSpace; specMap.anisotropy   = 8; specMap.needsUpdate   = true;
-
-      cloudsMap = tClouds; cloudsMap.colorSpace = THREE.SRGBColorSpace; cloudsMap.anisotropy = 8; cloudsMap.needsUpdate = true;
-
-      setStatus("Running", true);
-    } catch (e) {
-      const msg = e?.url ? `Texture failed to load:<br>${e.url}` : `Texture load error`;
-      setStatus("Error (see panel)", false, msg);
-      throw e;
-    }
-
-    // ---------- Globe meshes ----------
-    const R = 1.18;
-    const geo = new THREE.SphereGeometry(R, 128, 128);
-
-    // Earth surface (Phong is great for specular oceans + crisp continents)
-    const earthMat = new THREE.MeshPhongMaterial({
-      map: dayMap,
-      normalMap,
-      normalScale: new THREE.Vector2(0.75, 0.75),
-      specularMap: specMap,
-      specular: new THREE.Color(0x6aa6ff),
-      shininess: 35
-    });
-
-    // Slight contrast pop for continents (cheap “more defined” look)
-    earthMat.map.repeat.set(1,1);
-
-    const earth = new THREE.Mesh(geo, earthMat);
-    scene.add(earth);
-
-    // City lights (shader so they appear only on the night side)
-    const lightsGeo = new THREE.SphereGeometry(R + 0.0025, 128, 128);
-    const lightsMat = new THREE.ShaderMaterial({
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      uniforms: {
-        tLights: { value: lightsMap },
-        sunDir: { value: new THREE.Vector3() },
-        gain: { value: LIGHTS_GAIN }
-      },
-      vertexShader: `
-        varying vec2 vUv;
-        varying vec3 vN;
-        void main(){
-          vUv = uv;
-          vN = normalize(normalMatrix * normal);
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+    <!-- ✅ Import Map fixes: 'three' + 'three/addons/' resolve correctly on GitHub Pages -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
         }
-      `,
-      fragmentShader: `
-        uniform sampler2D tLights;
-        uniform vec3 sunDir;
-        uniform float gain;
-        varying vec2 vUv;
-        varying vec3 vN;
+      }
+    </script>
+  </head>
 
-        void main(){
-          float ndl = dot(normalize(vN), normalize(sunDir));
-          // night factor: 0 (day) -> 1 (night)
-          float night = smoothstep(0.10, 0.55, -ndl);
+  <body>
+    <div id="hud">
+      <div><b>Status:</b> <span id="status">Loading…</span></div>
+      <div id="hint">If you see errors, screenshot them and send them here.</div>
+      <div id="errors"></div>
+    </div>
 
-          vec3 c = texture2D(tLights, vUv).rgb * gain;
-          // keep lights mostly on land; reduce overall alpha a bit
-          float a = night * clamp(max(c.r, max(c.g, c.b)), 0.0, 1.0);
-          gl_FragColor = vec4(c * night, a);
+    <script type="module">
+      // ---------- Error capture (so you can see issues on iPhone) ----------
+      const statusEl = document.getElementById("status");
+      const errorsEl = document.getElementById("errors");
+      function showError(msg){
+        errorsEl.style.display = "block";
+        errorsEl.textContent += (errorsEl.textContent ? "\n\n" : "") + msg;
+        statusEl.textContent = "Error (see panel)";
+      }
+      window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
+      window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
+
+      import * as THREE from "three";
+      import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+      import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+      import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+      import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+      import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+
+      try {
+        // ---------- Scene / Camera / Renderer ----------
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 5000);
+        camera.position.set(0, 0, 4.2);
+
+        const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setSize(innerWidth, innerHeight);
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.0;
+        document.body.appendChild(renderer.domElement);
+
+        // ---------- Lights ----------
+        scene.add(new THREE.AmbientLight(0xffffff, 0.10));
+        const sunLight = new THREE.DirectionalLight(0xffffff, 1.25);
+        sunLight.position.set(5, 1.5, 2.5);
+        scene.add(sunLight);
+
+        // ---------- Loading Manager ----------
+        const manager = new THREE.LoadingManager();
+        manager.onStart = () => { statusEl.textContent = "Loading textures…"; };
+        manager.onProgress = (_url, loaded, total) => { statusEl.textContent = `Loading textures… (${loaded}/${total})`; };
+        manager.onLoad = () => { statusEl.textContent = "Running"; };
+        manager.onError = (url) => showError("Texture failed to load:\n" + url);
+
+        // ---------- Textures (reliable CDN) ----------
+        const base = "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/";
+        const TEX = {
+          day:    base + "planets/earth_atmos_2048.jpg",
+          night:  base + "planets/earth_lights_2048.png",
+          spec:   base + "planets/earth_specular_2048.jpg",
+          clouds: base + "planets/earth_clouds_1024.png",
+          stars:  base + "galaxy_starfield.png"
+        };
+
+        const loader = new THREE.TextureLoader(manager);
+        loader.setCrossOrigin("anonymous");
+
+        const dayMap   = loader.load(TEX.day);
+        const nightMap = loader.load(TEX.night);
+        const specMap  = loader.load(TEX.spec);
+        const cloudMap = loader.load(TEX.clouds);
+        const starMap  = loader.load(TEX.stars);
+
+        dayMap.colorSpace   = THREE.SRGBColorSpace;
+        nightMap.colorSpace = THREE.SRGBColorSpace;
+        specMap.colorSpace  = THREE.SRGBColorSpace;
+        cloudMap.colorSpace = THREE.SRGBColorSpace;
+        starMap.colorSpace  = THREE.SRGBColorSpace;
+
+        const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
+        [dayMap, nightMap, specMap, cloudMap, starMap].forEach((t) => {
+          t.anisotropy = maxAniso;
+          t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+        });
+
+        // ---------- Stars ----------
+        {
+          const starGeo = new THREE.SphereGeometry(90, 64, 64);
+          const starMat = new THREE.MeshBasicMaterial({ map: starMap, side: THREE.BackSide });
+          scene.add(new THREE.Mesh(starGeo, starMat));
         }
-      `
-    });
 
-    const lights = new THREE.Mesh(lightsGeo, lightsMat);
-    scene.add(lights);
+        // ---------- Globe parts ----------
+        const earthRadius = 1.0;
+        const SEG = 96;
 
-    // Clouds
-    const clouds = new THREE.Mesh(
-      new THREE.SphereGeometry(R + 0.014, 128, 128),
-      new THREE.MeshLambertMaterial({
-        map: cloudsMap,
-        transparent: true,
-        opacity: 0.82,
-        depthWrite: false
-      })
-    );
-    scene.add(clouds);
+        const earthUniforms = {
+          dayMap:    { value: dayMap },
+          specMap:   { value: specMap },
+          sunDir:    { value: new THREE.Vector3(1,0,0) },
+          cameraPos: { value: new THREE.Vector3() }
+        };
 
-    // Cloud shadow layer (multiply darkening)
-    const cloudShadow = new THREE.Mesh(
-      new THREE.SphereGeometry(R + 0.006, 128, 128),
-      new THREE.MeshBasicMaterial({
-        color: 0x000000,
-        alphaMap: cloudsMap,
-        transparent: true,
-        opacity: 0.18,
-        blending: THREE.MultiplyBlending,
-        depthWrite: false
-      })
-    );
-    scene.add(cloudShadow);
+        const earthMat = new THREE.ShaderMaterial({
+          uniforms: earthUniforms,
+          vertexShader: `
+            varying vec2 vUv;
+            varying vec3 vNormalW;
+            varying vec3 vPosW;
+            void main(){
+              vUv = uv;
+              vec4 worldPos = modelMatrix * vec4(position, 1.0);
+              vPosW = worldPos.xyz;
+              vNormalW = normalize(mat3(modelMatrix) * normal);
+              gl_Position = projectionMatrix * viewMatrix * worldPos;
+            }
+          `,
+          fragmentShader: `
+            precision highp float;
+            uniform sampler2D dayMap;
+            uniform sampler2D specMap;
+            uniform vec3 sunDir;
+            uniform vec3 cameraPos;
+            varying vec2 vUv;
+            varying vec3 vNormalW;
+            varying vec3 vPosW;
 
-    // Thin atmosphere rim (fresnel glow)
-    const atmo = new THREE.Mesh(
-      new THREE.SphereGeometry(R + 0.035, 128, 128),
-      new THREE.ShaderMaterial({
-        transparent: true,
-        side: THREE.BackSide,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-        uniforms: {
-          glowColor: { value: new THREE.Color(0x6fb9ff) },
-          c: { value: 0.45 },
-          p: { value: 3.2 }
-        },
-        vertexShader: `
-          varying vec3 vNormal;
-          varying vec3 vView;
-          void main(){
-            vNormal = normalize(normalMatrix * normal);
-            vec4 mvPos = modelViewMatrix * vec4(position,1.0);
-            vView = normalize(-mvPos.xyz);
-            gl_Position = projectionMatrix * mvPos;
+            vec3 srgbToLinear(vec3 c){ return pow(c, vec3(2.2)); }
+            vec3 linearToSrgb(vec3 c){ return pow(max(c,0.0), vec3(1.0/2.2)); }
+
+            void main(){
+              vec3 N = normalize(vNormalW);
+              vec3 L = normalize(sunDir);
+              vec3 V = normalize(cameraPos - vPosW);
+
+              vec3 dayCol = srgbToLinear(texture2D(dayMap, vUv).rgb);
+              float specMask = texture2D(specMap, vUv).r;
+
+              float ndl = dot(N, L);
+              float dayAmt = smoothstep(-0.05, 0.15, ndl);
+
+              vec3 nightBase = dayCol * 0.08;
+              vec3 col = mix(nightBase, dayCol, dayAmt);
+
+              vec3 H = normalize(L + V);
+              float spec = pow(max(dot(N, H), 0.0), 80.0) * specMask * 0.50 * dayAmt;
+              col += vec3(spec);
+
+              float rim = pow(1.0 - max(dot(N, V), 0.0), 2.2);
+              col += vec3(0.06, 0.10, 0.16) * rim * (0.30 + 0.70 * dayAmt);
+
+              gl_FragColor = vec4(linearToSrgb(col), 1.0);
+            }
+          `
+        });
+
+        const earth = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, SEG, SEG), earthMat);
+        scene.add(earth);
+
+        // Night lights (bloom target)
+        const lightsUniforms = {
+          nightMap: { value: nightMap },
+          sunDir:   { value: new THREE.Vector3(1,0,0) },
+          gain:     { value: 2.4 } // ✅ per your request
+        };
+
+        const nightLights = new THREE.Mesh(
+          new THREE.SphereGeometry(earthRadius * 1.001, SEG, SEG),
+          new THREE.ShaderMaterial({
+            uniforms: lightsUniforms,
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+            vertexShader: `
+              varying vec2 vUv;
+              varying vec3 vNormalW;
+              void main(){
+                vUv = uv;
+                vNormalW = normalize(mat3(modelMatrix) * normal);
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+              }
+            `,
+            fragmentShader: `
+              precision highp float;
+              uniform sampler2D nightMap;
+              uniform vec3 sunDir;
+              uniform float gain;
+              varying vec2 vUv;
+              varying vec3 vNormalW;
+
+              vec3 srgbToLinear(vec3 c){ return pow(c, vec3(2.2)); }
+              vec3 linearToSrgb(vec3 c){ return pow(max(c,0.0), vec3(1.0/2.2)); }
+
+              void main(){
+                vec3 N = normalize(vNormalW);
+                vec3 L = normalize(sunDir);
+
+                float ndl = dot(N, L);
+                float dayAmt = smoothstep(-0.05, 0.15, ndl);
+                float nightAmt = 1.0 - dayAmt;
+
+                vec3 lights = srgbToLinear(texture2D(nightMap, vUv).rgb) * gain;
+                float mask = smoothstep(0.05, 0.35, nightAmt);
+
+                vec3 col = lights * mask;
+                float a = clamp(max(max(col.r, col.g), col.b), 0.0, 1.0);
+                gl_FragColor = vec4(linearToSrgb(col), a);
+              }
+            `
+          })
+        );
+        scene.add(nightLights);
+
+        // Cloud shadow layer (multiply)
+        const cloudShadow = new THREE.Mesh(
+          new THREE.SphereGeometry(earthRadius * 1.0015, SEG, SEG),
+          new THREE.MeshBasicMaterial({
+            map: cloudMap,
+            color: 0x000000,
+            transparent: true,
+            opacity: 0.28,
+            blending: THREE.MultiplyBlending,
+            depthWrite: false
+          })
+        );
+        scene.add(cloudShadow);
+
+        // Clouds (visible)
+        const clouds = new THREE.Mesh(
+          new THREE.SphereGeometry(earthRadius * 1.012, SEG, SEG),
+          new THREE.MeshLambertMaterial({
+            map: cloudMap,
+            transparent: true,
+            opacity: 0.85,
+            depthWrite: false
+          })
+        );
+        scene.add(clouds);
+
+        // Atmosphere (bloom target)
+        const atmoUniforms = {
+          sunDir:    { value: new THREE.Vector3(1,0,0) },
+          cameraPos: { value: new THREE.Vector3() }
+        };
+
+        const atmosphere = new THREE.Mesh(
+          new THREE.SphereGeometry(earthRadius * 1.045, SEG, SEG),
+          new THREE.ShaderMaterial({
+            uniforms: atmoUniforms,
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+            side: THREE.BackSide,
+            vertexShader: `
+              varying vec3 vNormalW;
+              varying vec3 vPosW;
+              void main(){
+                vec4 worldPos = modelMatrix * vec4(position, 1.0);
+                vPosW = worldPos.xyz;
+                vNormalW = normalize(mat3(modelMatrix) * normal);
+                gl_Position = projectionMatrix * viewMatrix * worldPos;
+              }
+            `,
+            fragmentShader: `
+              precision highp float;
+              uniform vec3 sunDir;
+              uniform vec3 cameraPos;
+              varying vec3 vNormalW;
+              varying vec3 vPosW;
+
+              void main(){
+                vec3 N = normalize(vNormalW);
+                vec3 L = normalize(sunDir);
+                vec3 V = normalize(cameraPos - vPosW);
+
+                float rim = pow(1.0 - max(dot(N, V), 0.0), 3.2);
+                float daySide = smoothstep(-0.15, 0.25, dot(N, L));
+
+                vec3 col = vec3(0.20, 0.55, 1.00) * rim * (0.25 + 0.75 * daySide);
+                float alpha = rim * (0.18 + 0.62 * daySide);
+                gl_FragColor = vec4(col, alpha);
+              }
+            `
+          })
+        );
+        scene.add(atmosphere);
+
+        // Group rotation
+        const globe = new THREE.Group();
+        scene.remove(earth, nightLights, cloudShadow, clouds, atmosphere);
+        globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
+        scene.add(globe);
+
+        // ---------- Selective Bloom ----------
+        const BLOOM_LAYER = 1;
+        const bloomLayer = new THREE.Layers();
+        bloomLayer.set(BLOOM_LAYER);
+        nightLights.layers.enable(BLOOM_LAYER);
+        atmosphere.layers.enable(BLOOM_LAYER);
+
+        const darkMaterial = new THREE.MeshBasicMaterial({ color:"black" });
+        const materials = new Map();
+
+        function darkenNonBloom(obj){
+          if (obj.isMesh && !bloomLayer.test(obj.layers)){
+            materials.set(obj.uuid, obj.material);
+            obj.material = darkMaterial;
           }
-        `,
-        fragmentShader: `
-          uniform vec3 glowColor;
-          uniform float c;
-          uniform float p;
-          varying vec3 vNormal;
-          varying vec3 vView;
-          void main(){
-            float fres = pow(c + (1.0 - c) * (1.0 - dot(vNormal, vView)), p);
-            gl_FragColor = vec4(glowColor * fres, fres);
-          }
-        `
-      })
-    );
-    scene.add(atmo);
-
-    // ---------- Postprocessing (Bloom + subtle vignette) ----------
-    const composer = new EffectComposer(renderer);
-    composer.addPass(new RenderPass(scene, camera));
-
-    const bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(window.innerWidth, window.innerHeight),
-      BLOOM.strength,
-      BLOOM.radius,
-      BLOOM.threshold
-    );
-    composer.addPass(bloomPass);
-
-    // Cheap vignette shader
-    const vignette = new ShaderPass({
-      uniforms: { tDiffuse: { value: null }, amount: { value: 0.55 } },
-      vertexShader: `
-        varying vec2 vUv;
-        void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
-      `,
-      fragmentShader: `
-        uniform sampler2D tDiffuse;
-        uniform float amount;
-        varying vec2 vUv;
-        void main(){
-          vec4 c = texture2D(tDiffuse, vUv);
-          vec2 p = vUv - 0.5;
-          float v = smoothstep(0.75, 0.15, dot(p,p));
-          c.rgb *= mix(1.0 - amount, 1.0, v);
-          gl_FragColor = c;
         }
-      `
-    });
-    composer.addPass(vignette);
+        function restoreMaterial(obj){
+          if (materials.has(obj.uuid)){
+            obj.material = materials.get(obj.uuid);
+            materials.delete(obj.uuid);
+          }
+        }
 
-    // ---------- Animation ----------
-    let t0 = performance.now();
-    let sunPhase = 0.0;
+        const renderScene = new RenderPass(scene, camera);
 
-    function animate(){
-      requestAnimationFrame(animate);
+        const bloomPass = new UnrealBloomPass(
+          new THREE.Vector2(innerWidth, innerHeight),
+          1.15, // ✅ strength
+          0.85, // radius
+          0.10  // ✅ threshold
+        );
 
-      const t = performance.now();
-      const dt = (t - t0) * 0.001;
-      t0 = t;
+        const bloomComposer = new EffectComposer(renderer);
+        bloomComposer.renderToScreen = false;
+        bloomComposer.addPass(renderScene);
+        bloomComposer.addPass(bloomPass);
 
-      // "Just spins" behavior
-      earth.rotation.y += dt * 0.18;
-      clouds.rotation.y += dt * 0.28;
-      cloudShadow.rotation.y += dt * 0.28;
+        const finalPass = new ShaderPass({
+          uniforms: {
+            tDiffuse: { value: null },
+            bloomTexture: { value: null }
+          },
+          vertexShader: `
+            varying vec2 vUv;
+            void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+          `,
+          fragmentShader: `
+            uniform sampler2D tDiffuse;
+            uniform sampler2D bloomTexture;
+            varying vec2 vUv;
+            void main(){
+              vec4 base = texture2D(tDiffuse, vUv);
+              vec4 bloom = texture2D(bloomTexture, vUv);
+              gl_FragColor = base + bloom;
+            }
+          `
+        });
 
-      // Slow day/night terminator drift (sun direction)
-      sunPhase += dt * 0.02;
-      const sunRadius = 4.5;
-      sunLight.position.set(
-        Math.cos(sunPhase) * sunRadius,
-        0.35,
-        Math.sin(sunPhase) * sunRadius
-      );
+        const finalComposer = new EffectComposer(renderer);
+        finalComposer.addPass(renderScene);
+        finalComposer.addPass(finalPass);
+        finalComposer.addPass(new OutputPass());
 
-      // Update shader sunDir in view space
-      const sunDirWorld = new THREE.Vector3().copy(sunLight.position).normalize();
-      lightsMat.uniforms.sunDir.value.copy(sunDirWorld);
+        function renderBloom(){
+          scene.traverse(darkenNonBloom);
+          bloomComposer.render();
+          finalPass.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
+          scene.traverse(restoreMaterial);
+        }
 
-      controls.update();
-      composer.render();
-    }
+        // ---------- Touch drag + inertia ----------
+        let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
 
-    animate();
+        const AUTO_SPIN=0.0013, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
 
-    // ---------- Resize ----------
-    window.addEventListener("resize", () => {
-      const w = window.innerWidth, h = window.innerHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-      composer.setSize(w, h);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
-    });
+        function getPoint(e){
+          if (e.touches && e.touches.length) return { x:e.touches[0].clientX, y:e.touches[0].clientY };
+          return { x:e.clientX, y:e.clientY };
+        }
+        function down(e){ dragging=true; const p=getPoint(e); lastX=p.x; lastY=p.y; }
+        function move(e){
+          if(!dragging) return;
+          const p=getPoint(e);
+          const dx=p.x-lastX, dy=p.y-lastY;
+          lastX=p.x; lastY=p.y;
 
-    // ---------- Live tweaking (optional: from console) ----------
-    // bloomPass.strength = 1.15;
-    // bloomPass.threshold = 0.10;
-    // lightsMat.uniforms.gain.value = 2.4;
-  </script>
-</body>
+          globe.rotation.y += dx*DRAG_SENS;
+          globe.rotation.x += dy*PITCH_SENS;
+          globe.rotation.x = Math.max(-MAX_PITCH, Math.min(MAX_PITCH, globe.rotation.x));
+
+          velY = dx*DRAG_SENS;
+          velX = dy*PITCH_SENS;
+        }
+        function up(){ dragging=false; }
+
+        const el = renderer.domElement;
+        el.addEventListener("touchstart", down, { passive:true });
+        el.addEventListener("touchmove", move, { passive:true });
+        el.addEventListener("touchend", up, { passive:true });
+        el.addEventListener("mousedown", down);
+        window.addEventListener("mousemove", move);
+        window.addEventListener("mouseup", up);
+
+        // ---------- Animation ----------
+        const sunDrift = 0.00005;
+        const cloudSpin = 0.0020;
+
+        function animate(){
+          requestAnimationFrame(animate);
+
+          clouds.rotation.y += cloudSpin;
+          cloudShadow.rotation.y += cloudSpin + 0.00015;
+
+          if(!dragging){
+            globe.rotation.y += AUTO_SPIN;
+            globe.rotation.y += velY;
+            globe.rotation.x += velX;
+            velY *= DAMPING;
+            velX *= DAMPING;
+            globe.rotation.x = Math.max(-MAX_PITCH, Math.min(MAX_PITCH, globe.rotation.x));
+          }
+
+          sunLight.position.applyAxisAngle(new THREE.Vector3(0,1,0), sunDrift);
+          const sunDir = sunLight.position.clone().normalize();
+
+          earthUniforms.sunDir.value.copy(sunDir);
+          earthUniforms.cameraPos.value.copy(camera.position);
+
+          lightsUniforms.sunDir.value.copy(sunDir);
+          atmoUniforms.sunDir.value.copy(sunDir);
+          atmoUniforms.cameraPos.value.copy(camera.position);
+
+          renderBloom();
+          finalComposer.render();
+        }
+        animate();
+
+        addEventListener("resize", () => {
+          camera.aspect = innerWidth/innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(innerWidth, innerHeight);
+          bloomComposer.setSize(innerWidth, innerHeight);
+          finalComposer.setSize(innerWidth, innerHeight);
+          bloomPass.setSize(innerWidth, innerHeight);
+        });
+
+      } catch (err) {
+        showError("Top-level error:\n" + (err?.stack || err?.message || err));
+      }
+    </script>
+  </body>
 </html>
