@@ -4,29 +4,41 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <title>E.D.E.N. Globe</title>
-    <style>
-      html, body { height: 100%; margin: 0; background: #000; overflow: hidden; touch-action: none; }
-      canvas { display: block; width: 100vw !important; height: 100vh !important; }
 
-      /* Tiny debug HUD (shows load + JS errors on iPhone) */
-      #hud {
-        position: fixed; left: 10px; bottom: 10px; z-index: 9999;
-        font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial;
-        font-size: 12px; line-height: 1.25;
-        color: #d7d7d7; background: rgba(0,0,0,0.55);
-        border: 1px solid rgba(255,255,255,0.12);
-        border-radius: 10px; padding: 10px 12px; max-width: 88vw;
-        backdrop-filter: blur(6px);
+    <style>
+      html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
+      canvas { display:block; width:100vw !important; height:100vh !important; }
+
+      /* Debug HUD (shows JS errors on iPhone) */
+      #hud{
+        position:fixed; left:10px; bottom:10px; z-index:9999;
+        font-family:-apple-system, system-ui, Segoe UI, Roboto, Arial;
+        font-size:12px; line-height:1.25;
+        color:#d7d7d7; background:rgba(0,0,0,0.55);
+        border:1px solid rgba(255,255,255,0.12);
+        border-radius:10px; padding:10px 12px; max-width:88vw;
+        backdrop-filter:blur(6px);
       }
-      #hud b { color: #fff; }
-      #errors { margin-top: 8px; color: #ff9c9c; white-space: pre-wrap; display:none; }
-      #hint { margin-top: 6px; color: #a9c7ff; }
+      #hud b{ color:#fff; }
+      #errors{ margin-top:8px; color:#ff9c9c; white-space:pre-wrap; display:none; }
+      #hint{ margin-top:6px; color:#a9c7ff; }
     </style>
+
+    <!-- ✅ Import Map fixes: 'three' + 'three/addons/' resolve correctly on GitHub Pages -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+        }
+      }
+    </script>
   </head>
+
   <body>
     <div id="hud">
       <div><b>Status:</b> <span id="status">Loading…</span></div>
-      <div id="hint">Tip: If you see errors, screenshot them and send here.</div>
+      <div id="hint">If you see errors, screenshot them and send them here.</div>
       <div id="errors"></div>
     </div>
 
@@ -34,7 +46,7 @@
       // ---------- Error capture (so you can see issues on iPhone) ----------
       const statusEl = document.getElementById("status");
       const errorsEl = document.getElementById("errors");
-      function showError(msg) {
+      function showError(msg){
         errorsEl.style.display = "block";
         errorsEl.textContent += (errorsEl.textContent ? "\n\n" : "") + msg;
         statusEl.textContent = "Error (see panel)";
@@ -42,21 +54,20 @@
       window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
       window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
 
-      try {
-        // ---------- Imports ----------
-        const THREE = await import("https://unpkg.com/three@0.161.0/build/three.module.js");
-        const { EffectComposer } = await import("https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/EffectComposer.js");
-        const { RenderPass } = await import("https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/RenderPass.js");
-        const { ShaderPass } = await import("https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/ShaderPass.js");
-        const { OutputPass } = await import("https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/OutputPass.js");
-        const { UnrealBloomPass } = await import("https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/UnrealBloomPass.js");
+      import * as THREE from "three";
+      import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+      import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+      import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+      import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+      import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 
+      try {
         // ---------- Scene / Camera / Renderer ----------
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 5000);
+        const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 5000);
         camera.position.set(0, 0, 4.2);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         renderer.setSize(innerWidth, innerHeight);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -73,11 +84,11 @@
         // ---------- Loading Manager ----------
         const manager = new THREE.LoadingManager();
         manager.onStart = () => { statusEl.textContent = "Loading textures…"; };
-        manager.onProgress = (url, loaded, total) => { statusEl.textContent = `Loading textures… (${loaded}/${total})`; };
+        manager.onProgress = (_url, loaded, total) => { statusEl.textContent = `Loading textures… (${loaded}/${total})`; };
         manager.onLoad = () => { statusEl.textContent = "Running"; };
-        manager.onError = (url) => { showError("Texture failed to load:\n" + url); };
+        manager.onError = (url) => showError("Texture failed to load:\n" + url);
 
-        // ---------- Textures (use jsDelivr CDN for reliability on GitHub Pages) ----------
+        // ---------- Textures (reliable CDN) ----------
         const base = "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/";
         const TEX = {
           day:    base + "planets/earth_atmos_2048.jpg",
@@ -96,11 +107,11 @@
         const cloudMap = loader.load(TEX.clouds);
         const starMap  = loader.load(TEX.stars);
 
-        dayMap.colorSpace = THREE.SRGBColorSpace;
+        dayMap.colorSpace   = THREE.SRGBColorSpace;
         nightMap.colorSpace = THREE.SRGBColorSpace;
+        specMap.colorSpace  = THREE.SRGBColorSpace;
         cloudMap.colorSpace = THREE.SRGBColorSpace;
-        starMap.colorSpace = THREE.SRGBColorSpace;
-        specMap.colorSpace = THREE.SRGBColorSpace;
+        starMap.colorSpace  = THREE.SRGBColorSpace;
 
         const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
         [dayMap, nightMap, specMap, cloudMap, starMap].forEach((t) => {
@@ -122,7 +133,7 @@
         const earthUniforms = {
           dayMap:    { value: dayMap },
           specMap:   { value: specMap },
-          sunDir:    { value: new THREE.Vector3(1, 0, 0) },
+          sunDir:    { value: new THREE.Vector3(1,0,0) },
           cameraPos: { value: new THREE.Vector3() }
         };
 
@@ -132,7 +143,7 @@
             varying vec2 vUv;
             varying vec3 vNormalW;
             varying vec3 vPosW;
-            void main() {
+            void main(){
               vUv = uv;
               vec4 worldPos = modelMatrix * vec4(position, 1.0);
               vPosW = worldPos.xyz;
@@ -146,15 +157,14 @@
             uniform sampler2D specMap;
             uniform vec3 sunDir;
             uniform vec3 cameraPos;
-
             varying vec2 vUv;
             varying vec3 vNormalW;
             varying vec3 vPosW;
 
             vec3 srgbToLinear(vec3 c){ return pow(c, vec3(2.2)); }
-            vec3 linearToSrgb(vec3 c){ return pow(max(c, 0.0), vec3(1.0/2.2)); }
+            vec3 linearToSrgb(vec3 c){ return pow(max(c,0.0), vec3(1.0/2.2)); }
 
-            void main() {
+            void main(){
               vec3 N = normalize(vNormalW);
               vec3 L = normalize(sunDir);
               vec3 V = normalize(cameraPos - vPosW);
@@ -186,8 +196,8 @@
         // Night lights (bloom target)
         const lightsUniforms = {
           nightMap: { value: nightMap },
-          sunDir:   { value: new THREE.Vector3(1, 0, 0) },
-          gain:     { value: 2.8 } // upgraded
+          sunDir:   { value: new THREE.Vector3(1,0,0) },
+          gain:     { value: 2.4 } // ✅ per your request
         };
 
         const nightLights = new THREE.Mesh(
@@ -265,7 +275,7 @@
 
         // Atmosphere (bloom target)
         const atmoUniforms = {
-          sunDir:    { value: new THREE.Vector3(1, 0, 0) },
+          sunDir:    { value: new THREE.Vector3(1,0,0) },
           cameraPos: { value: new THREE.Vector3() }
         };
 
@@ -280,7 +290,7 @@
             vertexShader: `
               varying vec3 vNormalW;
               varying vec3 vPosW;
-              void main() {
+              void main(){
                 vec4 worldPos = modelMatrix * vec4(position, 1.0);
                 vPosW = worldPos.xyz;
                 vNormalW = normalize(mat3(modelMatrix) * normal);
@@ -294,7 +304,7 @@
               varying vec3 vNormalW;
               varying vec3 vPosW;
 
-              void main() {
+              void main(){
                 vec3 N = normalize(vNormalW);
                 vec3 L = normalize(sunDir);
                 vec3 V = normalize(cameraPos - vPosW);
@@ -304,7 +314,6 @@
 
                 vec3 col = vec3(0.20, 0.55, 1.00) * rim * (0.25 + 0.75 * daySide);
                 float alpha = rim * (0.18 + 0.62 * daySide);
-
                 gl_FragColor = vec4(col, alpha);
               }
             `
@@ -318,24 +327,24 @@
         globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
         scene.add(globe);
 
-        // ---------- Selective Bloom (Safari-safe bloom texture wiring) ----------
+        // ---------- Selective Bloom ----------
         const BLOOM_LAYER = 1;
         const bloomLayer = new THREE.Layers();
         bloomLayer.set(BLOOM_LAYER);
         nightLights.layers.enable(BLOOM_LAYER);
         atmosphere.layers.enable(BLOOM_LAYER);
 
-        const darkMaterial = new THREE.MeshBasicMaterial({ color: "black" });
+        const darkMaterial = new THREE.MeshBasicMaterial({ color:"black" });
         const materials = new Map();
 
-        function darkenNonBloom(obj) {
-          if (obj.isMesh && !bloomLayer.test(obj.layers)) {
+        function darkenNonBloom(obj){
+          if (obj.isMesh && !bloomLayer.test(obj.layers)){
             materials.set(obj.uuid, obj.material);
             obj.material = darkMaterial;
           }
         }
-        function restoreMaterial(obj) {
-          if (materials.has(obj.uuid)) {
+        function restoreMaterial(obj){
+          if (materials.has(obj.uuid)){
             obj.material = materials.get(obj.uuid);
             materials.delete(obj.uuid);
           }
@@ -345,9 +354,9 @@
 
         const bloomPass = new UnrealBloomPass(
           new THREE.Vector2(innerWidth, innerHeight),
-          1.25, // strength
+          1.15, // ✅ strength
           0.85, // radius
-          0.18  // threshold
+          0.10  // ✅ threshold
         );
 
         const bloomComposer = new EffectComposer(renderer);
@@ -355,7 +364,6 @@
         bloomComposer.addPass(renderScene);
         bloomComposer.addPass(bloomPass);
 
-        // Final composite pass
         const finalPass = new ShaderPass({
           uniforms: {
             tDiffuse: { value: null },
@@ -363,10 +371,7 @@
           },
           vertexShader: `
             varying vec2 vUv;
-            void main(){
-              vUv = uv;
-              gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-            }
+            void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
           `,
           fragmentShader: `
             uniform sampler2D tDiffuse;
@@ -385,75 +390,57 @@
         finalComposer.addPass(finalPass);
         finalComposer.addPass(new OutputPass());
 
-        function renderBloom() {
+        function renderBloom(){
           scene.traverse(darkenNonBloom);
           bloomComposer.render();
-
-          // ✅ Use readBuffer texture (most reliable across versions)
           finalPass.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
-
           scene.traverse(restoreMaterial);
         }
 
         // ---------- Touch drag + inertia ----------
-        let dragging = false, lastX = 0, lastY = 0;
-        let velY = 0, velX = 0;
+        let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
 
-        const AUTO_SPIN = 0.0013;
-        const DRAG_SENS = 0.0065;
-        const PITCH_SENS = 0.0048;
-        const DAMPING = 0.92;
-        const MAX_PITCH = 0.55;
+        const AUTO_SPIN=0.0013, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
 
-        function getPoint(e) {
-          if (e.touches && e.touches.length) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-          return { x: e.clientX, y: e.clientY };
+        function getPoint(e){
+          if (e.touches && e.touches.length) return { x:e.touches[0].clientX, y:e.touches[0].clientY };
+          return { x:e.clientX, y:e.clientY };
         }
+        function down(e){ dragging=true; const p=getPoint(e); lastX=p.x; lastY=p.y; }
+        function move(e){
+          if(!dragging) return;
+          const p=getPoint(e);
+          const dx=p.x-lastX, dy=p.y-lastY;
+          lastX=p.x; lastY=p.y;
 
-        function pointerDown(e) {
-          dragging = true;
-          const p = getPoint(e);
-          lastX = p.x; lastY = p.y;
-        }
-
-        function pointerMove(e) {
-          if (!dragging) return;
-          const p = getPoint(e);
-          const dx = p.x - lastX;
-          const dy = p.y - lastY;
-          lastX = p.x; lastY = p.y;
-
-          globe.rotation.y += dx * DRAG_SENS;
-          globe.rotation.x += dy * PITCH_SENS;
+          globe.rotation.y += dx*DRAG_SENS;
+          globe.rotation.x += dy*PITCH_SENS;
           globe.rotation.x = Math.max(-MAX_PITCH, Math.min(MAX_PITCH, globe.rotation.x));
 
-          velY = dx * DRAG_SENS;
-          velX = dy * PITCH_SENS;
+          velY = dx*DRAG_SENS;
+          velX = dy*PITCH_SENS;
         }
-
-        function pointerUp() { dragging = false; }
+        function up(){ dragging=false; }
 
         const el = renderer.domElement;
-        el.addEventListener("touchstart", pointerDown, { passive: true });
-        el.addEventListener("touchmove", pointerMove, { passive: true });
-        el.addEventListener("touchend", pointerUp, { passive: true });
-        el.addEventListener("mousedown", pointerDown);
-        window.addEventListener("mousemove", pointerMove);
-        window.addEventListener("mouseup", pointerUp);
+        el.addEventListener("touchstart", down, { passive:true });
+        el.addEventListener("touchmove", move, { passive:true });
+        el.addEventListener("touchend", up, { passive:true });
+        el.addEventListener("mousedown", down);
+        window.addEventListener("mousemove", move);
+        window.addEventListener("mouseup", up);
 
         // ---------- Animation ----------
         const sunDrift = 0.00005;
         const cloudSpin = 0.0020;
 
-        function animate() {
+        function animate(){
           requestAnimationFrame(animate);
 
-          // clouds drift
           clouds.rotation.y += cloudSpin;
           cloudShadow.rotation.y += cloudSpin + 0.00015;
 
-          // auto spin + inertia
-          if (!dragging) {
+          if(!dragging){
             globe.rotation.y += AUTO_SPIN;
             globe.rotation.y += velY;
             globe.rotation.x += velX;
@@ -462,8 +449,7 @@
             globe.rotation.x = Math.max(-MAX_PITCH, Math.min(MAX_PITCH, globe.rotation.x));
           }
 
-          // slow terminator drift
-          sunLight.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), sunDrift);
+          sunLight.position.applyAxisAngle(new THREE.Vector3(0,1,0), sunDrift);
           const sunDir = sunLight.position.clone().normalize();
 
           earthUniforms.sunDir.value.copy(sunDir);
@@ -478,11 +464,9 @@
         }
         animate();
 
-        // ---------- Resize ----------
         addEventListener("resize", () => {
-          camera.aspect = innerWidth / innerHeight;
+          camera.aspect = innerWidth/innerHeight;
           camera.updateProjectionMatrix();
-
           renderer.setSize(innerWidth, innerHeight);
           bloomComposer.setSize(innerWidth, innerHeight);
           finalComposer.setSize(innerWidth, innerHeight);
