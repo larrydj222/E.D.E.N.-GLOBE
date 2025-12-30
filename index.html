@@ -6,22 +6,131 @@
     <title>E.D.E.N. Globe</title>
 
     <style>
-      html, body { height:100%; margin:0; background:#000; overflow:hidden; touch-action:none; }
+      :root{
+        --bg: #000;
+        --ui-bg: rgba(14,14,18,0.55);
+        --ui-border: rgba(255,255,255,0.14);
+        --ui-text: rgba(255,255,255,0.92);
+        --ui-muted: rgba(255,255,255,0.62);
+        --btn-off: rgba(255,255,255,0.10);
+        --btn-on: rgba(120,210,255,0.22);
+        --btn-on-border: rgba(120,210,255,0.55);
+        --btn-off-border: rgba(255,255,255,0.14);
+      }
+
+      html, body { height:100%; margin:0; background:var(--bg); overflow:hidden; touch-action:none; }
       canvas { display:block; width:100vw !important; height:100vh !important; }
 
+      /* Bottom control bar */
+      #ui {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 10px;
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        padding: 0 10px;
+        pointer-events: none; /* allow canvas drag except buttons */
+      }
+
+      #panel {
+        pointer-events: auto;
+        max-width: 980px;
+        width: min(980px, calc(100vw - 20px));
+        background: var(--ui-bg);
+        border: 1px solid var(--ui-border);
+        border-radius: 18px;
+        padding: 10px 10px 12px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 10px 35px rgba(0,0,0,0.45);
+      }
+
+      #titleRow{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+        padding: 2px 6px 8px;
+      }
+
+      #titleRow .left{
+        display:flex;
+        flex-direction:column;
+        gap:2px;
+      }
+
+      #brand {
+        font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial;
+        font-weight: 700;
+        font-size: 13px;
+        letter-spacing: 0.02em;
+        color: var(--ui-text);
+      }
+
+      #sub {
+        font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial;
+        font-weight: 500;
+        font-size: 11px;
+        color: var(--ui-muted);
+      }
+
+      #chips{
+        display:flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 0 6px 2px;
+      }
+
+      .chip{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding: 10px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--btn-off-border);
+        background: var(--btn-off);
+        color: var(--ui-text);
+        font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial;
+        font-weight: 650;
+        font-size: 12px;
+        letter-spacing: 0.01em;
+        user-select:none;
+        -webkit-tap-highlight-color: transparent;
+        transition: transform 120ms ease, background 180ms ease, border-color 180ms ease;
+      }
+
+      .chip:active { transform: scale(0.98); }
+      .chip.on{
+        background: var(--btn-on);
+        border-color: var(--btn-on-border);
+      }
+
+      .dot{
+        width: 10px; height:10px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.35);
+        box-shadow: 0 0 0 rgba(0,0,0,0);
+      }
+      .chip.on .dot{
+        background: rgba(120,210,255,0.9);
+        box-shadow: 0 0 10px rgba(120,210,255,0.6);
+      }
+
+      /* optional mini HUD for debugging on iPhone */
       #hud{
-        position:fixed; left:10px; bottom:10px; z-index:9999;
+        position:fixed; left:10px; top:10px; z-index:9999;
         font-family:-apple-system, system-ui, Segoe UI, Roboto, Arial;
         font-size:12px; line-height:1.25;
         color:#d7d7d7; background:rgba(0,0,0,0.55);
         border:1px solid rgba(255,255,255,0.12);
-        border-radius:10px; padding:10px 12px; max-width:88vw;
+        border-radius:12px; padding:10px 12px; max-width:88vw;
         backdrop-filter:blur(6px);
-        user-select:none;
+        display:none;
       }
       #hud b{ color:#fff; }
       #errors{ margin-top:8px; color:#ff9c9c; white-space:pre-wrap; display:none; }
-      #hint{ margin-top:6px; color:#a9c7ff; }
     </style>
 
     <script type="importmap">
@@ -37,8 +146,28 @@
   <body>
     <div id="hud">
       <div><b>Status:</b> <span id="status">Booting…</span></div>
-      <div id="hint">Use <b>?hud=1</b> to keep this panel always visible.</div>
       <div id="errors"></div>
+    </div>
+
+    <!-- UI -->
+    <div id="ui">
+      <div id="panel">
+        <div id="titleRow">
+          <div class="left">
+            <div id="brand">E.D.E.N. Globe</div>
+            <div id="sub">Tap to toggle layers • Drag globe to rotate</div>
+          </div>
+        </div>
+
+        <div id="chips">
+          <div class="chip on" data-toggle="axis"><span class="dot"></span>Axis Lines</div>
+          <div class="chip on" data-toggle="lineLabels"><span class="dot"></span>Line Names</div>
+          <div class="chip on" data-toggle="continents"><span class="dot"></span>Continents</div>
+          <div class="chip on" data-toggle="stations"><span class="dot"></span>Stations</div>
+          <div class="chip" data-toggle="magnetic"><span class="dot"></span>Magnetic Field</div>
+          <div class="chip" data-toggle="aurora"><span class="dot"></span>Aurora</div>
+        </div>
+      </div>
     </div>
 
     <script type="module">
@@ -49,89 +178,67 @@
       import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
       import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 
-      // ---------------- HUD / Errors ----------------
+      // ---------- Optional HUD for debugging ----------
       const hud = document.getElementById("hud");
       const statusEl = document.getElementById("status");
       const errorsEl = document.getElementById("errors");
-      const urlParams = new URLSearchParams(location.search);
-      const FORCE_HUD = urlParams.get("hud") === "1";
+      const qp = new URLSearchParams(location.search);
+      const HUD_ON = qp.get("hud") === "1";
+      if (HUD_ON) hud.style.display = "block";
 
-      function setHUD(status, details=""){
-        statusEl.textContent = status;
-        errorsEl.style.display = details ? "block" : "none";
-        errorsEl.textContent = details || "";
-      }
       function showError(msg){
+        if (!HUD_ON) hud.style.display = "block";
         errorsEl.style.display = "block";
         errorsEl.textContent += (errorsEl.textContent ? "\n\n" : "") + msg;
-        statusEl.textContent = "Error (see panel)";
-        hud.style.display = "block";
+        statusEl.textContent = "Error";
       }
       window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
       window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
 
-      function autoHideHUD(){
-        if (FORCE_HUD) return;
-        setTimeout(() => { hud.style.display = "none"; }, 2300);
-      }
+      // ---------- E.D.E.N. Constants ----------
+      const DEG2RAD = Math.PI/180;
+      const EARTH_RADIUS_KM = 6371.0;
 
-      // ---------------- E.D.E.N. Axis Settings ----------------
-      // Anchor near 202 Hendren Ave, Staunton VA (approx). Tell me if you want exact locked coordinates.
+      // Anchor (approx) near 202 Hendren Ave, Staunton VA
       const ANCHOR_LAT = 38.160833;
       const ANCHOR_LON = -79.073056;
 
-      const AXIS_BEARING = 42; // True bearing for 42° / 222°
+      const AXIS_BEARING = 42;
 
-      // Colors
       const GOLD = new THREE.Color(0xffd36b); // Rhumb
       const BLUE = new THREE.Color(0x4db3ff); // Great Circle
-      const CTRL = new THREE.Color(0xd9f0ff); // Perpendicular controls
+      const CTRL = new THREE.Color(0xd9f0ff);
 
-      // Bloom / Realism
-      const BLOOM_STRENGTH  = 1.22;
-      const BLOOM_RADIUS    = 0.85;
+      const BLOOM_STRENGTH = 1.22;
+      const BLOOM_RADIUS = 0.85;
       const BLOOM_THRESHOLD = 0.10;
 
       const LIGHTS_GAIN = 2.55;
 
-      // Continents definition knobs
-      const NORMAL_SCALE = 1.15;
-      const DAY_CONTRAST = 1.12;
-
-      // Coastline enhancement (NEW)
-      const COAST_STRENGTH = 0.55;   // 0 = off, 0.3–0.8 = good
-      const COAST_LOW      = 0.020;  // sensitivity low
-      const COAST_HIGH     = 0.080;  // sensitivity high
-
-      // Axis geometry
-      const AXIS_ALT     = 1.020;
+      // Layers
+      const CORRIDORS_KM = [1,5,10];
+      const AXIS_ALT = 1.020;
       const AXIS_OUTER_R = 0.010;
       const AXIS_INNER_R = 0.004;
-
-      // Corridors ± km
-      const CORRIDORS_KM = [1, 5, 10];
       const CORR_OUTER_R = 0.0065;
       const CORR_INNER_R = 0.0028;
-
-      // Perpendicular controls tube size
       const CTRL_OUTER_R = 0.0075;
       const CTRL_INNER_R = 0.0030;
 
-      // Motion
-      const AUTO_SPIN  = 0.00125;
-      const DRAG_SENS  = 0.0065;
-      const PITCH_SENS = 0.0048;
-      const DAMPING    = 0.92;
-      const MAX_PITCH  = 0.55;
+      // Spin / drag
+      const AUTO_SPIN=0.00125, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
 
-      // km->radians
-      const EARTH_RADIUS_KM = 6371.0;
+      // Continents pop
+      const NORMAL_SCALE = 1.15;
+      const DAY_CONTRAST = 1.12;
+      const COAST_STRENGTH = 0.55;
+      const COAST_LOW = 0.020;
+      const COAST_HIGH = 0.080;
 
-      // ---------------- Helpers ----------------
-      const DEG2RAD = Math.PI / 180;
-      function clamp(x, a, b){ return Math.max(a, Math.min(b, x)); }
+      // ---------- Helpers ----------
+      function clamp(x,a,b){ return Math.max(a, Math.min(b,x)); }
       function wrapLonRad(lam){
-        const TWO_PI = Math.PI * 2;
+        const TWO_PI = Math.PI*2;
         lam = (lam + Math.PI) % TWO_PI;
         if (lam < 0) lam += TWO_PI;
         return lam - Math.PI;
@@ -167,7 +274,6 @@
         );
       }
 
-      // Great-circle destination point
       function greatCirclePoint(lat1, lon1, bearingRad, delta){
         const sinLat1 = Math.sin(lat1), cosLat1 = Math.cos(lat1);
         const sinD = Math.sin(delta), cosD = Math.cos(delta);
@@ -182,15 +288,12 @@
         return { lat: lat2, lon: lon2 };
       }
 
-      // Rhumb step
       function rhumbStep(lat1, lon1, bearingRad, d){
         const dPhi = d * Math.cos(bearingRad);
         let lat2 = lat1 + dPhi;
         lat2 = clamp(lat2, (-89.9)*DEG2RAD, (89.9)*DEG2RAD);
 
-        const dPsi = Math.log(
-          Math.tan(Math.PI/4 + lat2/2) / Math.tan(Math.PI/4 + lat1/2)
-        );
+        const dPsi = Math.log(Math.tan(Math.PI/4 + lat2/2) / Math.tan(Math.PI/4 + lat1/2));
         const q = (Math.abs(dPsi) > 1e-12) ? (dPhi / dPsi) : Math.cos(lat1);
 
         const dLam = d * Math.sin(bearingRad) / q;
@@ -205,9 +308,9 @@
 
         const pts = [];
         const step = stepDeg * DEG2RAD;
-        for (let d = 0; d <= Math.PI*2 + step*0.5; d += step){
+        for (let d=0; d<=Math.PI*2 + step*0.5; d+=step){
           const p = greatCirclePoint(lat1, lon1, br, d);
-          pts.push(latLonToVec3(p.lat / DEG2RAD, p.lon / DEG2RAD, radius));
+          pts.push(latLonToVec3(p.lat/DEG2RAD, p.lon/DEG2RAD, radius));
         }
         return pts;
       }
@@ -216,52 +319,47 @@
         const lat1 = latDeg * DEG2RAD;
         const lon1 = lonDeg * DEG2RAD;
         const br = bearingDeg * DEG2RAD;
-
         const step = stepDeg * DEG2RAD;
 
-        // forward
-        let lat = lat1, lon = lon1;
-        const fwd = [latLonToVec3(latDeg, lonDeg, radius)];
-        for (let i=0; i<maxSteps; i++){
-          const p = rhumbStep(lat, lon, br, step);
-          lat = p.lat; lon = p.lon;
+        let lat=lat1, lon=lon1;
+        const fwd=[latLonToVec3(latDeg, lonDeg, radius)];
+        for (let i=0;i<maxSteps;i++){
+          const p=rhumbStep(lat,lon,br,step);
+          lat=p.lat; lon=p.lon;
           fwd.push(latLonToVec3(lat/DEG2RAD, lon/DEG2RAD, radius));
-          if (Math.abs(lat) > (89.7*DEG2RAD)) break;
+          if (Math.abs(lat)>(89.7*DEG2RAD)) break;
         }
 
-        // backward
-        lat = lat1; lon = lon1;
-        const back = [];
-        const brBack = wrapLonRad(br + Math.PI);
-        for (let i=0; i<maxSteps; i++){
-          const p = rhumbStep(lat, lon, brBack, step);
-          lat = p.lat; lon = p.lon;
+        lat=lat1; lon=lon1;
+        const back=[];
+        const brBack=wrapLonRad(br+Math.PI);
+        for (let i=0;i<maxSteps;i++){
+          const p=rhumbStep(lat,lon,brBack,step);
+          lat=p.lat; lon=p.lon;
           back.push(latLonToVec3(lat/DEG2RAD, lon/DEG2RAD, radius));
-          if (Math.abs(lat) > (89.7*DEG2RAD)) break;
+          if (Math.abs(lat)>(89.7*DEG2RAD)) break;
         }
         back.reverse();
         return back.concat(fwd);
       }
 
-      // Offset a curve sideways by ±km (corridor)
       function offsetCurve(points, km, radius){
         const a = (km / EARTH_RADIUS_KM);
         const cosA = Math.cos(a);
         const sinA = Math.sin(a);
 
-        const out = [];
-        const n = points.length;
+        const out=[];
+        const n=points.length;
+        for (let i=0;i<n;i++){
+          const pPrev=points[Math.max(0,i-1)];
+          const pNext=points[Math.min(n-1,i+1)];
+          const p=points[i];
 
-        for (let i=0; i<n; i++){
-          const pPrev = points[Math.max(0, i-1)];
-          const pNext = points[Math.min(n-1, i+1)];
-          const p = points[i];
+          const t=pNext.clone().sub(pPrev).normalize();
+          const v=p.clone().normalize();
+          const s=new THREE.Vector3().crossVectors(t,v).normalize();
 
-          const t = pNext.clone().sub(pPrev).normalize();
-          const v = p.clone().normalize();
-          const s = new THREE.Vector3().crossVectors(t, v).normalize();
-
-          const vp = v.clone().multiplyScalar(cosA).add(s.clone().multiplyScalar(sinA)).normalize();
+          const vp=v.clone().multiplyScalar(cosA).add(s.clone().multiplyScalar(sinA)).normalize();
           out.push(vp.multiplyScalar(radius));
         }
         return out;
@@ -293,9 +391,52 @@
           })
         );
 
-        const g = new THREE.Group();
+        const g=new THREE.Group();
         g.add(outer, inner);
         return g;
+      }
+
+      function makeTextSprite(text){
+        const padX=18, padY=12;
+        const fontSize=44;
+        const canvas=document.createElement("canvas");
+        const ctx=canvas.getContext("2d");
+
+        ctx.font=`700 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
+        const w=Math.ceil(ctx.measureText(text).width + padX*2);
+        const h=Math.ceil(fontSize + padY*2);
+        canvas.width=w; canvas.height=h;
+
+        const r=14;
+        ctx.fillStyle="rgba(0,0,0,0.45)";
+        ctx.strokeStyle="rgba(255,255,255,0.18)";
+        ctx.lineWidth=3;
+
+        ctx.beginPath();
+        ctx.moveTo(r,0);
+        ctx.arcTo(w,0,w,h,r);
+        ctx.arcTo(w,h,0,h,r);
+        ctx.arcTo(0,h,0,0,r);
+        ctx.arcTo(0,0,w,0,r);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+
+        ctx.fillStyle="rgba(255,255,255,0.92)";
+        ctx.textBaseline="middle";
+        ctx.fillText(text, padX, h/2);
+
+        const tex=new THREE.CanvasTexture(canvas);
+        tex.colorSpace=THREE.SRGBColorSpace;
+        tex.minFilter=THREE.LinearFilter;
+        tex.magFilter=THREE.LinearFilter;
+
+        const mat=new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false });
+        const spr=new THREE.Sprite(mat);
+
+        const aspect=w/h;
+        const base=0.46;
+        spr.scale.set(base*aspect, base, 1);
+        return spr;
       }
 
       async function tryLoadTexture(url){
@@ -307,77 +448,21 @@
       }
       async function loadFirst(urls){
         for (const u of urls){
-          try{
-            const tex = await tryLoadTexture(u);
-            return { tex, used: u };
-          } catch {}
+          try { return { tex: await tryLoadTexture(u), used:u }; } catch {}
         }
-        return { tex: null, used: "(fallback)" };
+        return { tex:null, used:"(fallback)" };
       }
 
-      // Text sprite labels
-      function makeTextSprite(text){
-        const padX = 18, padY = 12;
-        const fontSize = 44;
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-
-        ctx.font = `600 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
-        const metrics = ctx.measureText(text);
-        const w = Math.ceil(metrics.width + padX*2);
-        const h = Math.ceil(fontSize + padY*2);
-        canvas.width = w;
-        canvas.height = h;
-
-        const r = 14;
-
-        ctx.fillStyle = "rgba(0,0,0,0.45)";
-        ctx.strokeStyle = "rgba(255,255,255,0.18)";
-        ctx.lineWidth = 3;
-
-        ctx.beginPath();
-        ctx.moveTo(r, 0);
-        ctx.arcTo(w, 0, w, h, r);
-        ctx.arcTo(w, h, 0, h, r);
-        ctx.arcTo(0, h, 0, 0, r);
-        ctx.arcTo(0, 0, w, 0, r);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.font = `700 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
-        ctx.fillStyle = "rgba(255,255,255,0.92)";
-        ctx.textBaseline = "middle";
-        ctx.fillText(text, padX, h/2);
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.minFilter = THREE.LinearFilter;
-        texture.magFilter = THREE.LinearFilter;
-
-        const material = new THREE.SpriteMaterial({
-          map: texture,
-          transparent: true,
-          depthWrite: false
-        });
-
-        const sprite = new THREE.Sprite(material);
-        const aspect = w / h;
-        const base = 0.46;
-        sprite.scale.set(base * aspect, base, 1);
-        return sprite;
-      }
-
-      // ---------------- Main ----------------
-      try {
-        setHUD("Booting…");
+      // ---------- Scene ----------
+      try{
+        if (HUD_ON) statusEl.textContent="Booting…";
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 5000);
-        camera.position.set(0, 0, 4.2);
+        camera.position.set(0,0,4.2);
 
         const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false, powerPreference:"high-performance" });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
         renderer.setSize(innerWidth, innerHeight);
         renderer.setClearColor(0x000000, 1);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -385,20 +470,15 @@
         renderer.toneMappingExposure = 1.0;
         document.body.appendChild(renderer.domElement);
 
-        renderer.domElement.addEventListener("webglcontextlost", (e) => {
-          e.preventDefault();
-          showError("WebGL context lost.\nTry reloading the page.");
-        }, false);
-
-        const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
-
         // Lights
         scene.add(new THREE.AmbientLight(0xffffff, 0.10));
         const sunLight = new THREE.DirectionalLight(0xffffff, 1.25);
-        sunLight.position.set(5, 1.5, 2.5);
+        sunLight.position.set(5,1.5,2.5);
         scene.add(sunLight);
 
-        // Fallback textures (instant render)
+        const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
+
+        // Fallback textures so it NEVER renders black
         const dayMap    = makeFallbackTexture("#1f2b3a");
         const nightMap  = makeFallbackTexture("#000");
         const specMap   = makeFallbackTexture("#111");
@@ -420,22 +500,22 @@
           scene.add(new THREE.Mesh(starGeo, starMat));
         }
 
-        const earthRadius = 1.0;
-        const SEG = 96;
+        // Earth shader (coastline enhancement for continent readability)
+        const earthRadius=1.0;
+        const SEG=96;
 
-        // Earth shader (with normal + coastline enhancement)
         const earthUniforms = {
-          dayMap:      { value: dayMap },
-          specMap:     { value: specMap },
-          normalMap:   { value: normalMap },
-          texel:       { value: new THREE.Vector2(1/2048, 1/1024) }, // updated after load
-          normalScale: { value: NORMAL_SCALE },
-          dayContrast: { value: DAY_CONTRAST },
+          dayMap: { value: dayMap },
+          specMap:{ value: specMap },
+          normalMap:{ value: normalMap },
+          texel:{ value: new THREE.Vector2(1/2048, 1/1024) },
+          normalScale:{ value: NORMAL_SCALE },
+          dayContrast:{ value: DAY_CONTRAST },
           coastStrength:{ value: COAST_STRENGTH },
-          coastLow:    { value: COAST_LOW },
-          coastHigh:   { value: COAST_HIGH },
-          sunDir:      { value: new THREE.Vector3(1,0,0) },
-          cameraPos:   { value: new THREE.Vector3() }
+          coastLow:{ value: COAST_LOW },
+          coastHigh:{ value: COAST_HIGH },
+          sunDir:{ value: new THREE.Vector3(1,0,0) },
+          cameraPos:{ value: new THREE.Vector3() }
         };
 
         const earthMat = new THREE.ShaderMaterial({
@@ -498,7 +578,6 @@
             }
 
             float coastlineEdge(vec2 uv){
-              // simple gradient edge detection on dayMap luma
               vec3 c  = srgbToLinear(texture2D(dayMap, uv).rgb);
               float m = luma(c);
 
@@ -521,7 +600,6 @@
               vec3 dayCol = srgbToLinear(texture2D(dayMap, vUv).rgb);
               dayCol = pow(dayCol, vec3(1.0/dayContrast));
 
-              // Add subtle coastline darkening to emphasize continents
               float edge = coastlineEdge(vUv);
               dayCol *= (1.0 - coastStrength * edge * 0.55);
 
@@ -548,7 +626,7 @@
         const earth = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, SEG, SEG), earthMat);
         scene.add(earth);
 
-        // Night lights (bloom target)
+        // Night lights (bloom)
         const lightsUniforms = {
           nightMap: { value: nightMap },
           sunDir:   { value: new THREE.Vector3(1,0,0) },
@@ -563,8 +641,7 @@
             depthWrite: false,
             blending: THREE.AdditiveBlending,
             vertexShader: `
-              varying vec2 vUv;
-              varying vec3 vNormalW;
+              varying vec2 vUv; varying vec3 vNormalW;
               void main(){
                 vUv = uv;
                 vNormalW = normalize(mat3(modelMatrix) * normal);
@@ -627,7 +704,7 @@
         );
         scene.add(clouds);
 
-        // Atmosphere (bloom target)
+        // Atmosphere (bloom)
         const atmoUniforms = {
           sunDir:    { value: new THREE.Vector3(1,0,0) },
           cameraPos: { value: new THREE.Vector3() }
@@ -642,8 +719,7 @@
             blending: THREE.AdditiveBlending,
             side: THREE.BackSide,
             vertexShader: `
-              varying vec3 vNormalW;
-              varying vec3 vPosW;
+              varying vec3 vNormalW; varying vec3 vPosW;
               void main(){
                 vec4 worldPos = modelMatrix * vec4(position, 1.0);
                 vPosW = worldPos.xyz;
@@ -657,7 +733,6 @@
               uniform vec3 cameraPos;
               varying vec3 vNormalW;
               varying vec3 vPosW;
-
               void main(){
                 vec3 N = normalize(vNormalW);
                 vec3 L = normalize(sunDir);
@@ -675,27 +750,40 @@
         );
         scene.add(atmosphere);
 
-        // ---------------- Axis Geometry: Rhumb + Great Circle + Corridors + Perps ----------------
+        // --------- Overlay groups (TOGGLED) ---------
+        const globe = new THREE.Group();
+        scene.remove(earth, nightLights, cloudShadow, clouds, atmosphere);
+        globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
+        scene.add(globe);
+
+        const overlays = {
+          axis: new THREE.Group(),
+          lineLabels: new THREE.Group(),
+          continents: new THREE.Group(),
+          stations: new THREE.Group(),
+          magnetic: new THREE.Group(),
+          aurora: new THREE.Group()
+        };
+        Object.values(overlays).forEach(g => globe.add(g));
+
+        // Axis: Great Circle + Rhumb + corridors + perpendiculars
         const axisRadius = earthRadius * AXIS_ALT;
 
-        // Great Circle (Blue)
         const gcPts = buildGreatCirclePoints(ANCHOR_LAT, ANCHOR_LON, AXIS_BEARING, axisRadius, 0.75);
-        const greatCircle = makeGlowTube(gcPts, BLUE, AXIS_OUTER_R, AXIS_INNER_R);
-
-        // Rhumb (Gold)
         const rhPts = buildRhumbPoints(ANCHOR_LAT, ANCHOR_LON, AXIS_BEARING, axisRadius, 0.35, 5000);
-        const rhumbLine = makeGlowTube(rhPts, GOLD, AXIS_OUTER_R, AXIS_INNER_R);
 
-        // Corridors
+        const greatCircle = makeGlowTube(gcPts, BLUE, AXIS_OUTER_R, AXIS_INNER_R);
+        const rhumbLine   = makeGlowTube(rhPts, GOLD, AXIS_OUTER_R, AXIS_INNER_R);
+
         function buildCorridors(points, color){
-          const g = new THREE.Group();
+          const g=new THREE.Group();
           for (const km of CORRIDORS_KM){
             const plus  = offsetCurve(points, +km, axisRadius);
             const minus = offsetCurve(points, -km, axisRadius);
-
-            const tPlus  = makeGlowTube(plus,  color, CORR_OUTER_R, CORR_INNER_R, 0.12, 0.55);
-            const tMinus = makeGlowTube(minus, color, CORR_OUTER_R, CORR_INNER_R, 0.12, 0.55);
-            g.add(tPlus, tMinus);
+            g.add(
+              makeGlowTube(plus,  color, CORR_OUTER_R, CORR_INNER_R, 0.12, 0.55),
+              makeGlowTube(minus, color, CORR_OUTER_R, CORR_INNER_R, 0.12, 0.55)
+            );
           }
           return g;
         }
@@ -703,29 +791,23 @@
         const gcCorridors = buildCorridors(gcPts, BLUE);
         const rhCorridors = buildCorridors(rhPts, GOLD);
 
-        // Perpendicular Controls 132°/312° (through anchor)
         const perp1 = buildGreatCirclePoints(ANCHOR_LAT, ANCHOR_LON, AXIS_BEARING + 90, axisRadius, 0.75);
         const perp2 = buildGreatCirclePoints(ANCHOR_LAT, ANCHOR_LON, AXIS_BEARING - 90, axisRadius, 0.75);
         const perpA = makeGlowTube(perp1, CTRL, CTRL_OUTER_R, CTRL_INNER_R, 0.10, 0.60);
         const perpB = makeGlowTube(perp2, CTRL, CTRL_OUTER_R, CTRL_INNER_R, 0.10, 0.60);
 
-        // Anchor marker
-        const anchorMarker = new THREE.Mesh(
-          new THREE.SphereGeometry(0.018, 18, 18),
-          new THREE.MeshBasicMaterial({
-            color: 0xffffff,
-            transparent:true,
-            opacity:0.95,
-            blending: THREE.AdditiveBlending,
-            depthWrite:false
-          })
-        );
-        anchorMarker.position.copy(latLonToVec3(ANCHOR_LAT, ANCHOR_LON, earthRadius * 1.026));
+        overlays.axis.add(greatCircle, rhumbLine, gcCorridors, rhCorridors, perpA, perpB);
+
+        // Line labels
+        const rhLabel = makeTextSprite("Rhumb Line (True) — 42°/222° (Gold)");
+        rhLabel.position.copy(latLonToVec3(10, -30, earthRadius * 1.22));
+        const gcLabel = makeTextSprite("Great Circle (Geodesic WGS84) — 42°/222° (Blue)");
+        gcLabel.position.copy(latLonToVec3(-8, 25, earthRadius * 1.22));
+        const perpLabel = makeTextSprite("Perpendicular Controls — 132° / 312°");
+        perpLabel.position.copy(latLonToVec3(-25, -150, earthRadius * 1.22));
+        overlays.lineLabels.add(rhLabel, gcLabel, perpLabel);
 
         // Continent labels
-        const labels = new THREE.Group();
-        const labelRadius = earthRadius * 1.095;
-
         const continents = [
           { name:"North America", lat:  40, lon: -100 },
           { name:"South America", lat: -15, lon:  -60 },
@@ -735,38 +817,101 @@
           { name:"Australia",     lat: -25, lon:  135 },
           { name:"Antarctica",    lat: -80, lon:    0 }
         ];
-
-        for (const c of continents){
+        const labelRadius = earthRadius * 1.095;
+        continents.forEach(c => {
           const s = makeTextSprite(c.name);
           s.position.copy(latLonToVec3(c.lat, c.lon, labelRadius));
-          labels.add(s);
+          overlays.continents.add(s);
+        });
+
+        // Stations (current: Exit 222 / 202 Staunton VA)
+        function makeStationMarker(name, lat, lon){
+          const g = new THREE.Group();
+          const marker = new THREE.Mesh(
+            new THREE.SphereGeometry(0.018, 18, 18),
+            new THREE.MeshBasicMaterial({
+              color: 0xffffff,
+              transparent:true,
+              opacity:0.95,
+              blending: THREE.AdditiveBlending,
+              depthWrite:false
+            })
+          );
+          marker.position.copy(latLonToVec3(lat, lon, earthRadius * 1.026));
+          g.add(marker);
+
+          const label = makeTextSprite(name);
+          label.position.copy(latLonToVec3(lat, lon, earthRadius * 1.18));
+          g.add(label);
+          return g;
         }
+        overlays.stations.add(
+          makeStationMarker("Exit 222 / 202 Station — Staunton, VA", ANCHOR_LAT, ANCHOR_LON)
+        );
 
-        // Rotation group (everything spins together)
-        const globe = new THREE.Group();
-        scene.remove(earth, nightLights, cloudShadow, clouds, atmosphere);
+        // Magnetic field (simple dipole-like lines v1)
+        // This is an illustrative overlay (not measured data).
+        function buildMagneticField(){
+          const g = new THREE.Group();
+          const fieldColor = new THREE.Color(0x7ad2ff);
 
-        globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
-        globe.add(greatCircle, gcCorridors);
-        globe.add(rhumbLine,   rhCorridors);
-        globe.add(perpA, perpB);
-        globe.add(anchorMarker);
-        globe.add(labels);
+          // Build a set of meridian-like arcs near poles (stylized)
+          const lines = 18;
+          for (let i=0;i<lines;i++){
+            const lon = -180 + (360/lines)*i;
+            const pts=[];
+            for (let t=0;t<=1.0;t+=0.02){
+              // latitude curve concentrating toward poles
+              const lat = -80 + 160*t; // -80..80
+              // raise altitude near poles slightly for effect
+              const alt = 1.06 + 0.06 * Math.pow(Math.abs(lat)/80, 2.0);
+              pts.push(latLonToVec3(lat, lon, earthRadius * alt));
+            }
+            const tube = makeGlowTube(pts, fieldColor, 0.0055, 0.0022, 0.08, 0.35);
+            g.add(tube);
+          }
+          return g;
+        }
+        overlays.magnetic.add(buildMagneticField());
 
-        scene.add(globe);
+        // Aurora (subtle polar glow rings v1)
+        function buildAurora(){
+          const g = new THREE.Group();
+          const aurMat = new THREE.MeshBasicMaterial({
+            color: 0x66ffcc,
+            transparent:true,
+            opacity:0.10,
+            blending: THREE.AdditiveBlending,
+            depthWrite:false,
+            side: THREE.DoubleSide
+          });
 
-        // ---------------- Selective Bloom ----------------
+          function ring(lat){
+            const r = earthRadius * 1.06;
+            const geo = new THREE.TorusGeometry(r*Math.cos(lat*DEG2RAD), 0.03, 10, 120);
+            const mesh = new THREE.Mesh(geo, aurMat.clone());
+            mesh.rotation.x = Math.PI/2;
+            mesh.position.y = earthRadius * Math.sin(lat*DEG2RAD) * 1.04;
+            return mesh;
+          }
+
+          // north + south auroral ovals
+          g.add(ring(72), ring(-72));
+          return g;
+        }
+        overlays.aurora.add(buildAurora());
+
+        // ---------- Selective Bloom ----------
         const BLOOM_LAYER = 1;
         const bloomLayer = new THREE.Layers();
         bloomLayer.set(BLOOM_LAYER);
 
+        // bloom targets
         nightLights.layers.enable(BLOOM_LAYER);
         atmosphere.layers.enable(BLOOM_LAYER);
-
-        // Bloom the axis suite
-        [greatCircle, gcCorridors, rhumbLine, rhCorridors, perpA, perpB, anchorMarker].forEach(obj => {
-          obj.traverse?.(o => o.layers?.enable(BLOOM_LAYER));
-          obj.layers?.enable(BLOOM_LAYER);
+        // bloom overlays (lines / stations / effects)
+        [overlays.axis, overlays.magnetic, overlays.aurora, overlays.stations].forEach(grp => {
+          grp.traverse(o => o.layers?.enable(BLOOM_LAYER));
         });
 
         const darkMaterial = new THREE.MeshBasicMaterial({ color:"black" });
@@ -788,9 +933,7 @@
 
         const bloomPass = new UnrealBloomPass(
           new THREE.Vector2(innerWidth, innerHeight),
-          BLOOM_STRENGTH,
-          BLOOM_RADIUS,
-          BLOOM_THRESHOLD
+          BLOOM_STRENGTH, BLOOM_RADIUS, BLOOM_THRESHOLD
         );
 
         const bloomComposer = new EffectComposer(renderer);
@@ -825,7 +968,47 @@
           scene.traverse(restoreMaterial);
         }
 
-        // ---------------- Touch + Inertia ----------------
+        // ---------- UI toggles ----------
+        const state = {
+          axis: true,
+          lineLabels: true,
+          continents: true,
+          stations: true,
+          magnetic: false,
+          aurora: false
+        };
+
+        function applyState(){
+          overlays.axis.visible = state.axis;
+
+          overlays.lineLabels.visible = state.lineLabels;
+          overlays.continents.visible = state.continents;
+          overlays.stations.visible = state.stations;
+
+          overlays.magnetic.visible = state.magnetic;
+          overlays.aurora.visible = state.aurora;
+        }
+        applyState();
+
+        const chips = [...document.querySelectorAll(".chip")];
+        chips.forEach(ch => {
+          ch.addEventListener("click", () => {
+            const key = ch.dataset.toggle;
+            state[key] = !state[key];
+            ch.classList.toggle("on", state[key]);
+            applyState();
+          });
+        });
+
+        // Ensure labels always face camera
+        function faceCamera(group){
+          group.children.forEach(obj => {
+            if (obj.isSprite) obj.quaternion.copy(camera.quaternion);
+            if (obj.children?.length) faceCamera(obj);
+          });
+        }
+
+        // ---------- Touch drag + inertia ----------
         let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
 
         function getPoint(e){
@@ -856,15 +1039,17 @@
         window.addEventListener("mousemove", move);
         window.addEventListener("mouseup", up);
 
-        // ---------------- Animation ----------------
+        // ---------- Animation ----------
         const sunDrift = 0.00005;
         const cloudSpin = 0.0020;
 
         function animate(){
           requestAnimationFrame(animate);
 
-          // labels face camera
-          labels.children.forEach(s => s.quaternion.copy(camera.quaternion));
+          // face sprites
+          faceCamera(overlays.lineLabels);
+          faceCamera(overlays.continents);
+          faceCamera(overlays.stations);
 
           clouds.rotation.y += cloudSpin;
           cloudShadow.rotation.y += cloudSpin + 0.00015;
@@ -893,6 +1078,7 @@
         }
         animate();
 
+        // ---------- Resize ----------
         addEventListener("resize", () => {
           camera.aspect = innerWidth/innerHeight;
           camera.updateProjectionMatrix();
@@ -902,13 +1088,12 @@
           bloomPass.setSize(innerWidth, innerHeight);
         });
 
-        // ---------------- Async texture upgrade (multi-CDN hot swap) ----------------
-        setHUD("Loading textures…");
+        // ---------- Texture upgrade (no local files required) ----------
+        if (HUD_ON) statusEl.textContent="Loading textures…";
 
         const cdnJS = "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/";
         const cdn3J = "https://threejs.org/examples/textures/";
 
-        // Prefer higher-res day texture first (4096 -> 2048)
         const sources = {
           day:    [cdnJS+"planets/earth_atmos_4096.jpg", cdn3J+"planets/earth_atmos_4096.jpg", cdnJS+"planets/earth_atmos_2048.jpg", cdn3J+"planets/earth_atmos_2048.jpg"],
           night:  [cdnJS+"planets/earth_lights_2048.png",    cdn3J+"planets/earth_lights_2048.png"],
@@ -959,19 +1144,25 @@
         }
         if (starsRes.tex){
           applyTexSettings(starsRes.tex, { colorSpace: THREE.SRGBColorSpace, maxAniso });
-          scene.traverse((o) => {
-            if (o.isMesh && o.material && o.material.map && o.material.map === starMap){
+          scene.traverse(o => {
+            if (o.isMesh && o.material && o.material.map === starMap){
               o.material.map = starsRes.tex;
               o.material.needsUpdate = true;
             }
           });
         }
 
-        setHUD(
-          "Running",
-          `Anchor: ${ANCHOR_LAT.toFixed(6)}, ${ANCHOR_LON.toFixed(6)}\nAxis: 42° / 222°\nPerps: 132° / 312°\nCorridors: ±1/±5/±10 km\nCoasts: ON\n\nTextures:\nday: ${dayRes.used}\nnight: ${nightRes.used}\nspec: ${specRes.used}\nnormal: ${normalRes.used}\ncloud: ${cloudRes.used}\nstars: ${starsRes.used}`
-        );
-        autoHideHUD();
+        if (HUD_ON){
+          statusEl.textContent="Running";
+          errorsEl.style.display="block";
+          errorsEl.textContent =
+            `Anchor: ${ANCHOR_LAT.toFixed(6)}, ${ANCHOR_LON.toFixed(6)}\n`+
+            `Axis: 42° / 222°\nPerps: 132° / 312°\nCorridors: ±1/±5/±10 km\n\n`+
+            `Textures:\n`+
+            `day: ${dayRes.used}\nnight: ${nightRes.used}\n`+
+            `spec: ${specRes.used}\nnormal: ${normalRes.used}\n`+
+            `cloud: ${cloudRes.used}\nstars: ${starsRes.used}`;
+        }
 
       } catch (err) {
         showError("Top-level error:\n" + (err?.stack || err?.message || err));
