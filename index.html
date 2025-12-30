@@ -1,1587 +1,1125 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>MAP E.D.E.N. — Globe</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>MAP E.D.E.N. Globe</title>
 
-  <style>
-    :root{
-      --glass: rgba(18, 22, 30, 0.42);
-      --glass2: rgba(18, 22, 30, 0.28);
-      --stroke: rgba(255,255,255,0.14);
-      --stroke2: rgba(255,255,255,0.10);
-      --text: rgba(255,255,255,0.92);
-      --muted: rgba(255,255,255,0.70);
-      --chip: rgba(255,255,255,0.08);
-      --chipOn: rgba(255,255,255,0.16);
-      --danger: rgba(255, 102, 102, 0.18);
-      --dangerStroke: rgba(255, 110, 110, 0.35);
-      --accentBlue: rgba(120, 185, 255, 0.90);
-      --accentGold: rgba(255, 214, 120, 0.92);
-    }
-
-    html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
-    canvas { display:block; width:100vw !important; height:100vh !important; }
-
-    /* Left “Layers” button */
-    #layersBtn{
-      position: fixed;
-      left: 18px;
-      bottom: calc(18px + env(safe-area-inset-bottom));
-      z-index: 50;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 14px 16px;
-      border-radius: 16px;
-      color: var(--text);
-      background: linear-gradient(180deg, var(--glass), var(--glass2));
-      border: 1px solid var(--stroke);
-      box-shadow: 0 18px 40px rgba(0,0,0,0.35);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      user-select: none;
-      -webkit-user-select: none;
-      cursor: pointer;
-    }
-    #layersBtn .icon{
-      width: 18px; height: 18px;
-      opacity: 0.85;
-    }
-    #layersBtn .label{
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      opacity: 0.95;
-    }
-
-    /* Bottom sheet */
-    #sheet{
-      position: fixed;
-      left: 12px;
-      right: 12px;
-      bottom: calc(12px + env(safe-area-inset-bottom));
-      z-index: 60;
-      border-radius: 26px;
-      background: linear-gradient(180deg, rgba(20,24,33,0.52), rgba(15,18,25,0.28));
-      border: 1px solid var(--stroke);
-      box-shadow: 0 26px 70px rgba(0,0,0,0.45);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      overflow: hidden;
-      transform: translateY(120%);
-      transition: transform 260ms ease;
-    }
-    #sheet.open{
-      transform: translateY(0%);
-    }
-
-    #sheetTop{
-      padding: 16px 18px 0 18px;
-    }
-    #grab{
-      width: 64px;
-      height: 6px;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.18);
-      margin: 0 auto 10px auto;
-    }
-    #titleRow{
-      display:flex;
-      align-items:flex-start;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    #title{
-      font-size: 28px;
-      font-weight: 900;
-      letter-spacing: 0.6px;
-      color: var(--text);
-      margin: 4px 0 2px 0;
-    }
-    #subtitle{
-      font-size: 15px;
-      color: var(--muted);
-      margin: 0 0 12px 0;
-    }
-    #closeBtn{
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background: rgba(255,255,255,0.07);
-      border: 1px solid var(--stroke2);
-      color: var(--text);
-      cursor:pointer;
-      user-select:none;
-      -webkit-user-select:none;
-    }
-    #closeBtn:active{ transform: scale(0.98); }
-
-    /* Toggle grid */
-    #toggles{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      padding: 6px 18px 14px 18px;
-    }
-    .chip{
-      display:flex;
-      align-items:center;
-      gap: 12px;
-      padding: 16px 16px;
-      border-radius: 999px;
-      background: var(--chip);
-      border: 1px solid var(--stroke2);
-      color: var(--text);
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: 0.2px;
-      user-select:none;
-      -webkit-user-select:none;
-      cursor:pointer;
-      justify-content: flex-start;
-    }
-    .chip .dot{
-      width: 18px;
-      height: 18px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.14);
-      border: 1px solid rgba(255,255,255,0.18);
-      box-shadow: inset 0 0 0 2px rgba(0,0,0,0.12);
-      flex: 0 0 auto;
-    }
-    .chip.on{
-      background: var(--chipOn);
-      border-color: rgba(255,255,255,0.18);
-    }
-    .chip.on .dot{
-      background: rgba(255,255,255,0.65);
-      border-color: rgba(255,255,255,0.35);
-    }
-    .chip.big{ grid-column: 1 / -1; justify-content: center; }
-
-    /* Footer info / errors */
-    #sheetFooter{
-      padding: 0 18px 18px 18px;
-    }
-    #statusRow{
-      display:flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-      color: rgba(255,255,255,0.72);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size: 14px;
-      line-height: 1.35;
-      margin-bottom: 8px;
-    }
-    #statusRow b{ color: rgba(255,255,255,0.92); font-family: inherit; }
-    #tipRow{
-      color: rgba(255,255,255,0.68);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size: 14px;
-      margin-bottom: 10px;
-    }
-
-    #errorBox{
-      display:none;
-      border-radius: 18px;
-      padding: 14px 14px;
-      background: var(--danger);
-      border: 1px solid var(--dangerStroke);
-      color: rgba(255,255,255,0.92);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size: 13px;
-      white-space: pre-wrap;
-      line-height: 1.35;
-    }
-    #errorBox .row{
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    #errorClose{
-      padding: 10px 14px;
-      border-radius: 14px;
-      background: rgba(0,0,0,0.25);
-      border: 1px solid rgba(255,255,255,0.18);
-      color: rgba(255,255,255,0.92);
-      cursor: pointer;
-      user-select:none;
-      -webkit-user-select:none;
-    }
-
-    /* Floating labels */
-    .label{
-      position: fixed;
-      z-index: 40;
-      padding: 8px 10px;
-      border-radius: 14px;
-      background: rgba(10, 12, 18, 0.35);
-      border: 1px solid rgba(255,255,255,0.12);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      color: rgba(255,255,255,0.92);
-      font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      font-weight: 800;
-      font-size: 13px;
-      letter-spacing: 0.2px;
-      pointer-events: none;
-      transform: translate(-50%, -50%);
-      white-space: nowrap;
-      opacity: 0;
-      transition: opacity 120ms ease;
-    }
-    .label.show{ opacity: 1; }
-    .label.blue{ border-color: rgba(120,185,255,0.22); }
-    .label.gold{ border-color: rgba(255,214,120,0.22); }
-  </style>
-
-  <!-- Import map: stable module specifiers (prevents “three does not resolve” errors) -->
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+    <style>
+      :root{
+        --glass: rgba(12,14,18,0.58);
+        --glass2: rgba(12,14,18,0.42);
+        --stroke: rgba(255,255,255,0.12);
+        --text: rgba(255,255,255,0.92);
+        --muted: rgba(255,255,255,0.68);
+        --muted2: rgba(255,255,255,0.45);
+        --gold: #f6c24a;
+        --blue: #5bbcff;
       }
-    }
-  </script>
-</head>
 
-<body>
-  <!-- Layers button (always visible) -->
-  <div id="layersBtn" aria-label="Open Layers">
-    <svg class="icon" viewBox="0 0 24 24" fill="none">
-      <path d="M4 7h16M4 12h16M4 17h16" stroke="rgba(255,255,255,0.85)" stroke-width="2.2" stroke-linecap="round"/>
-    </svg>
-    <div class="label">Layers</div>
-  </div>
+      html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
+      canvas { display:block; width:100vw !important; height:100vh !important; }
 
-  <!-- Bottom sheet -->
-  <div id="sheet">
-    <div id="sheetTop">
-      <div id="grab"></div>
-      <div id="titleRow">
-        <div>
+      /* ---------- Bottom Drawer (matches your screenshot vibe) ---------- */
+      #drawer {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 18px;
+        width: min(720px, calc(100vw - 28px));
+        z-index: 9999;
+        color: var(--text);
+        background: var(--glass);
+        border: 1px solid var(--stroke);
+        border-radius: 22px;
+        padding: 14px 14px 16px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 14px 44px rgba(0,0,0,0.42);
+        user-select: none;
+      }
+
+      #drawerTop{
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:12px;
+      }
+
+      #titleBlock{
+        display:flex;
+        flex-direction:column;
+        gap:4px;
+      }
+
+      #title {
+        font: 700 18px/1.1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+        letter-spacing: 0.2px;
+      }
+      #subtitle{
+        font: 500 12px/1.25 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+        color: var(--muted);
+      }
+
+      #handle {
+        width: 44px;
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.18);
+        margin: 6px auto 10px;
+      }
+
+      #rowWrap {
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+        margin-top: 10px;
+      }
+
+      .row {
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+      }
+
+      .pill {
+        display:inline-flex;
+        align-items:center;
+        gap:10px;
+        padding: 12px 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(255,255,255,0.06);
+        color: var(--text);
+        font: 700 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+        letter-spacing: 0.15px;
+        cursor:pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .pill:active { transform: translateY(1px); }
+
+      .dot {
+        width: 10px; height: 10px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.18);
+        box-shadow: 0 0 0 rgba(0,0,0,0);
+      }
+
+      .pill.on .dot {
+        background: rgba(120,255,200,0.88);
+        box-shadow: 0 0 18px rgba(120,255,200,0.35);
+      }
+
+      /* color hint for axis lines when enabled */
+      .pill.on[data-key="axisLines"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 18px rgba(246,194,74,0.35); }
+      .pill.on[data-key="corridors"] .dot{ background: rgba(246,194,74,0.65); box-shadow:0 0 18px rgba(246,194,74,0.24); }
+      .pill.on[data-key="perpendiculars"] .dot{ background: rgba(91,188,255,0.90); box-shadow:0 0 18px rgba(91,188,255,0.30); }
+      .pill.on[data-key="aurora"] .dot{ background: rgba(160,120,255,0.90); box-shadow:0 0 18px rgba(160,120,255,0.30); }
+      .pill.on[data-key="magField"] .dot{ background: rgba(91,188,255,0.75); box-shadow:0 0 18px rgba(91,188,255,0.22); }
+
+      #statusLine{
+        margin-top:10px;
+        color: var(--muted2);
+        font: 600 11px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+        display:flex;
+        justify-content:space-between;
+        gap:12px;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+      }
+
+      #errors{
+        margin-top: 10px;
+        display:none;
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,120,120,0.22);
+        background: rgba(80,10,10,0.35);
+        color: rgba(255,170,170,0.95);
+        font: 600 11px/1.35 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        white-space: pre-wrap;
+      }
+
+      /* collapsed state */
+      #drawer.collapsed #rowWrap,
+      #drawer.collapsed #statusLine,
+      #drawer.collapsed #errors { display:none; }
+      #drawer.collapsed { padding-bottom: 12px; }
+
+      @media (max-width: 420px){
+        .pill { padding: 12px 12px; border-radius: 16px; font-size: 13px; }
+      }
+    </style>
+
+    <!-- ✅ Import Map so 'three' + 'three/addons/' resolve on GitHub Pages -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+
+  <body>
+    <div id="drawer">
+      <div id="handle" title="Tap to collapse/expand"></div>
+
+      <div id="drawerTop">
+        <div id="titleBlock">
           <div id="title">MAP E.D.E.N.</div>
           <div id="subtitle">Tap to toggle layers • Drag globe to rotate • Pinch to zoom</div>
         </div>
-        <div id="closeBtn" title="Close">✕</div>
       </div>
-    </div>
 
-    <div id="toggles">
-      <div class="chip on" data-toggle="axis"><div class="dot"></div>Axis Lines</div>
-      <div class="chip" data-toggle="names"><div class="dot"></div>Line Names</div>
-
-      <div class="chip big" data-toggle="continents"><div class="dot"></div>Continents</div>
-
-      <div class="chip on" data-toggle="stations"><div class="dot"></div>Stations</div>
-      <div class="chip" data-toggle="corridors"><div class="dot"></div>Corridors</div>
-
-      <div class="chip big" data-toggle="perps"><div class="dot"></div>Perpendiculars</div>
-
-      <div class="chip" data-toggle="mag"><div class="dot"></div>Magnetic Field</div>
-      <div class="chip" data-toggle="aurora"><div class="dot"></div>Aurora</div>
-    </div>
-
-    <div id="sheetFooter">
-      <div id="statusRow">
-        <span><b>Status:</b> <span id="status">Booting…</span></span>
-        <span id="kp"></span>
-      </div>
-      <div id="tipRow">Tip: With Stations ON, tap globe to drop a Future Station (saved).</div>
-
-      <div id="errorBox">
-        <div id="errors"></div>
+      <div id="rowWrap">
         <div class="row">
-          <div style="opacity:.85;">(Globe will still run using fallback textures.)</div>
-          <div id="errorClose">Close</div>
+          <button class="pill on" data-key="axisLines"><span class="dot"></span>Axis Lines</button>
+          <button class="pill" data-key="lineNames"><span class="dot"></span>Line Names</button>
+          <button class="pill" data-key="continents"><span class="dot"></span>Continents</button>
         </div>
+
+        <div class="row">
+          <button class="pill on" data-key="stations"><span class="dot"></span>Stations</button>
+          <button class="pill" data-key="corridors"><span class="dot"></span>Corridors</button>
+          <button class="pill" data-key="perpendiculars"><span class="dot"></span>Perpendiculars</button>
+        </div>
+
+        <div class="row">
+          <button class="pill" data-key="magField"><span class="dot"></span>Magnetic Field</button>
+          <button class="pill" data-key="aurora"><span class="dot"></span>Aurora</button>
+        </div>
+
+        <div id="statusLine">
+          <span id="status">Booting…</span>
+          <span id="hint">Tip: With Stations ON, tap globe to drop a Future Station (saved).</span>
+        </div>
+
+        <div id="errors"></div>
       </div>
     </div>
-  </div>
 
-  <!-- Floating labels (created dynamically) -->
-  <script type="module">
-    import * as THREE from "three";
-    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
-    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
-    import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
-    import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
-    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+    <script type="module">
+      // ---------- Error capture (so iPhone shows why it's dark if something breaks) ----------
+      const statusEl = document.getElementById("status");
+      const errorsEl = document.getElementById("errors");
+      const drawerEl = document.getElementById("drawer");
 
-    // ---------------- UI refs ----------------
-    const sheet = document.getElementById("sheet");
-    const layersBtn = document.getElementById("layersBtn");
-    const closeBtn = document.getElementById("closeBtn");
-    const statusEl = document.getElementById("status");
-    const errorsEl = document.getElementById("errors");
-    const errorBox = document.getElementById("errorBox");
-    const errorClose = document.getElementById("errorClose");
-    const kpEl = document.getElementById("kp");
+      function showError(msg){
+        errorsEl.style.display = "block";
+        errorsEl.textContent += (errorsEl.textContent ? "\n\n" : "") + msg;
+        statusEl.textContent = "Error (see panel)";
+      }
+      window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
+      window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
 
-    function setStatus(s){ statusEl.textContent = s; }
-    function showError(msg){
-      errorBox.style.display = "block";
-      errorsEl.textContent += (errorsEl.textContent ? "\n\n" : "") + msg;
-    }
-    errorClose.onclick = () => { errorBox.style.display = "none"; };
+      // Drawer collapse/expand
+      const handle = document.getElementById("handle");
+      handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
 
-    // Open/close sheet
-    const openSheet = () => sheet.classList.add("open");
-    const closeSheet = () => sheet.classList.remove("open");
-    layersBtn.onclick = openSheet;
-    closeBtn.onclick = closeSheet;
+      import * as THREE from "three";
+      import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+      import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+      import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+      import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+      import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 
-    // Start open for “wow”, user can close
-    openSheet();
+      // ---------- Helpers ----------
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+      const DEG = Math.PI / 180;
+      const RAD = 180 / Math.PI;
 
-    // ---------------- Safe error capture ----------------
-    window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
-    window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
-
-    // ---------------- Scene / Camera / Renderer ----------------
-    const scene = new THREE.Scene();
-
-    const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 5000);
-    camera.position.set(0, 0, 4.2);
-
-    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setSize(innerWidth, innerHeight);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
-    document.body.appendChild(renderer.domElement);
-
-    // ---------------- Lights ----------------
-    scene.add(new THREE.AmbientLight(0xffffff, 0.10));
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.25);
-    sunLight.position.set(5, 1.5, 2.5);
-    scene.add(sunLight);
-
-    // ---------------- Helpers: geo math ----------------
-    const DEG = Math.PI / 180;
-    const RAD = 180 / Math.PI;
-    const R_EARTH_KM = 6371.0;
-
-    function clamp(x,a,b){ return Math.max(a, Math.min(b,x)); }
-
-    function latLonToVec3(latDeg, lonDeg, r){
-      const lat = latDeg * DEG;
-      const lon = lonDeg * DEG;
-      const x = r * Math.cos(lat) * Math.cos(lon);
-      const y = r * Math.sin(lat);
-      const z = r * Math.cos(lat) * Math.sin(lon);
-      return new THREE.Vector3(x,y,z);
-    }
-
-    function vec3ToLatLon(v){
-      const r = v.length();
-      const lat = Math.asin(v.y / r) * RAD;
-      const lon = Math.atan2(v.z, v.x) * RAD;
-      return { lat, lon };
-    }
-
-    // Great-circle destination (spherical)
-    function gcDestination(lat1, lon1, brngDeg, distKm){
-      const δ = distKm / R_EARTH_KM;
-      const θ = brngDeg * DEG;
-      const φ1 = lat1 * DEG;
-      const λ1 = lon1 * DEG;
-
-      const sinφ1 = Math.sin(φ1), cosφ1 = Math.cos(φ1);
-      const sinδ = Math.sin(δ), cosδ = Math.cos(δ);
-
-      const sinφ2 = sinφ1*cosδ + cosφ1*sinδ*Math.cos(θ);
-      const φ2 = Math.asin(sinφ2);
-
-      const y = Math.sin(θ)*sinδ*cosφ1;
-      const x = cosδ - sinφ1*sinφ2;
-      const λ2 = λ1 + Math.atan2(y, x);
-
-      return { lat: φ2*RAD, lon: ((λ2*RAD + 540) % 360) - 180 };
-    }
-
-    // Rhumb destination (loxodrome, spherical)
-    function rhumbDestination(lat1, lon1, brngDeg, distKm){
-      const δ = distKm / R_EARTH_KM;
-      const θ = brngDeg * DEG;
-      const φ1 = lat1 * DEG;
-      const λ1 = lon1 * DEG;
-
-      const Δφ = δ * Math.cos(θ);
-      let φ2 = φ1 + Δφ;
-
-      // handle pole crossing
-      if (Math.abs(φ2) > Math.PI/2) {
-        φ2 = φ2 > 0 ? Math.PI - φ2 : -Math.PI - φ2;
+      function latLonToVec3(latDeg, lonDeg, radius=1.0){
+        const lat = latDeg * DEG;
+        const lon = lonDeg * DEG;
+        const x = radius * Math.cos(lat) * Math.cos(lon);
+        const y = radius * Math.sin(lat);
+        const z = radius * Math.cos(lat) * Math.sin(lon);
+        return new THREE.Vector3(x,y,z);
       }
 
-      const Δψ = Math.log(Math.tan(Math.PI/4 + φ2/2) / Math.tan(Math.PI/4 + φ1/2));
-      const q = Math.abs(Δψ) > 1e-12 ? (Δφ / Δψ) : Math.cos(φ1);
-
-      const Δλ = δ * Math.sin(θ) / q;
-      const λ2 = λ1 + Δλ;
-
-      return { lat: φ2*RAD, lon: ((λ2*RAD + 540) % 360) - 180 };
-    }
-
-    // Build polyline points for +/- distances around anchor
-    function buildPath(kind, lat0, lon0, bearingDeg, maxKm=20000, stepKm=220){
-      const pts = [];
-      for (let d=-maxKm; d<=maxKm; d+=stepKm){
-        const dd = Math.abs(d);
-        const b = d >= 0 ? bearingDeg : (bearingDeg + 180) % 360;
-        const dest = (kind === "gc")
-          ? gcDestination(lat0, lon0, b, dd)
-          : rhumbDestination(lat0, lon0, b, dd);
-        pts.push(dest);
-      }
-      return pts;
-    }
-
-    // Create glowing tube from lat/lon path
-    function makeTubeFromLatLon(path, r, radius, color, opacity=0.95, bloom=true){
-      const curvePts = path.map(p => latLonToVec3(p.lat, p.lon, r));
-      const curve = new THREE.CatmullRomCurve3(curvePts, false, "catmullrom", 0.1);
-      const geom = new THREE.TubeGeometry(curve, Math.max(200, curvePts.length*2), radius, 10, false);
-      const mat = new THREE.MeshBasicMaterial({
-        color,
-        transparent: true,
-        opacity,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending
-      });
-      const mesh = new THREE.Mesh(geom, mat);
-      mesh.renderOrder = 10;
-      if (bloom) mesh.layers.enable(1);
-      return mesh;
-    }
-
-    // Ribbon “corridor band” around a polyline (±width)
-    function makeRibbonBand(path, r, halfWidthKm, color, opacity){
-      const halfAng = halfWidthKm / R_EARTH_KM; // radians
-      const positions = [];
-      const indices = [];
-      const uvs = [];
-
-      const pts = path.map(p => latLonToVec3(p.lat, p.lon, r));
-      const n = pts.length;
-
-      for (let i=0; i<n; i++){
-        const p = pts[i].clone().normalize(); // surface normal
-        const prev = pts[Math.max(0, i-1)].clone().normalize();
-        const next = pts[Math.min(n-1, i+1)].clone().normalize();
-
-        // tangent along path on sphere
-        const t = next.clone().sub(prev).normalize();
-
-        // sideways direction on tangent plane
-        const s = new THREE.Vector3().crossVectors(p, t).normalize();
-
-        // offset along great-circle on surface approx: rotate p around tangent by ±halfAng in direction s
-        // Use small-angle approximation in tangent plane: p' = normalize(p + s*halfAng)
-        const left = p.clone().add(s.clone().multiplyScalar(+halfAng)).normalize().multiplyScalar(r);
-        const right= p.clone().add(s.clone().multiplyScalar(-halfAng)).normalize().multiplyScalar(r);
-
-        positions.push(left.x, left.y, left.z);
-        positions.push(right.x, right.y, right.z);
-
-        const v = i/(n-1);
-        uvs.push(0, v, 1, v);
+      function vec3ToLatLon(v){
+        const r = v.length();
+        const lat = Math.asin(v.y / r) * RAD;
+        const lon = Math.atan2(v.z, v.x) * RAD;
+        return { lat, lon };
       }
 
-      for (let i=0; i<n-1; i++){
-        const a = i*2;
-        const b = i*2 + 1;
-        const c = (i+1)*2;
-        const d = (i+1)*2 + 1;
-        indices.push(a, b, c,  b, d, c);
-      }
+      // Great-circle points from start + bearing
+      function greatCirclePoints(lat0Deg, lon0Deg, bearingDeg, stepDeg=1.0){
+        const lat0 = lat0Deg * DEG;
+        const lon0 = lon0Deg * DEG;
+        const brng = bearingDeg * DEG;
 
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-      geo.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
-      geo.setIndex(indices);
-      geo.computeVertexNormals();
-
-      const mat = new THREE.MeshBasicMaterial({
-        color,
-        transparent: true,
-        opacity,
-        depthWrite: false,
-        side: THREE.DoubleSide,
-        blending: THREE.AdditiveBlending
-      });
-
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.renderOrder = 9;
-      mesh.layers.enable(1);
-      return mesh;
-    }
-
-    // ---------------- Texture system: ALWAYS renders (procedural fallback) ----------------
-    function makeProceduralEarthTexture(size=1024){
-      const c = document.createElement("canvas");
-      c.width = c.height = size;
-      const ctx = c.getContext("2d");
-
-      // ocean gradient
-      const g = ctx.createRadialGradient(size*0.45, size*0.45, size*0.08, size*0.55, size*0.55, size*0.75);
-      g.addColorStop(0, "#08335f");
-      g.addColorStop(1, "#031326");
-      ctx.fillStyle = g;
-      ctx.fillRect(0,0,size,size);
-
-      // fake continents (noise blobs)
-      ctx.globalAlpha = 0.85;
-      ctx.fillStyle = "#2d6b3f";
-      for (let i=0;i<1400;i++){
-        const x = Math.random()*size;
-        const y = Math.random()*size;
-        const r = 1 + Math.random()*6;
-        ctx.beginPath();
-        ctx.arc(x,y,r,0,Math.PI*2);
-        ctx.fill();
-      }
-
-      // deserts/ice highlights
-      ctx.globalAlpha = 0.35;
-      ctx.fillStyle = "#c6b27b";
-      for (let i=0;i=0.35;
-      ctx.fillStyle = "#dbe7ff";
-      ctx.beginPath();
-      ctx.arc(size*0.5, size*0.12, size*0.18, 0, Math.PI*2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(size*0.5, size*0.88, size*0.18, 0, Math.PI*2);
-      ctx.fill();
-
-      const tex = new THREE.CanvasTexture(c);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.needsUpdate = true;
-      return tex;
-    }
-
-    function makeProceduralCloudTexture(size=1024){
-      const c = document.createElement("canvas");
-      c.width = c.height = size;
-      const ctx = c.getContext("2d");
-      ctx.clearRect(0,0,size,size);
-
-      ctx.globalAlpha = 0.65;
-      ctx.fillStyle = "#ffffff";
-      for (let i=0;i<1800;i++){
-        const x = Math.random()*size;
-        const y = Math.random()*size;
-        const r = 0.5 + Math.random()*3.5;
-        ctx.beginPath();
-        ctx.arc(x,y,r,0,Math.PI*2);
-        ctx.fill();
-      }
-      const tex = new THREE.CanvasTexture(c);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.needsUpdate = true;
-      return tex;
-    }
-
-    function makeProceduralStarTexture(size=1024){
-      const c = document.createElement("canvas");
-      c.width = c.height = size;
-      const ctx = c.getContext("2d");
-      ctx.fillStyle = "#000";
-      ctx.fillRect(0,0,size,size);
-
-      for (let i=0;i<2500;i++){
-        const x = Math.random()*size;
-        const y = Math.random()*size;
-        const a = 0.15 + Math.random()*0.85;
-        const r = Math.random() < 0.985 ? 1 : 2;
-        ctx.fillStyle = `rgba(255,255,255,${a})`;
-        ctx.fillRect(x,y,r,r);
-      }
-      const tex = new THREE.CanvasTexture(c);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.needsUpdate = true;
-      return tex;
-    }
-
-    async function loadTextureWithFallback(urls, timeoutMs=8000){
-      // returns { texture, usedUrl, ok }
-      const manager = new THREE.LoadingManager();
-      const loader = new THREE.TextureLoader(manager);
-      loader.setCrossOrigin("anonymous");
-
-      const tryOne = (url) => new Promise((resolve) => {
-        let done = false;
-        const timer = setTimeout(() => {
-          if (done) return;
-          done = true;
-          resolve({ ok:false, url, texture:null, err:"timeout" });
-        }, timeoutMs);
-
-        loader.load(
-          url,
-          (tex) => {
-            if (done) return;
-            done = true;
-            clearTimeout(timer);
-            resolve({ ok:true, url, texture:tex });
-          },
-          undefined,
-          (err) => {
-            if (done) return;
-            done = true;
-            clearTimeout(timer);
-            resolve({ ok:false, url, texture:null, err: (err?.message || "load error") });
-          }
-        );
-      });
-
-      for (const u of urls){
-        const r = await tryOne(u);
-        if (r.ok) return { texture:r.texture, usedUrl:r.url, ok:true };
-        showError(`Texture failed to load:\n${r.url}\n(${r.err})`);
-      }
-      return { texture:null, usedUrl:"(fallback)", ok:false };
-    }
-
-    // ---------------- Globe materials (shader + bloom) ----------------
-    const earthRadius = 1.0;
-    const SEG = 96;
-
-    // Placeholder textures (procedural) so it NEVER renders black
-    const fallbackDay = makeProceduralEarthTexture(1024);
-    const fallbackCloud = makeProceduralCloudTexture(1024);
-    const fallbackStars = makeProceduralStarTexture(1024);
-
-    // A simple procedural “spec map” (flat) so shader has something
-    const flatSpecCanvas = document.createElement("canvas");
-    flatSpecCanvas.width = flatSpecCanvas.height = 8;
-    const flatCtx = flatSpecCanvas.getContext("2d");
-    flatCtx.fillStyle = "#777";
-    flatCtx.fillRect(0,0,8,8);
-    const fallbackSpec = new THREE.CanvasTexture(flatSpecCanvas);
-    fallbackSpec.colorSpace = THREE.SRGBColorSpace;
-
-    // Night map fallback
-    const nightCanvas = document.createElement("canvas");
-    nightCanvas.width = nightCanvas.height = 512;
-    const nctx = nightCanvas.getContext("2d");
-    nctx.fillStyle = "#000"; nctx.fillRect(0,0,512,512);
-    nctx.fillStyle = "rgba(255,255,255,0.85)";
-    for (let i=0;i<800;i++){
-      const x = Math.random()*512, y = Math.random()*512;
-      if (Math.random() < 0.65) continue;
-      nctx.fillRect(x,y,1,1);
-    }
-    const fallbackNight = new THREE.CanvasTexture(nightCanvas);
-    fallbackNight.colorSpace = THREE.SRGBColorSpace;
-
-    const earthUniforms = {
-      dayMap:    { value: fallbackDay },
-      specMap:   { value: fallbackSpec },
-      sunDir:    { value: new THREE.Vector3(1,0,0) },
-      cameraPos: { value: new THREE.Vector3() }
-    };
-
-    const earthMat = new THREE.ShaderMaterial({
-      uniforms: earthUniforms,
-      vertexShader: `
-        varying vec2 vUv;
-        varying vec3 vNormalW;
-        varying vec3 vPosW;
-        void main() {
-          vUv = uv;
-          vec4 worldPos = modelMatrix * vec4(position, 1.0);
-          vPosW = worldPos.xyz;
-          vNormalW = normalize(mat3(modelMatrix) * normal);
-          gl_Position = projectionMatrix * viewMatrix * worldPos;
-        }
-      `,
-      fragmentShader: `
-        precision highp float;
-        uniform sampler2D dayMap;
-        uniform sampler2D specMap;
-        uniform vec3 sunDir;
-        uniform vec3 cameraPos;
-
-        varying vec2 vUv;
-        varying vec3 vNormalW;
-        varying vec3 vPosW;
-
-        vec3 srgbToLinear(vec3 c){ return pow(c, vec3(2.2)); }
-        vec3 linearToSrgb(vec3 c){ return pow(max(c, 0.0), vec3(1.0/2.2)); }
-
-        void main() {
-          vec3 N = normalize(vNormalW);
-          vec3 L = normalize(sunDir);
-          vec3 V = normalize(cameraPos - vPosW);
-
-          vec3 dayCol = srgbToLinear(texture2D(dayMap, vUv).rgb);
-          float specMask = texture2D(specMap, vUv).r;
-
-          float ndl = dot(N, L);
-          float dayAmt = smoothstep(-0.05, 0.15, ndl);
-
-          // stronger night base so continents are still readable
-          vec3 nightBase = dayCol * 0.13;
-          vec3 col = mix(nightBase, dayCol, dayAmt);
-
-          vec3 H = normalize(L + V);
-          float spec = pow(max(dot(N, H), 0.0), 90.0) * specMask * 0.55 * dayAmt;
-          col += vec3(spec);
-
-          float rim = pow(1.0 - max(dot(N, V), 0.0), 2.2);
-          col += vec3(0.06, 0.10, 0.16) * rim * (0.30 + 0.70 * dayAmt);
-
-          gl_FragColor = vec4(linearToSrgb(col), 1.0);
-        }
-      `
-    });
-
-    const earth = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, SEG, SEG), earthMat);
-    scene.add(earth);
-
-    // Night lights (additive, bloom target)
-    const lightsUniforms = {
-      nightMap: { value: fallbackNight },
-      sunDir:   { value: new THREE.Vector3(1,0,0) },
-      gain:     { value: 2.4 }
-    };
-
-    const nightLights = new THREE.Mesh(
-      new THREE.SphereGeometry(earthRadius * 1.001, SEG, SEG),
-      new THREE.ShaderMaterial({
-        uniforms: lightsUniforms,
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        vertexShader: `
-          varying vec2 vUv;
-          varying vec3 vNormalW;
-          void main(){
-            vUv = uv;
-            vNormalW = normalize(mat3(modelMatrix) * normal);
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-          }
-        `,
-        fragmentShader: `
-          precision highp float;
-          uniform sampler2D nightMap;
-          uniform vec3 sunDir;
-          uniform float gain;
-          varying vec2 vUv;
-          varying vec3 vNormalW;
-
-          vec3 srgbToLinear(vec3 c){ return pow(c, vec3(2.2)); }
-          vec3 linearToSrgb(vec3 c){ return pow(max(c,0.0), vec3(1.0/2.2)); }
-
-          void main(){
-            vec3 N = normalize(vNormalW);
-            vec3 L = normalize(sunDir);
-
-            float ndl = dot(N, L);
-            float dayAmt = smoothstep(-0.05, 0.15, ndl);
-            float nightAmt = 1.0 - dayAmt;
-
-            vec3 lights = srgbToLinear(texture2D(nightMap, vUv).rgb) * gain;
-            float mask = smoothstep(0.05, 0.35, nightAmt);
-
-            vec3 col = lights * mask;
-            float a = clamp(max(max(col.r, col.g), col.b), 0.0, 1.0);
-            gl_FragColor = vec4(linearToSrgb(col), a);
-          }
-        `
-      })
-    );
-    scene.add(nightLights);
-
-    // Clouds + shadow
-    const cloudShadow = new THREE.Mesh(
-      new THREE.SphereGeometry(earthRadius * 1.0015, SEG, SEG),
-      new THREE.MeshBasicMaterial({
-        map: fallbackCloud,
-        color: 0x000000,
-        transparent: true,
-        opacity: 0.25,
-        blending: THREE.MultiplyBlending,
-        depthWrite: false
-      })
-    );
-    scene.add(cloudShadow);
-
-    const clouds = new THREE.Mesh(
-      new THREE.SphereGeometry(earthRadius * 1.012, SEG, SEG),
-      new THREE.MeshLambertMaterial({
-        map: fallbackCloud,
-        transparent: true,
-        opacity: 0.80,
-        depthWrite: false
-      })
-    );
-    scene.add(clouds);
-
-    // Atmosphere rim (bloom target)
-    const atmoUniforms = {
-      sunDir:    { value: new THREE.Vector3(1,0,0) },
-      cameraPos: { value: new THREE.Vector3() }
-    };
-
-    const atmosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(earthRadius * 1.045, SEG, SEG),
-      new THREE.ShaderMaterial({
-        uniforms: atmoUniforms,
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        side: THREE.BackSide,
-        vertexShader: `
-          varying vec3 vNormalW;
-          varying vec3 vPosW;
-          void main() {
-            vec4 worldPos = modelMatrix * vec4(position, 1.0);
-            vPosW = worldPos.xyz;
-            vNormalW = normalize(mat3(modelMatrix) * normal);
-            gl_Position = projectionMatrix * viewMatrix * worldPos;
-          }
-        `,
-        fragmentShader: `
-          precision highp float;
-          uniform vec3 sunDir;
-          uniform vec3 cameraPos;
-          varying vec3 vNormalW;
-          varying vec3 vPosW;
-
-          void main() {
-            vec3 N = normalize(vNormalW);
-            vec3 L = normalize(sunDir);
-            vec3 V = normalize(cameraPos - vPosW);
-
-            float rim = pow(1.0 - max(dot(N, V), 0.0), 3.2);
-            float daySide = smoothstep(-0.15, 0.25, dot(N, L));
-
-            vec3 col = vec3(0.20, 0.55, 1.00) * rim * (0.25 + 0.75 * daySide);
-            float alpha = rim * (0.18 + 0.62 * daySide);
-            gl_FragColor = vec4(col, alpha);
-          }
-        `
-      })
-    );
-    scene.add(atmosphere);
-
-    // Stars (fallback always exists)
-    const starGeo = new THREE.SphereGeometry(90, 64, 64);
-    const starMat = new THREE.MeshBasicMaterial({ map: fallbackStars, side: THREE.BackSide });
-    const stars = new THREE.Mesh(starGeo, starMat);
-    scene.add(stars);
-
-    // Group rotation
-    const globe = new THREE.Group();
-    scene.remove(earth, nightLights, cloudShadow, clouds, atmosphere);
-    globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
-    scene.add(globe);
-
-    // Bloom layers
-    const BLOOM_LAYER = 1;
-    nightLights.layers.enable(BLOOM_LAYER);
-    atmosphere.layers.enable(BLOOM_LAYER);
-
-    // ---------------- Selective Bloom Composer (robust) ----------------
-    const bloomLayer = new THREE.Layers();
-    bloomLayer.set(BLOOM_LAYER);
-
-    const darkMaterial = new THREE.MeshBasicMaterial({ color:"black" });
-    const materials = new Map();
-
-    function darkenNonBloom(obj){
-      if (obj.isMesh && !bloomLayer.test(obj.layers)){
-        materials.set(obj.uuid, obj.material);
-        obj.material = darkMaterial;
-      }
-    }
-    function restoreMaterial(obj){
-      if (materials.has(obj.uuid)){
-        obj.material = materials.get(obj.uuid);
-        materials.delete(obj.uuid);
-      }
-    }
-
-    const renderScene = new RenderPass(scene, camera);
-
-    const bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(innerWidth, innerHeight),
-      1.15, // strength
-      0.85, // radius
-      0.10  // threshold
-    );
-
-    const bloomComposer = new EffectComposer(renderer);
-    bloomComposer.renderToScreen = false;
-    bloomComposer.addPass(renderScene);
-    bloomComposer.addPass(bloomPass);
-
-    const finalPass = new ShaderPass({
-      uniforms: {
-        tDiffuse: { value: null },
-        bloomTexture: { value: null }
-      },
-      vertexShader: `
-        varying vec2 vUv;
-        void main(){
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform sampler2D tDiffuse;
-        uniform sampler2D bloomTexture;
-        varying vec2 vUv;
-        void main(){
-          vec4 base = texture2D(tDiffuse, vUv);
-          vec4 bloom = texture2D(bloomTexture, vUv);
-          gl_FragColor = base + bloom;
-        }
-      `
-    });
-
-    const finalComposer = new EffectComposer(renderer);
-    finalComposer.addPass(renderScene);
-    finalComposer.addPass(finalPass);
-    finalComposer.addPass(new OutputPass());
-
-    function renderBloom(){
-      scene.traverse(darkenNonBloom);
-      bloomComposer.render();
-      // robust texture pointer across composer internals
-      const bt = (bloomComposer.renderTarget2?.texture) || (bloomComposer.readBuffer?.texture) || null;
-      finalPass.uniforms.bloomTexture.value = bt;
-      scene.traverse(restoreMaterial);
-    }
-
-    // ---------------- MAP E.D.E.N. data ----------------
-    // Anchor (Exit 222 • Staunton) — from your prior notes:
-    const ANCHOR = {
-      name: "Exit 222 • 202 Hendren Ave",
-      lat: 38.1608,
-      lon: -79.0731
-    };
-
-    // Axis bearings
-    const BEARING_AXIS = 42;   // true
-    const BEARING_PERP = 132;  // 42 + 90
-    const BEARING_PERP2 = 312; // 132 + 180
-
-    // ---------------- Layers (scene objects) ----------------
-    const layers = {
-      axis: new THREE.Group(),
-      corridors: new THREE.Group(),
-      perps: new THREE.Group(),
-      stations: new THREE.Group(),
-      mag: new THREE.Group(),
-      aurora: new THREE.Group()
-    };
-    Object.values(layers).forEach(g => { globe.add(g); g.visible = true; });
-
-    // Line names labels (DOM)
-    const domLabels = [];
-    function makeLabel(text, klass){
-      const el = document.createElement("div");
-      el.className = `label ${klass||""}`.trim();
-      el.textContent = text;
-      document.body.appendChild(el);
-      domLabels.push(el);
-      return el;
-    }
-
-    // Continent labels (approx anchor points)
-    const continentDefs = [
-      { name:"North America", lat: 45, lon:-105 },
-      { name:"South America", lat:-15, lon:-60 },
-      { name:"Europe", lat: 52, lon: 15 },
-      { name:"Africa", lat: 2, lon: 20 },
-      { name:"Asia", lat: 35, lon: 95 },
-      { name:"Australia", lat:-25, lon: 135 },
-      { name:"Antarctica", lat:-78, lon: 0 },
-    ];
-    const continentLabels = continentDefs.map(c => ({ ...c, el: makeLabel(c.name, "") }));
-
-    // Axis line labels
-    const labelRhumb = makeLabel("Rhumb (True) • 42° / 222°", "gold");
-    const labelGC    = makeLabel("Geodesic (Great Circle) • 42° / 222°", "blue");
-
-    // ---------------- Build Axis Lines ----------------
-    const gcPath = buildPath("gc", ANCHOR.lat, ANCHOR.lon, BEARING_AXIS, 20000, 220);
-    const rhPath = buildPath("rhumb", ANCHOR.lat, ANCHOR.lon, BEARING_AXIS, 20000, 220);
-
-    // Tube lines (glow)
-    const gcLine = makeTubeFromLatLon(gcPath, earthRadius*1.003, 0.0048, 0x61b7ff, 0.78, true);
-    const rhLine = makeTubeFromLatLon(rhPath, earthRadius*1.003, 0.0048, 0xffd67a, 0.82, true);
-
-    layers.axis.add(gcLine, rhLine);
-
-    // Corridors bands: ±1/±5/±10 km (all shown under one toggle)
-    const corridorBands = [];
-    const widths = [1, 5, 10];
-    widths.forEach((w, idx) => {
-      const op = idx === 0 ? 0.22 : idx === 1 ? 0.16 : 0.12;
-      // Great-circle corridor (blue)
-      corridorBands.push(makeRibbonBand(gcPath, earthRadius*1.0025, w, 0x61b7ff, op));
-      // Rhumb corridor (gold)
-      corridorBands.push(makeRibbonBand(rhPath, earthRadius*1.0025, w, 0xffd67a, op));
-    });
-    corridorBands.forEach(m => layers.corridors.add(m));
-    layers.corridors.visible = false;
-
-    // Perpendiculars: short great-circle segments from anchor along 132/312
-    const perp1 = buildPath("gc", ANCHOR.lat, ANCHOR.lon, BEARING_PERP, 7000, 180);
-    const perp2 = buildPath("gc", ANCHOR.lat, ANCHOR.lon, BEARING_PERP2, 7000, 180);
-    const perpLine1 = makeTubeFromLatLon(perp1, earthRadius*1.003, 0.0036, 0xffffff, 0.35, true);
-    const perpLine2 = makeTubeFromLatLon(perp2, earthRadius*1.003, 0.0036, 0xffffff, 0.35, true);
-    layers.perps.add(perpLine1, perpLine2);
-    layers.perps.visible = false;
-
-    // ---------------- Stations ----------------
-    function makeStationMarker(lat, lon, color=0xffffff){
-      const g = new THREE.Group();
-
-      const pos = latLonToVec3(lat, lon, earthRadius*1.012);
-      g.position.copy(pos);
-
-      // small sphere
-      const sphere = new THREE.Mesh(
-        new THREE.SphereGeometry(0.015, 20, 20),
-        new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.95 })
-      );
-      sphere.layers.enable(1);
-
-      // ring
-      const ring = new THREE.Mesh(
-        new THREE.RingGeometry(0.020, 0.028, 40),
-        new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.55, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite:false })
-      );
-      ring.lookAt(new THREE.Vector3(0,0,0));
-      ring.layers.enable(1);
-
-      g.add(sphere, ring);
-      return g;
-    }
-
-    const stationAnchor = makeStationMarker(ANCHOR.lat, ANCHOR.lon, 0xffffff);
-    layers.stations.add(stationAnchor);
-
-    // Anchor label
-    const anchorLabel = makeLabel(ANCHOR.name, "");
-    anchorLabel.classList.add("show");
-
-    // Future stations saved
-    const STORAGE_KEY = "eden_future_stations_v1";
-    function loadSavedStations(){
-      try{
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : [];
-      } catch { return []; }
-    }
-    function saveStations(list){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-    }
-
-    const savedStations = loadSavedStations();
-    const futureStationMeshes = [];
-    const futureStationLabels = [];
-
-    function addFutureStation(lat, lon){
-      const idx = savedStations.length + 1;
-      const name = `Future Station ${idx}`;
-      savedStations.push({ name, lat, lon, t: Date.now() });
-      saveStations(savedStations);
-
-      const m = makeStationMarker(lat, lon, 0x61b7ff);
-      m.layers.enable(1);
-      layers.stations.add(m);
-      futureStationMeshes.push(m);
-
-      const el = makeLabel(`${name} • ${lat.toFixed(4)}, ${lon.toFixed(4)}`, "blue");
-      futureStationLabels.push({ el, lat, lon });
-      setStatus(`Running • Saved ${name} @ ${lat.toFixed(4)}, ${lon.toFixed(4)}`);
-    }
-
-    // rebuild from storage
-    for (const s of savedStations){
-      const m = makeStationMarker(s.lat, s.lon, 0x61b7ff);
-      layers.stations.add(m);
-      futureStationMeshes.push(m);
-      const el = makeLabel(`${s.name} • ${s.lat.toFixed(4)}, ${s.lon.toFixed(4)}`, "blue");
-      futureStationLabels.push({ el, lat:s.lat, lon:s.lon });
-    }
-
-    // ---------------- Magnetic field (works now; “v2 hook” ready) ----------------
-    // Dipole visualization (not IGRF yet, but stable + clean)
-    function buildDipoleFieldLines(){
-      const g = new THREE.Group();
-
-      // tilt dipole slightly
-      const tilt = 11 * DEG;
-      const dipoleAxis = new THREE.Vector3(Math.sin(tilt), Math.cos(tilt), 0).normalize(); // approx
-
-      const nLines = 18;
-      for (let i=0;i<nLines;i++){
-        const phi = (i/nLines) * Math.PI * 2;
-        // start around equator in dipole frame
-        const startDir = new THREE.Vector3(Math.cos(phi), 0, Math.sin(phi)).normalize();
-
-        // generate line points by stepping along a param curve around dipole
         const pts = [];
-        for (let t=-1.35; t<=1.35; t+=0.03){
-          // “dipole-like” curve: r = L * cos^2(λ)
-          const lambda = t; // magnetic latitude in radians (approx)
-          const L = 2.3;
-          const r = L * Math.pow(Math.cos(lambda), 2.0);
-          const x = r * Math.cos(lambda);
-          const y = r * Math.sin(lambda);
+        for(let d=-180; d<=180; d+=stepDeg){
+          const δ = d * DEG; // angular distance
+          const sinLat = Math.sin(lat0)*Math.cos(δ) + Math.cos(lat0)*Math.sin(δ)*Math.cos(brng);
+          const lat = Math.asin(clamp(sinLat, -1, 1));
+          const y = Math.sin(brng)*Math.sin(δ)*Math.cos(lat0);
+          const x = Math.cos(δ) - Math.sin(lat0)*Math.sin(lat);
+          const lon = lon0 + Math.atan2(y, x);
+          pts.push({ lat: lat*RAD, lon: ((lon*RAD + 540) % 360) - 180 });
+        }
+        return pts;
+      }
 
-          // build in dipole coordinates, rotate around axis
-          let p = new THREE.Vector3(
-            startDir.x * x,
-            y,
-            startDir.z * x
-          );
+      // Rhumb-line points (constant bearing) along sphere
+      function rhumbPoints(lat0Deg, lon0Deg, bearingDeg, stepKm=250){
+        const R = 6371; // km
+        const φ1 = lat0Deg * DEG;
+        const λ1 = lon0Deg * DEG;
+        const θ = bearingDeg * DEG;
 
-          // rotate so dipole axis matches world Y-ish
-          // use quaternion from (0,1,0) to dipoleAxis
-          const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0), dipoleAxis);
-          p.applyQuaternion(q);
+        const pts = [];
+        // walk both directions from anchor to cover planet
+        const maxSteps = 120; // ~ 30,000 km @ 250km
+        for (const dir of [-1, +1]){
+          let φ = φ1, λ = λ1;
+          for (let i=0; i<maxSteps; i++){
+            const d = dir * (stepKm / R); // radians
+            const Δφ = d * Math.cos(θ);
+            let φ2 = φ + Δφ;
+            // clamp near poles
+            φ2 = clamp(φ2, -Math.PI/2 + 1e-6, Math.PI/2 - 1e-6);
 
-          // scale to earth radius
-          p.multiplyScalar(earthRadius);
-          pts.push(p);
+            const Δψ = Math.log(Math.tan(Math.PI/4 + φ2/2) / Math.tan(Math.PI/4 + φ/2));
+            const q = Math.abs(Δψ) > 1e-12 ? (Δφ / Δψ) : Math.cos(φ);
+
+            const Δλ = d * Math.sin(θ) / q;
+            let λ2 = λ + Δλ;
+
+            // normalize lon
+            λ2 = ((λ2 + Math.PI) % (2*Math.PI)) - Math.PI;
+
+            pts.push({ lat: φ2*RAD, lon: λ2*RAD });
+
+            φ = φ2; λ = λ2;
+          }
+        }
+        // ensure sorted-ish for tube continuity: just return in insertion order (fine for line)
+        return pts;
+      }
+
+      // Build a glowing line (two-pass: core + halo) using TubeGeometry
+      function makeGlowTube(pointsVec3, radius, coreColor, haloColor, coreOpacity=1.0, haloOpacity=0.35){
+        const curve = new THREE.CatmullRomCurve3(pointsVec3, false, "catmullrom", 0.15);
+
+        const coreGeom = new THREE.TubeGeometry(curve, Math.max(300, pointsVec3.length*2), radius, 10, false);
+        const haloGeom = new THREE.TubeGeometry(curve, Math.max(300, pointsVec3.length*2), radius*2.5, 10, false);
+
+        const coreMat = new THREE.MeshBasicMaterial({
+          color: coreColor,
+          transparent: coreOpacity < 1.0,
+          opacity: coreOpacity,
+          depthWrite: false
+        });
+
+        const haloMat = new THREE.MeshBasicMaterial({
+          color: haloColor,
+          transparent: true,
+          opacity: haloOpacity,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        });
+
+        const g = new THREE.Group();
+        g.add(new THREE.Mesh(haloGeom, haloMat));
+        g.add(new THREE.Mesh(coreGeom, coreMat));
+        return g;
+      }
+
+      // Label sprite (simple, crisp)
+      function makeLabelSprite(text, {fontSize=44, padding=18, color="#ffffff", bg="rgba(0,0,0,0.35)"} = {}){
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        ctx.font = `700 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
+        const metrics = ctx.measureText(text);
+        const w = Math.ceil(metrics.width + padding*2);
+        const h = Math.ceil(fontSize + padding*2);
+
+        canvas.width = w; canvas.height = h;
+
+        // background pill
+        ctx.fillStyle = bg;
+        const r = Math.min(24, h/2);
+        ctx.beginPath();
+        ctx.moveTo(r, 0);
+        ctx.arcTo(w, 0, w, h, r);
+        ctx.arcTo(w, h, 0, h, r);
+        ctx.arcTo(0, h, 0, 0, r);
+        ctx.arcTo(0, 0, w, 0, r);
+        ctx.closePath();
+        ctx.fill();
+
+        // text
+        ctx.font = `700 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
+        ctx.fillStyle = color;
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, padding, h/2);
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = 8;
+        const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite:false });
+        const spr = new THREE.Sprite(mat);
+
+        // scale in world units
+        const scale = 0.0065;
+        spr.scale.set(w*scale, h*scale, 1);
+        return spr;
+      }
+
+      // ---------- Main ----------
+      try {
+        // Scene / Camera / Renderer
+        const scene = new THREE.Scene();
+
+        const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 5000);
+        camera.position.set(0, 0, 4.2);
+
+        const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setSize(innerWidth, innerHeight);
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.05;
+        document.body.appendChild(renderer.domElement);
+
+        // Lights
+        scene.add(new THREE.AmbientLight(0xffffff, 0.10));
+        const sunLight = new THREE.DirectionalLight(0xffffff, 1.25);
+        sunLight.position.set(5, 1.5, 2.5);
+        scene.add(sunLight);
+
+        // Loading manager
+        const manager = new THREE.LoadingManager();
+        manager.onStart = () => { statusEl.textContent = "Loading textures…"; };
+        manager.onProgress = (_url, loaded, total) => { statusEl.textContent = `Loading textures… (${loaded}/${total})`; };
+        manager.onLoad = () => { statusEl.textContent = "Running"; };
+        manager.onError = (url) => showError("Texture failed to load:\n" + url);
+
+        // Textures (stable CDN)
+        const base = "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/";
+        const TEX = {
+          day:    base + "planets/earth_atmos_2048.jpg",
+          night:  base + "planets/earth_lights_2048.png",
+          spec:   base + "planets/earth_specular_2048.jpg",
+          clouds: base + "planets/earth_clouds_1024.png",
+          stars:  base + "galaxy_starfield.png"
+        };
+
+        const loader = new THREE.TextureLoader(manager);
+        loader.setCrossOrigin("anonymous");
+
+        const dayMap   = loader.load(TEX.day);
+        const nightMap = loader.load(TEX.night);
+        const specMap  = loader.load(TEX.spec);
+        const cloudMap = loader.load(TEX.clouds);
+        const starMap  = loader.load(TEX.stars);
+
+        [dayMap, nightMap, specMap, cloudMap, starMap].forEach((t) => t.colorSpace = THREE.SRGBColorSpace);
+
+        const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
+        [dayMap, nightMap, specMap, cloudMap, starMap].forEach((t) => {
+          t.anisotropy = maxAniso;
+          t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+        });
+
+        // Stars
+        {
+          const starGeo = new THREE.SphereGeometry(90, 64, 64);
+          const starMat = new THREE.MeshBasicMaterial({ map: starMap, side: THREE.BackSide });
+          scene.add(new THREE.Mesh(starGeo, starMat));
         }
 
-        const curve = new THREE.CatmullRomCurve3(pts, false, "catmullrom", 0.0);
-        const tube = new THREE.Mesh(
-          new THREE.TubeGeometry(curve, 220, 0.0018, 8, false),
-          new THREE.MeshBasicMaterial({
-            color: 0x7de0ff,
+        // Globe parts
+        const earthRadius = 1.0;
+        const SEG = 96;
+
+        // Earth base shader (boost definition slightly)
+        const earthUniforms = {
+          dayMap:    { value: dayMap },
+          specMap:   { value: specMap },
+          sunDir:    { value: new THREE.Vector3(1,0,0) },
+          cameraPos: { value: new THREE.Vector3() }
+        };
+
+        const earthMat = new THREE.ShaderMaterial({
+          uniforms: earthUniforms,
+          vertexShader: `
+            varying vec2 vUv;
+            varying vec3 vNormalW;
+            varying vec3 vPosW;
+            void main(){
+              vUv = uv;
+              vec4 worldPos = modelMatrix * vec4(position, 1.0);
+              vPosW = worldPos.xyz;
+              vNormalW = normalize(mat3(modelMatrix) * normal);
+              gl_Position = projectionMatrix * viewMatrix * worldPos;
+            }
+          `,
+          fragmentShader: `
+            precision highp float;
+            uniform sampler2D dayMap;
+            uniform sampler2D specMap;
+            uniform vec3 sunDir;
+            uniform vec3 cameraPos;
+            varying vec2 vUv;
+            varying vec3 vNormalW;
+            varying vec3 vPosW;
+
+            vec3 srgbToLinear(vec3 c){ return pow(c, vec3(2.2)); }
+            vec3 linearToSrgb(vec3 c){ return pow(max(c,0.0), vec3(1.0/2.2)); }
+
+            void main(){
+              vec3 N = normalize(vNormalW);
+              vec3 L = normalize(sunDir);
+              vec3 V = normalize(cameraPos - vPosW);
+
+              vec3 dayCol = srgbToLinear(texture2D(dayMap, vUv).rgb);
+
+              // subtle definition boost (contrast + saturation feel)
+              float lum = dot(dayCol, vec3(0.2126,0.7152,0.0722));
+              vec3 sat = mix(vec3(lum), dayCol, 1.12);
+              vec3 c = pow(max(sat, 0.0), vec3(0.92));
+
+              float specMask = texture2D(specMap, vUv).r;
+
+              float ndl = dot(N, L);
+              float dayAmt = smoothstep(-0.05, 0.15, ndl);
+
+              vec3 nightBase = c * 0.08;
+              vec3 col = mix(nightBase, c, dayAmt);
+
+              vec3 H = normalize(L + V);
+              float spec = pow(max(dot(N, H), 0.0), 80.0) * specMask * 0.50 * dayAmt;
+              col += vec3(spec);
+
+              float rim = pow(1.0 - max(dot(N, V), 0.0), 2.2);
+              col += vec3(0.06, 0.10, 0.16) * rim * (0.30 + 0.70 * dayAmt);
+
+              gl_FragColor = vec4(linearToSrgb(col), 1.0);
+            }
+          `
+        });
+
+        const earth = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, SEG, SEG), earthMat);
+
+        // Night lights mesh (additive) — blooms
+        const lightsUniforms = {
+          nightMap: { value: nightMap },
+          sunDir:   { value: new THREE.Vector3(1,0,0) },
+          gain:     { value: 2.6 }
+        };
+
+        const nightLights = new THREE.Mesh(
+          new THREE.SphereGeometry(earthRadius * 1.001, SEG, SEG),
+          new THREE.ShaderMaterial({
+            uniforms: lightsUniforms,
             transparent: true,
-            opacity: 0.32,
+            depthWrite: false,
             blending: THREE.AdditiveBlending,
+            vertexShader: `
+              varying vec2 vUv;
+              varying vec3 vNormalW;
+              void main(){
+                vUv = uv;
+                vNormalW = normalize(mat3(modelMatrix) * normal);
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+              }
+            `,
+            fragmentShader: `
+              precision highp float;
+              uniform sampler2D nightMap;
+              uniform vec3 sunDir;
+              uniform float gain;
+              varying vec2 vUv;
+              varying vec3 vNormalW;
+
+              vec3 srgbToLinear(vec3 c){ return pow(c, vec3(2.2)); }
+              vec3 linearToSrgb(vec3 c){ return pow(max(c,0.0), vec3(1.0/2.2)); }
+
+              void main(){
+                vec3 N = normalize(vNormalW);
+                vec3 L = normalize(sunDir);
+
+                float ndl = dot(N, L);
+                float dayAmt = smoothstep(-0.05, 0.15, ndl);
+                float nightAmt = 1.0 - dayAmt;
+
+                vec3 lights = srgbToLinear(texture2D(nightMap, vUv).rgb) * gain;
+                float mask = smoothstep(0.05, 0.35, nightAmt);
+
+                vec3 col = lights * mask;
+                float a = clamp(max(max(col.r, col.g), col.b), 0.0, 1.0);
+                gl_FragColor = vec4(linearToSrgb(col), a);
+              }
+            `
+          })
+        );
+
+        // Cloud shadow (multiply)
+        const cloudShadow = new THREE.Mesh(
+          new THREE.SphereGeometry(earthRadius * 1.0015, SEG, SEG),
+          new THREE.MeshBasicMaterial({
+            map: cloudMap,
+            color: 0x000000,
+            transparent: true,
+            opacity: 0.28,
+            blending: THREE.MultiplyBlending,
             depthWrite: false
           })
         );
-        tube.layers.enable(1);
-        g.add(tube);
-      }
-      return g;
-    }
-    const magLines = buildDipoleFieldLines();
-    layers.mag.add(magLines);
-    layers.mag.visible = false;
 
-    // ---------------- Aurora (v2: tied to live Kp when possible) ----------------
-    // Visual: soft particle rings near poles, intensity from Kp
-    const auroraGroup = new THREE.Group();
-    layers.aurora.add(auroraGroup);
-    layers.aurora.visible = false;
+        // Clouds (visible)
+        const clouds = new THREE.Mesh(
+          new THREE.SphereGeometry(earthRadius * 1.012, SEG, SEG),
+          new THREE.MeshLambertMaterial({
+            map: cloudMap,
+            transparent: true,
+            opacity: 0.85,
+            depthWrite: false
+          })
+        );
 
-    function makeAuroraRing(latCenter, radius, count){
-      const geom = new THREE.BufferGeometry();
-      const positions = new Float32Array(count*3);
-      const sizes = new Float32Array(count);
-      for (let i=0;i<count;i++){
-        const ang = Math.random()*Math.PI*2;
-        const rad = radius*(0.65 + Math.random()*0.35);
-        const lat = latCenter + (Math.random()-0.5)*6;
-        const lon = (ang*RAD - 180);
+        // Atmosphere rim — blooms
+        const atmoUniforms = {
+          sunDir:    { value: new THREE.Vector3(1,0,0) },
+          cameraPos: { value: new THREE.Vector3() }
+        };
 
-        const p = latLonToVec3(lat, lon, earthRadius*1.035 + Math.random()*0.01);
-        positions[i*3+0]=p.x; positions[i*3+1]=p.y; positions[i*3+2]=p.z;
-        sizes[i]= 0.6 + Math.random()*1.6;
-      }
-      geom.setAttribute("position", new THREE.BufferAttribute(positions,3));
-      geom.setAttribute("aSize", new THREE.BufferAttribute(sizes,1));
+        const atmosphere = new THREE.Mesh(
+          new THREE.SphereGeometry(earthRadius * 1.045, SEG, SEG),
+          new THREE.ShaderMaterial({
+            uniforms: atmoUniforms,
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+            side: THREE.BackSide,
+            vertexShader: `
+              varying vec3 vNormalW;
+              varying vec3 vPosW;
+              void main(){
+                vec4 worldPos = modelMatrix * vec4(position, 1.0);
+                vPosW = worldPos.xyz;
+                vNormalW = normalize(mat3(modelMatrix) * normal);
+                gl_Position = projectionMatrix * viewMatrix * worldPos;
+              }
+            `,
+            fragmentShader: `
+              precision highp float;
+              uniform vec3 sunDir;
+              uniform vec3 cameraPos;
+              varying vec3 vNormalW;
+              varying vec3 vPosW;
 
-      const mat = new THREE.ShaderMaterial({
-        transparent:true,
-        depthWrite:false,
-        blending: THREE.AdditiveBlending,
-        uniforms: {
-          uIntensity: { value: 0.35 },
-          uColor: { value: new THREE.Color(0x7dffb2) }
-        },
-        vertexShader: `
-          attribute float aSize;
-          uniform float uIntensity;
-          varying float vA;
-          void main(){
-            vA = uIntensity;
-            vec4 mv = modelViewMatrix * vec4(position,1.0);
-            gl_Position = projectionMatrix * mv;
-            gl_PointSize = aSize * (120.0 / -mv.z);
-          }
-        `,
-        fragmentShader: `
-          precision highp float;
-          uniform vec3 uColor;
-          varying float vA;
-          void main(){
-            vec2 uv = gl_PointCoord - 0.5;
-            float d = length(uv);
-            float a = smoothstep(0.5, 0.0, d) * vA;
-            gl_FragColor = vec4(uColor, a);
-          }
-        `
-      });
-      const pts = new THREE.Points(geom, mat);
-      pts.layers.enable(1);
-      return pts;
-    }
+              void main(){
+                vec3 N = normalize(vNormalW);
+                vec3 L = normalize(sunDir);
+                vec3 V = normalize(cameraPos - vPosW);
 
-    const auroraNorth = makeAuroraRing(67, 1.0, 1400);
-    const auroraSouth = makeAuroraRing(-67, 1.0, 1400);
-    auroraGroup.add(auroraNorth, auroraSouth);
+                float rim = pow(1.0 - max(dot(N, V), 0.0), 3.2);
+                float daySide = smoothstep(-0.15, 0.25, dot(N, L));
 
-    let currentKp = 2.0;
+                vec3 col = vec3(0.20, 0.55, 1.00) * rim * (0.25 + 0.75 * daySide);
+                float alpha = rim * (0.18 + 0.62 * daySide);
+                gl_FragColor = vec4(col, alpha);
+              }
+            `
+          })
+        );
 
-    async function fetchKp(){
-      try{
-        // NOAA SWPC Planetary K index (JSON) — may fail; safe fallback
-        const r = await fetch("https://services.swpc.noaa.gov/json/planetary_k_index_1m.json", { cache:"no-store" });
-        if (!r.ok) throw new Error("kp fetch failed");
-        const data = await r.json();
-        // last entry contains kp
-        const last = data[data.length-1];
-        const kp = parseFloat(last?.kp_index);
-        if (!Number.isFinite(kp)) throw new Error("kp parse failed");
-        currentKp = kp;
-        kpEl.textContent = `• Kp ${kp.toFixed(1)}`;
-      } catch {
-        kpEl.textContent = "";
-      }
-      // update aurora intensity
-      const intensity = clamp((currentKp - 1.5)/7.0, 0.08, 0.95);
-      auroraNorth.material.uniforms.uIntensity.value = intensity;
-      auroraSouth.material.uniforms.uIntensity.value = intensity * 0.92;
-      // hue shift slightly with kp
-      const c = new THREE.Color().setHSL(0.35 - intensity*0.10, 0.95, 0.55);
-      auroraNorth.material.uniforms.uColor.value.copy(c);
-      auroraSouth.material.uniforms.uColor.value.copy(c);
-    }
-    fetchKp();
-    setInterval(fetchKp, 10*60*1000);
+        // Rotation group
+        const globe = new THREE.Group();
+        globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
+        scene.add(globe);
 
-    // ---------------- Toggles state ----------------
-    const state = {
-      axis: true,
-      names: false,
-      continents: false,
-      stations: true,
-      corridors: false,
-      perps: false,
-      mag: false,
-      aurora: false
-    };
+        // ---------- Overlays / Layers ----------
+        const overlays = {
+          axisLines: new THREE.Group(),
+          corridors: new THREE.Group(),
+          perpendiculars: new THREE.Group(),
+          lineNames: new THREE.Group(),
+          continents: new THREE.Group(),
+          stations: new THREE.Group(),
+          magField: new THREE.Group(),
+          aurora: new THREE.Group()
+        };
+        Object.values(overlays).forEach(g => globe.add(g));
 
-    function setToggle(key, on){
-      state[key] = !!on;
+        // Anchor: 202 Hendren Ave, Staunton VA (from your earlier log)
+        const ANCHOR = {
+          name: "EXIT 222 • 202 Hendren Ave • Staunton, VA",
+          lat: 38.160833,
+          lon: -79.073056
+        };
 
-      // visuals
-      if (key === "axis") layers.axis.visible = state.axis;
-      if (key === "corridors") layers.corridors.visible = state.corridors;
-      if (key === "perps") layers.perps.visible = state.perps;
-      if (key === "stations") layers.stations.visible = state.stations;
-      if (key === "mag") layers.mag.visible = state.mag;
-      if (key === "aurora") layers.aurora.visible = state.aurora;
+        // Axis bearings: 42° / 222°
+        const BEARING_A = 42;
+        const BEARING_B = 222;
 
-      // line name labels
-      if (key === "names"){
-        const show = state.names && state.axis;
-        labelRhumb.classList.toggle("show", show);
-        labelGC.classList.toggle("show", show);
-      }
+        // Great circle (blue glow)
+        const gc = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, BEARING_B, 1.0)
+          .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+        const gcGlow = makeGlowTube(gc, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.32);
 
-      // continents labels
-      if (key === "continents"){
-        for (const c of continentLabels) c.el.classList.toggle("show", state.continents);
-      }
+        // Rhumb line (gold glow)
+        const rh = rhumbPoints(ANCHOR.lat, ANCHOR.lon, BEARING_B, 240)
+          .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+        const rhGlow = makeGlowTube(rh, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.28);
 
-      // stations label visibility
-      anchorLabel.classList.toggle("show", state.stations);
-      for (const s of futureStationLabels) s.el.classList.toggle("show", state.stations);
+        overlays.axisLines.add(gcGlow, rhGlow);
 
-      // update chip UI
-      document.querySelectorAll(".chip").forEach(chip => {
-        if (chip.dataset.toggle === key){
-          chip.classList.toggle("on", state[key]);
+        // Corridors (tube radii for ±1/±5/±10 km)
+        // Map km to world units: 1 unit == Earth radius (6371 km)
+        const kmToUnit = (km) => (km / 6371) * earthRadius;
+        const corridorRadii = [
+          { km: 1,  r: kmToUnit(1),  o: 0.18 },
+          { km: 5,  r: kmToUnit(5),  o: 0.10 },
+          { km: 10, r: kmToUnit(10), o: 0.07 }
+        ];
+        for (const c of corridorRadii){
+          const tubeGC = makeGlowTube(gc, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o); // halo-only look
+          const tubeRH = makeGlowTube(rh, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9);
+          overlays.corridors.add(tubeGC, tubeRH);
         }
-      });
-    }
 
-    // wire chips
-    document.querySelectorAll(".chip").forEach(chip => {
-      chip.addEventListener("click", () => {
-        const key = chip.dataset.toggle;
-        setToggle(key, !state[key]);
-      });
-    });
-
-    // initialize chips reflect default state
-    Object.keys(state).forEach(k => setToggle(k, state[k]));
-
-    // ---------------- Label positioning (DOM) ----------------
-    function updateLabelAtLatLon(el, lat, lon, offsetPxY=0){
-      if (!el.classList.contains("show")) return;
-      const local = latLonToVec3(lat, lon, earthRadius*1.06);
-      const world = local.clone().applyMatrix4(globe.matrixWorld);
-      const ndc = world.project(camera);
-
-      // hide if behind camera
-      if (ndc.z > 1) { el.style.opacity = 0; return; }
-
-      const x = (ndc.x * 0.5 + 0.5) * innerWidth;
-      const y = (-ndc.y * 0.5 + 0.5) * innerHeight + offsetPxY;
-
-      el.style.left = `${x}px`;
-      el.style.top  = `${y}px`;
-      el.style.opacity = 1;
-    }
-
-    // place axis labels near visible portion
-    function updateAxisLabels(){
-      if (!(state.names && state.axis)){
-        labelRhumb.style.opacity = 0;
-        labelGC.style.opacity = 0;
-        return;
-      }
-      // use a point on each curve near anchor
-      updateLabelAtLatLon(labelRhumb, ANCHOR.lat+6, ANCHOR.lon+10, 0);
-      updateLabelAtLatLon(labelGC,    ANCHOR.lat+10, ANCHOR.lon+18, 0);
-    }
-
-    function updateStationLabels(){
-      if (!state.stations) return;
-      updateLabelAtLatLon(anchorLabel, ANCHOR.lat, ANCHOR.lon, -22);
-      for (const s of futureStationLabels){
-        updateLabelAtLatLon(s.el, s.lat, s.lon, -18);
-      }
-    }
-
-    // ---------------- Drag rotate + inertia ----------------
-    let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
-    const AUTO_SPIN=0.0013, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
-
-    function getPoint(e){
-      if (e.touches && e.touches.length) return { x:e.touches[0].clientX, y:e.touches[0].clientY };
-      return { x:e.clientX, y:e.clientY };
-    }
-
-    function down(e){
-      // ignore UI taps
-      const t = e.target;
-      if (t.closest && (t.closest("#sheet") || t.closest("#layersBtn"))) return;
-      dragging=true;
-      const p=getPoint(e); lastX=p.x; lastY=p.y;
-    }
-    function move(e){
-      if(!dragging) return;
-      const p=getPoint(e);
-      const dx=p.x-lastX, dy=p.y-lastY;
-      lastX=p.x; lastY=p.y;
-
-      globe.rotation.y += dx*DRAG_SENS;
-      globe.rotation.x += dy*PITCH_SENS;
-      globe.rotation.x = clamp(globe.rotation.x, -MAX_PITCH, MAX_PITCH);
-
-      velY = dx*DRAG_SENS;
-      velX = dy*PITCH_SENS;
-    }
-    function up(){ dragging=false; }
-
-    const el = renderer.domElement;
-    el.addEventListener("touchstart", down, { passive:true });
-    el.addEventListener("touchmove", move, { passive:true });
-    el.addEventListener("touchend", up, { passive:true });
-    el.addEventListener("mousedown", down);
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", up);
-
-    // ---------------- Pinch-to-zoom + wheel zoom ----------------
-    let camDist = 4.2;
-    const CAM_MIN = 2.2;
-    const CAM_MAX = 7.0;
-
-    function setCameraDist(d){
-      camDist = clamp(d, CAM_MIN, CAM_MAX);
-      camera.position.set(0, 0, camDist);
-    }
-    setCameraDist(camDist);
-
-    let pinchActive = false;
-    let pinchStartDist = 0;
-    let pinchStartCam = camDist;
-
-    function touchDistance(touches){
-      const dx = touches[0].clientX - touches[1].clientX;
-      const dy = touches[0].clientY - touches[1].clientY;
-      return Math.hypot(dx, dy);
-    }
-
-    el.addEventListener("touchstart", (e) => {
-      if (e.touches.length === 2){
-        pinchActive = true;
-        pinchStartDist = touchDistance(e.touches);
-        pinchStartCam = camDist;
-      }
-    }, { passive:true });
-
-    el.addEventListener("touchmove", (e) => {
-      if (!pinchActive || e.touches.length !== 2) return;
-      const d = touchDistance(e.touches);
-      const scale = pinchStartDist / Math.max(1, d);
-      setCameraDist(pinchStartCam * scale);
-    }, { passive:true });
-
-    el.addEventListener("touchend", (e) => {
-      if (e.touches.length < 2) pinchActive = false;
-    }, { passive:true });
-
-    window.addEventListener("wheel", (e) => {
-      // ignore wheel over UI
-      if (e.target.closest && (e.target.closest("#sheet") || e.target.closest("#layersBtn"))) return;
-      setCameraDist(camDist + e.deltaY * 0.0022);
-    }, { passive:true });
-
-    // ---------------- Tap globe: drop future station ----------------
-    const raycaster = new THREE.Raycaster();
-    const pointer = new THREE.Vector2();
-
-    function handleTap(e){
-      if (!state.stations) return;
-      // don’t drop stations when tapping UI
-      const t = e.target;
-      if (t.closest && (t.closest("#sheet") || t.closest("#layersBtn"))) return;
-
-      const p = getPoint(e);
-      pointer.x = (p.x / innerWidth) * 2 - 1;
-      pointer.y = -(p.y / innerHeight) * 2 + 1;
-
-      raycaster.setFromCamera(pointer, camera);
-
-      // intersect Earth mesh (in globe)
-      const hits = raycaster.intersectObject(earth, true);
-      if (!hits.length) return;
-
-      const hit = hits[0].point.clone();
-      // convert world->globe local
-      globe.updateMatrixWorld(true);
-      const inv = new THREE.Matrix4().copy(globe.matrixWorld).invert();
-      hit.applyMatrix4(inv);
-
-      const ll = vec3ToLatLon(hit);
-      addFutureStation(ll.lat, ll.lon);
-    }
-
-    el.addEventListener("click", handleTap);
-
-    // ---------------- Animate ----------------
-    const sunDrift = 0.00005;
-    const cloudSpin = 0.0020;
-
-    function animate(){
-      requestAnimationFrame(animate);
-
-      clouds.rotation.y += cloudSpin;
-      cloudShadow.rotation.y += cloudSpin + 0.00015;
-
-      if(!dragging && !pinchActive){
-        globe.rotation.y += AUTO_SPIN;
-        globe.rotation.y += velY;
-        globe.rotation.x += velX;
-        velY *= DAMPING;
-        velX *= DAMPING;
-        globe.rotation.x = clamp(globe.rotation.x, -MAX_PITCH, MAX_PITCH);
-      }
-
-      sunLight.position.applyAxisAngle(new THREE.Vector3(0,1,0), sunDrift);
-      const sunDir = sunLight.position.clone().normalize();
-
-      earthUniforms.sunDir.value.copy(sunDir);
-      earthUniforms.cameraPos.value.copy(camera.position);
-      lightsUniforms.sunDir.value.copy(sunDir);
-      atmoUniforms.sunDir.value.copy(sunDir);
-      atmoUniforms.cameraPos.value.copy(camera.position);
-
-      // labels
-      updateAxisLabels();
-      if (state.continents){
-        for (const c of continentLabels){
-          updateLabelAtLatLon(c.el, c.lat, c.lon, 0);
+        // Perpendiculars (132° / 312°) — blue glow, shorter arc
+        function arcFromBearing(bearingDeg){
+          const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, bearingDeg, 1.2)
+            .filter((_, idx) => idx > 40 && idx < 260) // crop to a pleasing arc length
+            .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+          return makeGlowTube(pts, 0.0026, 0x5bbcff, 0x5bbcff, 1.0, 0.22);
         }
+        overlays.perpendiculars.add(arcFromBearing(132), arcFromBearing(312));
+
+        // Line names
+        {
+          const a = makeLabelSprite("Rhumb 222° (Gold)", { color:"#ffffff", bg:"rgba(246,194,74,0.18)" });
+          a.position.copy(latLonToVec3(25, -20, earthRadius*1.12));
+          overlays.lineNames.add(a);
+
+          const b = makeLabelSprite("Geodesic / Great Circle 222° (Blue)", { color:"#ffffff", bg:"rgba(91,188,255,0.18)" });
+          b.position.copy(latLonToVec3(-10, 70, earthRadius*1.12));
+          overlays.lineNames.add(b);
+
+          const c = makeLabelSprite("Perpendiculars 132° / 312°", { color:"#ffffff", bg:"rgba(91,188,255,0.14)" });
+          c.position.copy(latLonToVec3(55, 110, earthRadius*1.14));
+          overlays.lineNames.add(c);
+        }
+
+        // Continents labels (simple, user-identifiable)
+        const CONT = [
+          { name:"North America", lat: 45,  lon:-102 },
+          { name:"South America", lat:-16,  lon:-60 },
+          { name:"Europe",        lat: 52,  lon: 15 },
+          { name:"Africa",        lat:  5,  lon: 20 },
+          { name:"Asia",          lat: 45,  lon: 95 },
+          { name:"Australia",     lat:-25,  lon: 135 },
+          { name:"Antarctica",    lat:-80,  lon:  0 }
+        ];
+        for (const c of CONT){
+          const s = makeLabelSprite(c.name, { fontSize: 42, bg:"rgba(0,0,0,0.28)" });
+          s.position.copy(latLonToVec3(c.lat, c.lon, earthRadius*1.10));
+          overlays.continents.add(s);
+        }
+
+        // Stations: anchor + future stations
+        function makeStationMarker(label, lat, lon, color=0x7fffd4){
+          const g = new THREE.Group();
+          const p = latLonToVec3(lat, lon, earthRadius*1.02);
+
+          const pin = new THREE.Mesh(
+            new THREE.SphereGeometry(0.010, 18, 18),
+            new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.95 })
+          );
+          pin.position.copy(p);
+
+          const glow = new THREE.Mesh(
+            new THREE.SphereGeometry(0.020, 18, 18),
+            new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.18, blending:THREE.AdditiveBlending, depthWrite:false })
+          );
+          glow.position.copy(p);
+
+          const tag = makeLabelSprite(label, { fontSize: 40, bg:"rgba(0,0,0,0.30)" });
+          tag.position.copy(latLonToVec3(lat, lon, earthRadius*1.12));
+
+          g.add(glow, pin, tag);
+          return g;
+        }
+
+        const anchorMarker = makeStationMarker(ANCHOR.name, ANCHOR.lat, ANCHOR.lon, 0x7fffd4);
+        overlays.stations.add(anchorMarker);
+
+        const STORAGE_KEY = "eden_future_stations_v1";
+        function loadStations(){
+          try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+          catch { return []; }
+        }
+        function saveStations(arr){
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+        }
+
+        function rebuildFutureStations(){
+          // remove old future stations (keep anchor at child[0])
+          while (overlays.stations.children.length > 1) overlays.stations.remove(overlays.stations.children[1]);
+
+          const list = loadStations();
+          list.forEach((s, idx) => {
+            overlays.stations.add(makeStationMarker(`Future Station ${idx+1}`, s.lat, s.lon, 0xffffff));
+          });
+        }
+        rebuildFutureStations();
+
+        // Magnetic Field (v1 Dipole preview) — structured for IGRF v2 drop-in later
+        // For now: show several dipole field lines oriented to Earth's rotation axis
+        function makeDipoleFieldLines(){
+          const g = new THREE.Group();
+          const col = 0x5bbcff;
+
+          // dipole axis: Y up (simple preview)
+          const axis = new THREE.Vector3(0,1,0);
+
+          // generate L-shell-like curves by tracing in dipole coordinates
+          const Ls = [1.6, 2.2, 3.2, 4.6];
+          for (const L of Ls){
+            const pts = [];
+            for (let t=-80; t<=80; t+=1.2){
+              const θ = (90 - t) * DEG; // colat
+              const r = L * Math.sin(θ)*Math.sin(θ); // r = L sin^2(θ)
+              const rr = earthRadius * r;
+
+              // build point in dipole meridian plane (x-z), then rotate around axis
+              const x = rr * Math.sin(θ);
+              const y = rr * Math.cos(θ);
+              const v = new THREE.Vector3(x, y, 0);
+
+              // keep close to Earth only
+              if (rr < earthRadius*1.04) continue;
+
+              pts.push(v);
+            }
+
+            // rotate this meridian curve around Y to make multiple longitudes
+            const longitudes = 10;
+            for (let i=0; i<longitudes; i++){
+              const a = (i / longitudes) * Math.PI*2;
+              const ring = pts.map(p => p.clone().applyAxisAngle(axis, a).normalize().multiplyScalar(p.length()));
+              // clamp to a reasonable distance
+              const ringClamped = ring.filter(v => v.length() < earthRadius*7.5);
+              const tube = makeGlowTube(
+                ringClamped.map(v => v.clone()),
+                0.0014,
+                col,
+                col,
+                0.0,
+                0.06
+              );
+              g.add(tube);
+            }
+          }
+          return g;
+        }
+        overlays.magField.add(makeDipoleFieldLines());
+
+        // Aurora (v1 preview belt) — structured for Kp v2 later
+        function makeAuroraBelt(latDeg=67, color=0xa078ff){
+          const g = new THREE.Group();
+          const rings = [latDeg, -latDeg];
+          for (const lat of rings){
+            const pts = [];
+            for (let lon=-180; lon<=180; lon+=2){
+              pts.push(latLonToVec3(lat, lon, earthRadius*1.05));
+            }
+            g.add(makeGlowTube(pts, 0.0026, color, color, 0.0, 0.12));
+          }
+          return g;
+        }
+        overlays.aurora.add(makeAuroraBelt(67));
+
+        // ---------- Selective Bloom ----------
+        const BLOOM_LAYER = 1;
+        const bloomLayer = new THREE.Layers();
+        bloomLayer.set(BLOOM_LAYER);
+
+        // bloom targets
+        nightLights.layers.enable(BLOOM_LAYER);
+        atmosphere.layers.enable(BLOOM_LAYER);
+        overlays.axisLines.traverse(o => o.layers && o.layers.enable(BLOOM_LAYER));
+        overlays.perpendiculars.traverse(o => o.layers && o.layers.enable(BLOOM_LAYER));
+
+        const darkMaterial = new THREE.MeshBasicMaterial({ color:"black" });
+        const materials = new Map();
+
+        function darkenNonBloom(obj){
+          if (obj.isMesh && !bloomLayer.test(obj.layers)){
+            materials.set(obj.uuid, obj.material);
+            obj.material = darkMaterial;
+          }
+        }
+        function restoreMaterial(obj){
+          if (materials.has(obj.uuid)){
+            obj.material = materials.get(obj.uuid);
+            materials.delete(obj.uuid);
+          }
+        }
+
+        const renderScene = new RenderPass(scene, camera);
+
+        const bloomPass = new UnrealBloomPass(
+          new THREE.Vector2(innerWidth, innerHeight),
+          1.20, // strength
+          0.85, // radius
+          0.10  // threshold
+        );
+
+        const bloomComposer = new EffectComposer(renderer);
+        bloomComposer.renderToScreen = false;
+        bloomComposer.addPass(renderScene);
+        bloomComposer.addPass(bloomPass);
+
+        const finalPass = new ShaderPass({
+          uniforms: {
+            tDiffuse: { value: null },
+            bloomTexture: { value: null }
+          },
+          vertexShader: `
+            varying vec2 vUv;
+            void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+          `,
+          fragmentShader: `
+            uniform sampler2D tDiffuse;
+            uniform sampler2D bloomTexture;
+            varying vec2 vUv;
+            void main(){
+              vec4 base = texture2D(tDiffuse, vUv);
+              vec4 bloom = texture2D(bloomTexture, vUv);
+              gl_FragColor = base + bloom;
+            }
+          `
+        });
+
+        const finalComposer = new EffectComposer(renderer);
+        finalComposer.addPass(renderScene);
+        finalComposer.addPass(finalPass);
+        finalComposer.addPass(new OutputPass());
+
+        function renderBloom(){
+          scene.traverse(darkenNonBloom);
+          bloomComposer.render();
+          finalPass.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
+          scene.traverse(restoreMaterial);
+        }
+
+        // ---------- Interaction: drag + inertia + pinch zoom ----------
+        let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
+
+        const AUTO_SPIN=0.0013, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
+
+        // pinch zoom
+        let pinching = false;
+        let pinchStartDist = 0;
+        let pinchStartZ = camera.position.z;
+        const Z_MIN = 2.2;
+        const Z_MAX = 8.0;
+
+        function getPoint(e){
+          if (e.touches && e.touches.length) return { x:e.touches[0].clientX, y:e.touches[0].clientY };
+          return { x:e.clientX, y:e.clientY };
+        }
+        function dist2(t1, t2){
+          const dx = t1.clientX - t2.clientX;
+          const dy = t1.clientY - t2.clientY;
+          return Math.sqrt(dx*dx + dy*dy);
+        }
+
+        function down(e){
+          if (e.touches && e.touches.length === 2){
+            pinching = true;
+            pinchStartDist = dist2(e.touches[0], e.touches[1]);
+            pinchStartZ = camera.position.z;
+            return;
+          }
+          dragging=true;
+          const p=getPoint(e);
+          lastX=p.x; lastY=p.y;
+        }
+
+        function move(e){
+          if (pinching && e.touches && e.touches.length === 2){
+            const d = dist2(e.touches[0], e.touches[1]);
+            const ratio = pinchStartDist > 0 ? (pinchStartDist / d) : 1.0;
+            camera.position.z = clamp(pinchStartZ * ratio, Z_MIN, Z_MAX);
+            return;
+          }
+
+          if(!dragging) return;
+          const p=getPoint(e);
+          const dx=p.x-lastX, dy=p.y-lastY;
+          lastX=p.x; lastY=p.y;
+
+          globe.rotation.y += dx*DRAG_SENS;
+          globe.rotation.x += dy*PITCH_SENS;
+          globe.rotation.x = clamp(globe.rotation.x, -MAX_PITCH, MAX_PITCH);
+
+          velY = dx*DRAG_SENS;
+          velX = dy*PITCH_SENS;
+        }
+
+        function up(){
+          dragging=false;
+          pinching=false;
+        }
+
+        const el = renderer.domElement;
+        el.addEventListener("touchstart", down, { passive:true });
+        el.addEventListener("touchmove", move, { passive:true });
+        el.addEventListener("touchend", up, { passive:true });
+        el.addEventListener("mousedown", down);
+        window.addEventListener("mousemove", move);
+        window.addEventListener("mouseup", up);
+
+        // desktop wheel zoom
+        window.addEventListener("wheel", (e) => {
+          camera.position.z = clamp(camera.position.z + (e.deltaY * 0.0025), Z_MIN, Z_MAX);
+        }, { passive:true });
+
+        // Tap-to-add station (only if Stations ON and tap isn't a drag)
+        const raycaster = new THREE.Raycaster();
+        const ndc = new THREE.Vector2();
+        let tapCandidate = null;
+
+        function pointerToNDC(clientX, clientY){
+          ndc.x = (clientX / innerWidth) * 2 - 1;
+          ndc.y = -(clientY / innerHeight) * 2 + 1;
+        }
+
+        function addFutureStationFromTap(clientX, clientY){
+          pointerToNDC(clientX, clientY);
+          raycaster.setFromCamera(ndc, camera);
+
+          const hits = raycaster.intersectObject(earth, true);
+          if (!hits.length) return;
+
+          // world point -> globe local
+          const pWorld = hits[0].point.clone();
+          const pLocal = globe.worldToLocal(pWorld.clone());
+          const v = pLocal.clone().normalize();
+
+          const ll = vec3ToLatLon(v);
+          const list = loadStations();
+          list.push({ lat: ll.lat, lon: ll.lon, t: Date.now() });
+          saveStations(list);
+          rebuildFutureStations();
+
+          statusEl.textContent = `Saved Future Station ${list.length} @ ${ll.lat.toFixed(4)}, ${ll.lon.toFixed(4)}`;
+        }
+
+        el.addEventListener("touchstart", (e) => {
+          if (e.touches?.length === 1){
+            tapCandidate = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: performance.now() };
+          } else tapCandidate = null;
+        }, { passive:true });
+
+        el.addEventListener("touchend", (e) => {
+          if (!tapCandidate) return;
+          const dt = performance.now() - tapCandidate.t;
+          // if user moved a lot, it's a drag
+          if (dt < 280 && !dragging && !pinching && state.stations){
+            addFutureStationFromTap(tapCandidate.x, tapCandidate.y);
+          }
+          tapCandidate = null;
+        }, { passive:true });
+
+        // ---------- Layer toggles ----------
+        const state = {
+          axisLines: true,
+          lineNames: false,
+          continents: false,
+          stations: true,
+          corridors: false,
+          perpendiculars: false,
+          magField: false,
+          aurora: false
+        };
+
+        function applyVisibility(){
+          overlays.axisLines.visible = state.axisLines;
+          overlays.lineNames.visible = state.lineNames;
+          overlays.continents.visible = state.continents;
+          overlays.stations.visible = state.stations;
+          overlays.corridors.visible = state.corridors;
+          overlays.perpendiculars.visible = state.perpendiculars;
+          overlays.magField.visible = state.magField;
+          overlays.aurora.visible = state.aurora;
+        }
+        applyVisibility();
+
+        function setPill(key, on){
+          const b = document.querySelector(`.pill[data-key="${key}"]`);
+          if (!b) return;
+          b.classList.toggle("on", !!on);
+        }
+
+        document.querySelectorAll(".pill").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const key = btn.dataset.key;
+            state[key] = !state[key];
+            setPill(key, state[key]);
+            applyVisibility();
+          });
+        });
+
+        // ---------- Animation ----------
+        const sunDrift = 0.00005;
+        const cloudSpin = 0.0020;
+
+        function animate(){
+          requestAnimationFrame(animate);
+
+          clouds.rotation.y += cloudSpin;
+          cloudShadow.rotation.y += cloudSpin + 0.00015;
+
+          if(!dragging && !pinching){
+            globe.rotation.y += AUTO_SPIN;
+            globe.rotation.y += velY;
+            globe.rotation.x += velX;
+            velY *= DAMPING;
+            velX *= DAMPING;
+            globe.rotation.x = clamp(globe.rotation.x, -MAX_PITCH, MAX_PITCH);
+          }
+
+          sunLight.position.applyAxisAngle(new THREE.Vector3(0,1,0), sunDrift);
+          const sunDir = sunLight.position.clone().normalize();
+
+          earthUniforms.sunDir.value.copy(sunDir);
+          earthUniforms.cameraPos.value.copy(camera.position);
+
+          lightsUniforms.sunDir.value.copy(sunDir);
+          atmoUniforms.sunDir.value.copy(sunDir);
+          atmoUniforms.cameraPos.value.copy(camera.position);
+
+          renderBloom();
+          finalComposer.render();
+        }
+        animate();
+
+        addEventListener("resize", () => {
+          camera.aspect = innerWidth/innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(innerWidth, innerHeight);
+          bloomComposer.setSize(innerWidth, innerHeight);
+          finalComposer.setSize(innerWidth, innerHeight);
+          bloomPass.setSize(innerWidth, innerHeight);
+        });
+
+      } catch (err) {
+        showError("Top-level error:\n" + (err?.stack || err?.message || err));
       }
-      updateStationLabels();
-
-      renderBloom();
-      finalComposer.render();
-    }
-
-    // ---------------- Resize ----------------
-    addEventListener("resize", () => {
-      camera.aspect = innerWidth/innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(innerWidth, innerHeight);
-      bloomComposer.setSize(innerWidth, innerHeight);
-      finalComposer.setSize(innerWidth, innerHeight);
-      bloomPass.setSize(innerWidth, innerHeight);
-    });
-
-    // ---------------- Start immediately ----------------
-    setStatus("Running");
-    animate();
-
-    // ---------------- Real textures: load in background and hot-swap ----------------
-    (async () => {
-      setStatus("Loading textures…");
-
-      // Use multiple mirrors; whichever loads first wins.
-      const CDN = [
-        "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/",
-        "https://threejs.org/examples/textures/",
-        "https://raw.githubusercontent.com/mrdoob/three.js/r161/examples/textures/" // sometimes blocked; last resort
-      ];
-
-      const texUrls = (subpath) => CDN.map(b => b + subpath);
-
-      const dayRes    = await loadTextureWithFallback(texUrls("planets/earth_atmos_2048.jpg"));
-      const nightRes  = await loadTextureWithFallback(texUrls("planets/earth_lights_2048.png"));
-      const specRes   = await loadTextureWithFallback(texUrls("planets/earth_specular_2048.jpg"));
-      const cloudRes  = await loadTextureWithFallback(texUrls("planets/earth_clouds_1024.png"));
-      const starsRes  = await loadTextureWithFallback(texUrls("galaxy_starfield.png"));
-
-      const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
-
-      function prep(tex){
-        if (!tex) return;
-        tex.colorSpace = THREE.SRGBColorSpace;
-        tex.anisotropy = maxAniso;
-        tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
-        tex.needsUpdate = true;
-      }
-
-      if (dayRes.ok)   { prep(dayRes.texture);   earthUniforms.dayMap.value = dayRes.texture; }
-      if (specRes.ok)  { prep(specRes.texture);  earthUniforms.specMap.value = specRes.texture; }
-      if (nightRes.ok) { prep(nightRes.texture); lightsUniforms.nightMap.value = nightRes.texture; }
-      if (cloudRes.ok) { prep(cloudRes.texture); clouds.material.map = cloudRes.texture; cloudShadow.material.map = cloudRes.texture; }
-      if (starsRes.ok) { prep(starsRes.texture); stars.material.map = starsRes.texture; }
-
-      const okCount = [dayRes, nightRes, specRes, cloudRes, starsRes].filter(x=>x.ok).length;
-      setStatus(okCount >= 3 ? "Running • Textures OK" : "Running • Using fallback (some textures blocked)");
-    })();
-  </script>
-</body>
+    </script>
+  </body>
 </html>
