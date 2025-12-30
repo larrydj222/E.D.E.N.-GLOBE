@@ -4,293 +4,191 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <title>E.D.E.N. Globe</title>
-
     <style>
-      html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
+      html, body { height:100%; margin:0; background:#000; overflow:hidden; touch-action:none; }
       canvas { display:block; width:100vw !important; height:100vh !important; }
-
-      /* Debug HUD (shows JS errors on iPhone) */
       #hud{
         position:fixed; left:10px; bottom:10px; z-index:9999;
-        font-family:-apple-system, system-ui, Segoe UI, Roboto, Arial;
-        font-size:12px; line-height:1.25;
+        font: 12px/1.25 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         color:#d7d7d7; background:rgba(0,0,0,0.55);
         border:1px solid rgba(255,255,255,0.12);
-        border-radius:10px; padding:10px 12px; max-width:88vw;
-        backdrop-filter:blur(6px);
+        border-radius:12px; padding:10px 12px; max-width:92vw;
+        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        white-space: pre-wrap;
       }
-      #hud b{ color:#fff; }
-      #errors{ margin-top:8px; color:#ff9c9c; white-space:pre-wrap; display:none; }
-      #hint{ margin-top:6px; color:#a9c7ff; }
+      .ok{ color:#9affb0; } .warn{ color:#ffd27a; } .err{ color:#ff7a7a; }
     </style>
-
-    <!-- ✅ Import Map fixes: 'three' + 'three/addons/' resolve correctly on GitHub Pages -->
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
-          "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
-        }
-      }
-    </script>
   </head>
 
   <body>
-    <div id="hud">
-      <div><b>Status:</b> <span id="status">Loading…</span></div>
-      <div id="hint">If you see errors, screenshot them and send them here.</div>
-      <div id="errors"></div>
-    </div>
+    <div id="hud"><b>Status:</b> <span class="warn">Booting…</span></div>
 
-    <script type="module">
-      // ---------- Error capture (so you can see issues on iPhone) ----------
-      const statusEl = document.getElementById("status");
-      const errorsEl = document.getElementById("errors");
-      function showError(msg){
-        errorsEl.style.display = "block";
-        errorsEl.textContent += (errorsEl.textContent ? "\n\n" : "") + msg;
-        statusEl.textContent = "Error (see panel)";
-      }
-      window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
-      window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
+    <script>
+      const hud = document.getElementById("hud");
+      const setHUD = (status, cls="ok", details="") => {
+        hud.innerHTML = `<b>Status:</b> <span class="${cls}">${status}</span>` + (details ? `\n${details}` : "");
+      };
 
-      import * as THREE from "three";
-      import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
-      import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
-      import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
-      import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
-      import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+      window.addEventListener("error", (e) => {
+        setHUD("Error", "err", `JS Error:\n${e.message || e.type || "Unknown"}`);
+      });
+      window.addEventListener("unhandledrejection", (e) => {
+        setHUD("Error", "err", `Promise Rejection:\n${e.reason?.message || e.reason || e}`);
+      });
 
-      try {
-        // ---------- Scene / Camera / Renderer ----------
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 5000);
-        camera.position.set(0, 0, 4.2);
+      // ✅ Dynamic imports so we can SHOW import errors instead of getting stuck on Booting…
+      (async () => {
+        try {
+          setHUD("Importing Three.js…", "warn");
 
-        const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-        renderer.setSize(innerWidth, innerHeight);
-        renderer.outputColorSpace = THREE.SRGBColorSpace;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.0;
-        document.body.appendChild(renderer.domElement);
+          // esm.sh rewrites bare imports so Safari can’t fail silently
+          const THREE = await import("https://esm.sh/three@0.161.0?bundle");
+          const { EffectComposer } = await import("https://esm.sh/three@0.161.0/examples/jsm/postprocessing/EffectComposer.js?bundle");
+          const { RenderPass } = await import("https://esm.sh/three@0.161.0/examples/jsm/postprocessing/RenderPass.js?bundle");
+          const { ShaderPass } = await import("https://esm.sh/three@0.161.0/examples/jsm/postprocessing/ShaderPass.js?bundle");
+          const { OutputPass } = await import("https://esm.sh/three@0.161.0/examples/jsm/postprocessing/OutputPass.js?bundle");
+          const { UnrealBloomPass } = await import("https://esm.sh/three@0.161.0/examples/jsm/postprocessing/UnrealBloomPass.js?bundle");
 
-        // ---------- Lights ----------
-        scene.add(new THREE.AmbientLight(0xffffff, 0.10));
-        const sunLight = new THREE.DirectionalLight(0xffffff, 1.25);
-        sunLight.position.set(5, 1.5, 2.5);
-        scene.add(sunLight);
+          setHUD("Loading textures…", "warn");
 
-        // ---------- Loading Manager ----------
-        const manager = new THREE.LoadingManager();
-        manager.onStart = () => { statusEl.textContent = "Loading textures…"; };
-        manager.onProgress = (_url, loaded, total) => { statusEl.textContent = `Loading textures… (${loaded}/${total})`; };
-        manager.onLoad = () => { statusEl.textContent = "Running"; };
-        manager.onError = (url) => showError("Texture failed to load:\n" + url);
+          // ---------- Scene / Camera / Renderer ----------
+          const scene = new THREE.Scene();
 
-        // ---------- Textures (reliable CDN) ----------
-        const base = "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/";
-        const TEX = {
-          day:    base + "planets/earth_atmos_2048.jpg",
-          night:  base + "planets/earth_lights_2048.png",
-          spec:   base + "planets/earth_specular_2048.jpg",
-          clouds: base + "planets/earth_clouds_1024.png",
-          stars:  base + "galaxy_starfield.png"
-        };
+          const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 5000);
+          camera.position.set(0, 0, 4.2);
 
-        const loader = new THREE.TextureLoader(manager);
-        loader.setCrossOrigin("anonymous");
+          const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false, powerPreference:"high-performance" });
+          renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+          renderer.setSize(innerWidth, innerHeight);
+          renderer.setClearColor(0x000000, 1);
+          renderer.outputColorSpace = THREE.SRGBColorSpace;
+          renderer.toneMapping = THREE.ACESFilmicToneMapping;
+          renderer.toneMappingExposure = 1.05;
+          document.body.appendChild(renderer.domElement);
 
-        const dayMap   = loader.load(TEX.day);
-        const nightMap = loader.load(TEX.night);
-        const specMap  = loader.load(TEX.spec);
-        const cloudMap = loader.load(TEX.clouds);
-        const starMap  = loader.load(TEX.stars);
+          renderer.domElement.addEventListener("webglcontextlost", (e) => {
+            e.preventDefault();
+            setHUD("Error (WebGL context lost)", "err", "Safari killed WebGL (memory). Reload + close other tabs.");
+          });
 
-        dayMap.colorSpace   = THREE.SRGBColorSpace;
-        nightMap.colorSpace = THREE.SRGBColorSpace;
-        specMap.colorSpace  = THREE.SRGBColorSpace;
-        cloudMap.colorSpace = THREE.SRGBColorSpace;
-        starMap.colorSpace  = THREE.SRGBColorSpace;
+          // ---------- Lights ----------
+          scene.add(new THREE.AmbientLight(0xffffff, 0.18));
+          const sunLight = new THREE.DirectionalLight(0xffffff, 1.35);
+          sunLight.position.set(5, 1.5, 2.5);
+          scene.add(sunLight);
 
-        const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
-        [dayMap, nightMap, specMap, cloudMap, starMap].forEach((t) => {
-          t.anisotropy = maxAniso;
-          t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
-        });
-
-        // ---------- Stars ----------
-        {
-          const starGeo = new THREE.SphereGeometry(90, 64, 64);
-          const starMat = new THREE.MeshBasicMaterial({ map: starMap, side: THREE.BackSide });
-          scene.add(new THREE.Mesh(starGeo, starMat));
-        }
-
-        // ---------- Globe parts ----------
-        const earthRadius = 1.0;
-        const SEG = 96;
-
-        const earthUniforms = {
-          dayMap:    { value: dayMap },
-          specMap:   { value: specMap },
-          sunDir:    { value: new THREE.Vector3(1,0,0) },
-          cameraPos: { value: new THREE.Vector3() }
-        };
-
-        const earthMat = new THREE.ShaderMaterial({
-          uniforms: earthUniforms,
-          vertexShader: `
-            varying vec2 vUv;
-            varying vec3 vNormalW;
-            varying vec3 vPosW;
-            void main(){
-              vUv = uv;
-              vec4 worldPos = modelMatrix * vec4(position, 1.0);
-              vPosW = worldPos.xyz;
-              vNormalW = normalize(mat3(modelMatrix) * normal);
-              gl_Position = projectionMatrix * viewMatrix * worldPos;
+          // ---------- Procedural Stars (no texture needed) ----------
+          {
+            const starCount = 2200, radius = 90;
+            const pos = new Float32Array(starCount * 3);
+            for (let i = 0; i < starCount; i++) {
+              const u = Math.random(), v = Math.random();
+              const theta = 2 * Math.PI * u;
+              const phi = Math.acos(2 * v - 1);
+              pos[i*3+0] = radius * Math.sin(phi) * Math.cos(theta);
+              pos[i*3+1] = radius * Math.cos(phi);
+              pos[i*3+2] = radius * Math.sin(phi) * Math.sin(theta);
             }
-          `,
-          fragmentShader: `
-            precision highp float;
-            uniform sampler2D dayMap;
-            uniform sampler2D specMap;
-            uniform vec3 sunDir;
-            uniform vec3 cameraPos;
-            varying vec2 vUv;
-            varying vec3 vNormalW;
-            varying vec3 vPosW;
+            const g = new THREE.BufferGeometry();
+            g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+            const m = new THREE.PointsMaterial({ size: 0.18, sizeAttenuation: true, transparent: true, opacity: 0.85 });
+            scene.add(new THREE.Points(g, m));
+          }
 
-            vec3 srgbToLinear(vec3 c){ return pow(c, vec3(2.2)); }
-            vec3 linearToSrgb(vec3 c){ return pow(max(c,0.0), vec3(1.0/2.2)); }
+          // ---------- Texture loading (multi-CDN fallback + procedural fallback) ----------
+          const loader = new THREE.TextureLoader();
+          loader.setCrossOrigin("anonymous");
 
-            void main(){
-              vec3 N = normalize(vNormalW);
-              vec3 L = normalize(sunDir);
-              vec3 V = normalize(cameraPos - vPosW);
+          const loadTexture = (url) => new Promise((resolve, reject) => {
+            loader.load(url, resolve, undefined, () => reject(new Error(`Failed: ${url}`)));
+          });
 
-              vec3 dayCol = srgbToLinear(texture2D(dayMap, vUv).rgb);
-              float specMask = texture2D(specMap, vUv).r;
+          function canvasFallback(kind="day") {
+            const c = document.createElement("canvas");
+            c.width = 1024; c.height = 512;
+            const ctx = c.getContext("2d");
+            ctx.fillStyle = "#0a1b3a";
+            ctx.fillRect(0,0,c.width,c.height);
 
-              float ndl = dot(N, L);
-              float dayAmt = smoothstep(-0.05, 0.15, ndl);
+            for (let i=0; i<1200; i++){
+              const x = Math.random()*c.width;
+              const y = Math.random()*c.height;
+              const r = 6 + Math.random()*28;
 
-              vec3 nightBase = dayCol * 0.08;
-              vec3 col = mix(nightBase, dayCol, dayAmt);
+              if (kind === "clouds") ctx.fillStyle = `rgba(255,255,255,${0.03 + Math.random()*0.08})`;
+              else if (kind === "night") {
+                const a = Math.random() < 0.04 ? (0.3 + Math.random()*0.5) : 0.0;
+                ctx.fillStyle = `rgba(255,230,160,${a})`;
+              }
+              else if (kind === "spec") ctx.fillStyle = `rgba(255,255,255,${0.03 + Math.random()*0.06})`;
+              else ctx.fillStyle = `rgba(60,120,80,${0.06 + Math.random()*0.10})`;
 
-              vec3 H = normalize(L + V);
-              float spec = pow(max(dot(N, H), 0.0), 80.0) * specMask * 0.50 * dayAmt;
-              col += vec3(spec);
-
-              float rim = pow(1.0 - max(dot(N, V), 0.0), 2.2);
-              col += vec3(0.06, 0.10, 0.16) * rim * (0.30 + 0.70 * dayAmt);
-
-              gl_FragColor = vec4(linearToSrgb(col), 1.0);
+              ctx.beginPath();
+              ctx.ellipse(x, y, r*1.6, r, 0, 0, Math.PI*2);
+              ctx.fill();
             }
-          `
-        });
 
-        const earth = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, SEG, SEG), earthMat);
-        scene.add(earth);
+            const t = new THREE.CanvasTexture(c);
+            t.colorSpace = THREE.SRGBColorSpace;
+            t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+            return t;
+          }
 
-        // Night lights (bloom target)
-        const lightsUniforms = {
-          nightMap: { value: nightMap },
-          sunDir:   { value: new THREE.Vector3(1,0,0) },
-          gain:     { value: 2.4 } // ✅ per your request
-        };
+          async function loadFirst(name, urls) {
+            for (const url of urls) {
+              try {
+                const t = await loadTexture(url);
+                t.colorSpace = THREE.SRGBColorSpace;
+                t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+                return { tex: t, used: url, ok: true };
+              } catch (_) {}
+            }
+            const kind =
+              name.includes("cloud") ? "clouds" :
+              name.includes("night") ? "night" :
+              name.includes("spec") ? "spec" : "day";
+            return { tex: canvasFallback(kind), used: "procedural-fallback", ok: false };
+          }
 
-        const nightLights = new THREE.Mesh(
-          new THREE.SphereGeometry(earthRadius * 1.001, SEG, SEG),
-          new THREE.ShaderMaterial({
-            uniforms: lightsUniforms,
-            transparent: true,
-            depthWrite: false,
-            blending: THREE.AdditiveBlending,
+          const cdn1 = "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/planets/";
+          const cdn2 = "https://threejs.org/examples/textures/planets/";
+          const cdn3 = "https://raw.githubusercontent.com/mrdoob/three.js/r161/examples/textures/planets/";
+
+          const dayRes   = await loadFirst("day",   [cdn1+"earth_atmos_2048.jpg",  cdn2+"earth_atmos_2048.jpg",  cdn3+"earth_atmos_2048.jpg"]);
+          const nightRes = await loadFirst("night", [cdn1+"earth_lights_2048.png", cdn2+"earth_lights_2048.png", cdn3+"earth_lights_2048.png"]);
+          const specRes  = await loadFirst("spec",  [cdn1+"earth_specular_2048.jpg", cdn2+"earth_specular_2048.jpg", cdn3+"earth_specular_2048.jpg"]);
+          const cloudRes = await loadFirst("clouds",[cdn1+"earth_clouds_1024.png", cdn2+"earth_clouds_1024.png", cdn3+"earth_clouds_1024.png"]);
+
+          const maxAniso = renderer.capabilities.getMaxAnisotropy?.() ?? 1;
+          [dayRes.tex, nightRes.tex, specRes.tex, cloudRes.tex].forEach(t => t.anisotropy = maxAniso);
+
+          setHUD("Running", "ok",
+            `day:   ${dayRes.used}\n` +
+            `night: ${nightRes.used}\n` +
+            `spec:  ${specRes.used}\n` +
+            `cloud: ${cloudRes.used}\n` +
+            `${(dayRes.ok && nightRes.ok && specRes.ok && cloudRes.ok) ? "" : "\n(using fallback for at least one texture)"}`
+          );
+
+          // ---------- Globe ----------
+          const earthRadius = 1.0;
+          const SEG = 96;
+
+          const earthUniforms = {
+            dayMap:    { value: dayRes.tex },
+            specMap:   { value: specRes.tex },
+            sunDir:    { value: new THREE.Vector3(1,0,0) },
+            cameraPos: { value: new THREE.Vector3() }
+          };
+
+          const earthMat = new THREE.ShaderMaterial({
+            uniforms: earthUniforms,
             vertexShader: `
               varying vec2 vUv;
-              varying vec3 vNormalW;
-              void main(){
-                vUv = uv;
-                vNormalW = normalize(mat3(modelMatrix) * normal);
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-              }
-            `,
-            fragmentShader: `
-              precision highp float;
-              uniform sampler2D nightMap;
-              uniform vec3 sunDir;
-              uniform float gain;
-              varying vec2 vUv;
-              varying vec3 vNormalW;
-
-              vec3 srgbToLinear(vec3 c){ return pow(c, vec3(2.2)); }
-              vec3 linearToSrgb(vec3 c){ return pow(max(c,0.0), vec3(1.0/2.2)); }
-
-              void main(){
-                vec3 N = normalize(vNormalW);
-                vec3 L = normalize(sunDir);
-
-                float ndl = dot(N, L);
-                float dayAmt = smoothstep(-0.05, 0.15, ndl);
-                float nightAmt = 1.0 - dayAmt;
-
-                vec3 lights = srgbToLinear(texture2D(nightMap, vUv).rgb) * gain;
-                float mask = smoothstep(0.05, 0.35, nightAmt);
-
-                vec3 col = lights * mask;
-                float a = clamp(max(max(col.r, col.g), col.b), 0.0, 1.0);
-                gl_FragColor = vec4(linearToSrgb(col), a);
-              }
-            `
-          })
-        );
-        scene.add(nightLights);
-
-        // Cloud shadow layer (multiply)
-        const cloudShadow = new THREE.Mesh(
-          new THREE.SphereGeometry(earthRadius * 1.0015, SEG, SEG),
-          new THREE.MeshBasicMaterial({
-            map: cloudMap,
-            color: 0x000000,
-            transparent: true,
-            opacity: 0.28,
-            blending: THREE.MultiplyBlending,
-            depthWrite: false
-          })
-        );
-        scene.add(cloudShadow);
-
-        // Clouds (visible)
-        const clouds = new THREE.Mesh(
-          new THREE.SphereGeometry(earthRadius * 1.012, SEG, SEG),
-          new THREE.MeshLambertMaterial({
-            map: cloudMap,
-            transparent: true,
-            opacity: 0.85,
-            depthWrite: false
-          })
-        );
-        scene.add(clouds);
-
-        // Atmosphere (bloom target)
-        const atmoUniforms = {
-          sunDir:    { value: new THREE.Vector3(1,0,0) },
-          cameraPos: { value: new THREE.Vector3() }
-        };
-
-        const atmosphere = new THREE.Mesh(
-          new THREE.SphereGeometry(earthRadius * 1.045, SEG, SEG),
-          new THREE.ShaderMaterial({
-            uniforms: atmoUniforms,
-            transparent: true,
-            depthWrite: false,
-            blending: THREE.AdditiveBlending,
-            side: THREE.BackSide,
-            vertexShader: `
               varying vec3 vNormalW;
               varying vec3 vPosW;
               void main(){
+                vUv = uv;
                 vec4 worldPos = modelMatrix * vec4(position, 1.0);
                 vPosW = worldPos.xyz;
                 vNormalW = normalize(mat3(modelMatrix) * normal);
@@ -299,183 +197,298 @@
             `,
             fragmentShader: `
               precision highp float;
+              uniform sampler2D dayMap;
+              uniform sampler2D specMap;
               uniform vec3 sunDir;
               uniform vec3 cameraPos;
+              varying vec2 vUv;
               varying vec3 vNormalW;
               varying vec3 vPosW;
+
+              vec3 srgbToLinear(vec3 c){ return pow(c, vec3(2.2)); }
+              vec3 linearToSrgb(vec3 c){ return pow(max(c,0.0), vec3(1.0/2.2)); }
 
               void main(){
                 vec3 N = normalize(vNormalW);
                 vec3 L = normalize(sunDir);
                 vec3 V = normalize(cameraPos - vPosW);
 
-                float rim = pow(1.0 - max(dot(N, V), 0.0), 3.2);
-                float daySide = smoothstep(-0.15, 0.25, dot(N, L));
+                vec3 dayCol = srgbToLinear(texture2D(dayMap, vUv).rgb);
+                float specMask = texture2D(specMap, vUv).r;
 
-                vec3 col = vec3(0.20, 0.55, 1.00) * rim * (0.25 + 0.75 * daySide);
-                float alpha = rim * (0.18 + 0.62 * daySide);
-                gl_FragColor = vec4(col, alpha);
+                float ndl = dot(N, L);
+                float dayAmt = smoothstep(-0.05, 0.15, ndl);
+
+                vec3 nightBase = dayCol * 0.10;
+                vec3 col = mix(nightBase, dayCol, dayAmt);
+
+                vec3 H = normalize(L + V);
+                float spec = pow(max(dot(N, H), 0.0), 85.0) * specMask * 0.55 * dayAmt;
+                col += vec3(spec);
+
+                float rim = pow(1.0 - max(dot(N, V), 0.0), 2.2);
+                col += vec3(0.06, 0.10, 0.18) * rim * (0.30 + 0.70 * dayAmt);
+
+                gl_FragColor = vec4(linearToSrgb(col), 1.0);
               }
             `
-          })
-        );
-        scene.add(atmosphere);
+          });
 
-        // Group rotation
-        const globe = new THREE.Group();
-        scene.remove(earth, nightLights, cloudShadow, clouds, atmosphere);
-        globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
-        scene.add(globe);
+          const earth = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, SEG, SEG), earthMat);
+          scene.add(earth);
 
-        // ---------- Selective Bloom ----------
-        const BLOOM_LAYER = 1;
-        const bloomLayer = new THREE.Layers();
-        bloomLayer.set(BLOOM_LAYER);
-        nightLights.layers.enable(BLOOM_LAYER);
-        atmosphere.layers.enable(BLOOM_LAYER);
+          const lightsUniforms = {
+            nightMap: { value: nightRes.tex },
+            sunDir:   { value: new THREE.Vector3(1,0,0) },
+            gain:     { value: 2.4 }
+          };
 
-        const darkMaterial = new THREE.MeshBasicMaterial({ color:"black" });
-        const materials = new Map();
+          const nightLights = new THREE.Mesh(
+            new THREE.SphereGeometry(earthRadius * 1.001, SEG, SEG),
+            new THREE.ShaderMaterial({
+              uniforms: lightsUniforms,
+              transparent: true,
+              depthWrite: false,
+              blending: THREE.AdditiveBlending,
+              vertexShader: `
+                varying vec2 vUv;
+                varying vec3 vNormalW;
+                void main(){
+                  vUv = uv;
+                  vNormalW = normalize(mat3(modelMatrix) * normal);
+                  gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+                }
+              `,
+              fragmentShader: `
+                precision highp float;
+                uniform sampler2D nightMap;
+                uniform vec3 sunDir;
+                uniform float gain;
+                varying vec2 vUv;
+                varying vec3 vNormalW;
 
-        function darkenNonBloom(obj){
-          if (obj.isMesh && !bloomLayer.test(obj.layers)){
-            materials.set(obj.uuid, obj.material);
-            obj.material = darkMaterial;
-          }
-        }
-        function restoreMaterial(obj){
-          if (materials.has(obj.uuid)){
-            obj.material = materials.get(obj.uuid);
-            materials.delete(obj.uuid);
-          }
-        }
+                vec3 srgbToLinear(vec3 c){ return pow(c, vec3(2.2)); }
+                vec3 linearToSrgb(vec3 c){ return pow(max(c,0.0), vec3(1.0/2.2)); }
 
-        const renderScene = new RenderPass(scene, camera);
+                void main(){
+                  vec3 N = normalize(vNormalW);
+                  vec3 L = normalize(sunDir);
 
-        const bloomPass = new UnrealBloomPass(
-          new THREE.Vector2(innerWidth, innerHeight),
-          1.15, // ✅ strength
-          0.85, // radius
-          0.10  // ✅ threshold
-        );
+                  float ndl = dot(N, L);
+                  float dayAmt = smoothstep(-0.05, 0.15, ndl);
+                  float nightAmt = 1.0 - dayAmt;
 
-        const bloomComposer = new EffectComposer(renderer);
-        bloomComposer.renderToScreen = false;
-        bloomComposer.addPass(renderScene);
-        bloomComposer.addPass(bloomPass);
+                  vec3 lights = srgbToLinear(texture2D(nightMap, vUv).rgb) * gain;
+                  float mask = smoothstep(0.05, 0.35, nightAmt);
 
-        const finalPass = new ShaderPass({
-          uniforms: {
-            tDiffuse: { value: null },
-            bloomTexture: { value: null }
-          },
-          vertexShader: `
-            varying vec2 vUv;
-            void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
-          `,
-          fragmentShader: `
-            uniform sampler2D tDiffuse;
-            uniform sampler2D bloomTexture;
-            varying vec2 vUv;
-            void main(){
-              vec4 base = texture2D(tDiffuse, vUv);
-              vec4 bloom = texture2D(bloomTexture, vUv);
-              gl_FragColor = base + bloom;
+                  vec3 col = lights * mask;
+                  float a = clamp(max(max(col.r, col.g), col.b), 0.0, 1.0);
+                  gl_FragColor = vec4(linearToSrgb(col), a);
+                }
+              `
+            })
+          );
+          scene.add(nightLights);
+
+          const clouds = new THREE.Mesh(
+            new THREE.SphereGeometry(earthRadius * 1.012, SEG, SEG),
+            new THREE.MeshLambertMaterial({
+              map: cloudRes.tex,
+              transparent: true,
+              opacity: 0.85,
+              depthWrite: false
+            })
+          );
+          scene.add(clouds);
+
+          const atmoUniforms = {
+            sunDir:    { value: new THREE.Vector3(1,0,0) },
+            cameraPos: { value: new THREE.Vector3() }
+          };
+
+          const atmosphere = new THREE.Mesh(
+            new THREE.SphereGeometry(earthRadius * 1.045, SEG, SEG),
+            new THREE.ShaderMaterial({
+              uniforms: atmoUniforms,
+              transparent: true,
+              depthWrite: false,
+              blending: THREE.AdditiveBlending,
+              side: THREE.BackSide,
+              vertexShader: `
+                varying vec3 vNormalW;
+                varying vec3 vPosW;
+                void main(){
+                  vec4 worldPos = modelMatrix * vec4(position, 1.0);
+                  vPosW = worldPos.xyz;
+                  vNormalW = normalize(mat3(modelMatrix) * normal);
+                  gl_Position = projectionMatrix * viewMatrix * worldPos;
+                }
+              `,
+              fragmentShader: `
+                precision highp float;
+                uniform vec3 sunDir;
+                uniform vec3 cameraPos;
+                varying vec3 vNormalW;
+                varying vec3 vPosW;
+
+                void main(){
+                  vec3 N = normalize(vNormalW);
+                  vec3 L = normalize(sunDir);
+                  vec3 V = normalize(cameraPos - vPosW);
+
+                  float rim = pow(1.0 - max(dot(N, V), 0.0), 3.2);
+                  float daySide = smoothstep(-0.15, 0.25, dot(N, L));
+
+                  vec3 col = vec3(0.20, 0.55, 1.00) * rim * (0.25 + 0.75 * daySide);
+                  float alpha = rim * (0.18 + 0.62 * daySide);
+                  gl_FragColor = vec4(col, alpha);
+                }
+              `
+            })
+          );
+          scene.add(atmosphere);
+
+          const globe = new THREE.Group();
+          scene.remove(earth, nightLights, clouds, atmosphere);
+          globe.add(earth, nightLights, clouds, atmosphere);
+          scene.add(globe);
+
+          // ---------- Selective Bloom ----------
+          const BLOOM_LAYER = 1;
+          const bloomLayer = new THREE.Layers();
+          bloomLayer.set(BLOOM_LAYER);
+          nightLights.layers.enable(BLOOM_LAYER);
+          atmosphere.layers.enable(BLOOM_LAYER);
+
+          const darkMaterial = new THREE.MeshBasicMaterial({ color:"black" });
+          const materials = new Map();
+
+          function darkenNonBloom(obj){
+            if (obj.isMesh && !bloomLayer.test(obj.layers)){
+              materials.set(obj.uuid, obj.material);
+              obj.material = darkMaterial;
             }
-          `
-        });
-
-        const finalComposer = new EffectComposer(renderer);
-        finalComposer.addPass(renderScene);
-        finalComposer.addPass(finalPass);
-        finalComposer.addPass(new OutputPass());
-
-        function renderBloom(){
-          scene.traverse(darkenNonBloom);
-          bloomComposer.render();
-          finalPass.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
-          scene.traverse(restoreMaterial);
-        }
-
-        // ---------- Touch drag + inertia ----------
-        let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
-
-        const AUTO_SPIN=0.0013, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
-
-        function getPoint(e){
-          if (e.touches && e.touches.length) return { x:e.touches[0].clientX, y:e.touches[0].clientY };
-          return { x:e.clientX, y:e.clientY };
-        }
-        function down(e){ dragging=true; const p=getPoint(e); lastX=p.x; lastY=p.y; }
-        function move(e){
-          if(!dragging) return;
-          const p=getPoint(e);
-          const dx=p.x-lastX, dy=p.y-lastY;
-          lastX=p.x; lastY=p.y;
-
-          globe.rotation.y += dx*DRAG_SENS;
-          globe.rotation.x += dy*PITCH_SENS;
-          globe.rotation.x = Math.max(-MAX_PITCH, Math.min(MAX_PITCH, globe.rotation.x));
-
-          velY = dx*DRAG_SENS;
-          velX = dy*PITCH_SENS;
-        }
-        function up(){ dragging=false; }
-
-        const el = renderer.domElement;
-        el.addEventListener("touchstart", down, { passive:true });
-        el.addEventListener("touchmove", move, { passive:true });
-        el.addEventListener("touchend", up, { passive:true });
-        el.addEventListener("mousedown", down);
-        window.addEventListener("mousemove", move);
-        window.addEventListener("mouseup", up);
-
-        // ---------- Animation ----------
-        const sunDrift = 0.00005;
-        const cloudSpin = 0.0020;
-
-        function animate(){
-          requestAnimationFrame(animate);
-
-          clouds.rotation.y += cloudSpin;
-          cloudShadow.rotation.y += cloudSpin + 0.00015;
-
-          if(!dragging){
-            globe.rotation.y += AUTO_SPIN;
-            globe.rotation.y += velY;
-            globe.rotation.x += velX;
-            velY *= DAMPING;
-            velX *= DAMPING;
-            globe.rotation.x = Math.max(-MAX_PITCH, Math.min(MAX_PITCH, globe.rotation.x));
+          }
+          function restoreMaterial(obj){
+            if (materials.has(obj.uuid)){
+              obj.material = materials.get(obj.uuid);
+              materials.delete(obj.uuid);
+            }
           }
 
-          sunLight.position.applyAxisAngle(new THREE.Vector3(0,1,0), sunDrift);
-          const sunDir = sunLight.position.clone().normalize();
+          const renderScene = new RenderPass(scene, camera);
+          const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.15, 0.85, 0.10);
 
-          earthUniforms.sunDir.value.copy(sunDir);
-          earthUniforms.cameraPos.value.copy(camera.position);
+          const bloomComposer = new EffectComposer(renderer);
+          bloomComposer.renderToScreen = false;
+          bloomComposer.addPass(renderScene);
+          bloomComposer.addPass(bloomPass);
 
-          lightsUniforms.sunDir.value.copy(sunDir);
-          atmoUniforms.sunDir.value.copy(sunDir);
-          atmoUniforms.cameraPos.value.copy(camera.position);
+          const finalPass = new ShaderPass({
+            uniforms: { tDiffuse:{value:null}, bloomTexture:{value:null} },
+            vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+            fragmentShader: `
+              uniform sampler2D tDiffuse;
+              uniform sampler2D bloomTexture;
+              varying vec2 vUv;
+              void main(){
+                vec4 base = texture2D(tDiffuse, vUv);
+                vec4 bloom = texture2D(bloomTexture, vUv);
+                gl_FragColor = base + bloom;
+              }
+            `
+          });
 
-          renderBloom();
-          finalComposer.render();
+          const finalComposer = new EffectComposer(renderer);
+          finalComposer.addPass(renderScene);
+          finalComposer.addPass(finalPass);
+          finalComposer.addPass(new OutputPass());
+
+          function renderBloom(){
+            scene.traverse(darkenNonBloom);
+            bloomComposer.render();
+            finalPass.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
+            scene.traverse(restoreMaterial);
+          }
+
+          // ---------- Touch drag + inertia ----------
+          let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
+          const AUTO_SPIN=0.0013, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
+
+          function getPoint(e){
+            if (e.touches && e.touches.length) return { x:e.touches[0].clientX, y:e.touches[0].clientY };
+            return { x:e.clientX, y:e.clientY };
+          }
+          function down(e){ dragging=true; const p=getPoint(e); lastX=p.x; lastY=p.y; }
+          function move(e){
+            if(!dragging) return;
+            const p=getPoint(e);
+            const dx=p.x-lastX, dy=p.y-lastY;
+            lastX=p.x; lastY=p.y;
+
+            globe.rotation.y += dx*DRAG_SENS;
+            globe.rotation.x += dy*PITCH_SENS;
+            globe.rotation.x = Math.max(-MAX_PITCH, Math.min(MAX_PITCH, globe.rotation.x));
+
+            velY = dx*DRAG_SENS;
+            velX = dy*PITCH_SENS;
+          }
+          function up(){ dragging=false; }
+
+          const el = renderer.domElement;
+          el.addEventListener("touchstart", down, { passive:true });
+          el.addEventListener("touchmove", move, { passive:true });
+          el.addEventListener("touchend", up, { passive:true });
+          el.addEventListener("mousedown", down);
+          window.addEventListener("mousemove", move);
+          window.addEventListener("mouseup", up);
+
+          // ---------- Animation ----------
+          const sunDrift = 0.00005;
+          const cloudSpin = 0.0020;
+
+          function animate(){
+            requestAnimationFrame(animate);
+
+            clouds.rotation.y += cloudSpin;
+
+            if(!dragging){
+              globe.rotation.y += AUTO_SPIN;
+              globe.rotation.y += velY;
+              globe.rotation.x += velX;
+              velY *= DAMPING;
+              velX *= DAMPING;
+              globe.rotation.x = Math.max(-MAX_PITCH, Math.min(MAX_PITCH, globe.rotation.x));
+            }
+
+            sunLight.position.applyAxisAngle(new THREE.Vector3(0,1,0), sunDrift);
+            const sunDir = sunLight.position.clone().normalize();
+
+            earthUniforms.sunDir.value.copy(sunDir);
+            earthUniforms.cameraPos.value.copy(camera.position);
+
+            lightsUniforms.sunDir.value.copy(sunDir);
+            atmoUniforms.sunDir.value.copy(sunDir);
+            atmoUniforms.cameraPos.value.copy(camera.position);
+
+            renderBloom();
+            finalComposer.render();
+          }
+          animate();
+
+          addEventListener("resize", () => {
+            camera.aspect = innerWidth/innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(innerWidth, innerHeight);
+            bloomComposer.setSize(innerWidth, innerHeight);
+            finalComposer.setSize(innerWidth, innerHeight);
+            bloomPass.setSize(innerWidth, innerHeight);
+          });
+
+        } catch (err) {
+          setHUD("Import failed", "err", (err?.stack || err?.message || String(err)));
         }
-        animate();
-
-        addEventListener("resize", () => {
-          camera.aspect = innerWidth/innerHeight;
-          camera.updateProjectionMatrix();
-          renderer.setSize(innerWidth, innerHeight);
-          bloomComposer.setSize(innerWidth, innerHeight);
-          finalComposer.setSize(innerWidth, innerHeight);
-          bloomPass.setSize(innerWidth, innerHeight);
-        });
-
-      } catch (err) {
-        showError("Top-level error:\n" + (err?.stack || err?.message || err));
-      }
+      })();
     </script>
   </body>
 </html>
