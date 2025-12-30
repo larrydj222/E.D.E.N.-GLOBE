@@ -37,7 +37,7 @@
   <body>
     <div id="hud">
       <div><b>Status:</b> <span id="status">Booting…</span></div>
-      <div id="hint">Tap anywhere to toggle HUD. Use <b>?hud=1</b> to keep it on.</div>
+      <div id="hint">Use <b>?hud=1</b> to keep this panel always visible.</div>
       <div id="errors"></div>
     </div>
 
@@ -67,47 +67,55 @@
         statusEl.textContent = "Error (see panel)";
         hud.style.display = "block";
       }
-
       window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
       window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
 
-      window.addEventListener("click", () => {
-        hud.style.display = (hud.style.display === "none") ? "block" : "none";
-      });
-
       function autoHideHUD(){
         if (FORCE_HUD) return;
-        setTimeout(() => { hud.style.display = "none"; }, 2200);
+        setTimeout(() => { hud.style.display = "none"; }, 2300);
       }
 
       // ---------------- E.D.E.N. Axis Settings ----------------
-      // Anchor (Staunton capture). If you want exact geocode, tell me and I’ll lock it.
-      const ANCHOR_LAT = 38.160833;     // deg
-      const ANCHOR_LON = -79.073056;    // deg
+      // Anchor near 202 Hendren Ave, Staunton VA (approx). Tell me if you want exact locked coordinates.
+      const ANCHOR_LAT = 38.160833;
+      const ANCHOR_LON = -79.073056;
 
-      // Axis headings (True bearings)
-      const AXIS_BEARING = 42;          // deg
-      // Opposite is 222 automatically included by full loops
+      const AXIS_BEARING = 42; // True bearing for 42° / 222°
 
-      // Visual styling
-      const GOLD = new THREE.Color(0xffd36b);   // Rhumb
-      const BLUE = new THREE.Color(0x4db3ff);   // Great circle
+      // Colors
+      const GOLD = new THREE.Color(0xffd36b); // Rhumb
+      const BLUE = new THREE.Color(0x4db3ff); // Great Circle
+      const CTRL = new THREE.Color(0xd9f0ff); // Perpendicular controls
 
-      // ---------------- Scene tuning ----------------
-      const BLOOM_STRENGTH  = 1.20;
+      // Bloom / Realism
+      const BLOOM_STRENGTH  = 1.22;
       const BLOOM_RADIUS    = 0.85;
       const BLOOM_THRESHOLD = 0.10;
 
-      const LIGHTS_GAIN   = 2.55;
+      const LIGHTS_GAIN = 2.55;
 
-      // Continents definition (stronger normal + slight contrast)
-      const NORMAL_SCALE  = 1.10;
-      const DAY_CONTRAST  = 1.10;
+      // Continents definition knobs
+      const NORMAL_SCALE = 1.15;
+      const DAY_CONTRAST = 1.12;
 
-      // Axis geometry placement
-      const AXIS_ALT = 1.020;      // slightly above surface
-      const AXIS_OUTER_R = 0.010;  // glow tube radius
-      const AXIS_INNER_R = 0.004;  // core tube radius
+      // Coastline enhancement (NEW)
+      const COAST_STRENGTH = 0.55;   // 0 = off, 0.3–0.8 = good
+      const COAST_LOW      = 0.020;  // sensitivity low
+      const COAST_HIGH     = 0.080;  // sensitivity high
+
+      // Axis geometry
+      const AXIS_ALT     = 1.020;
+      const AXIS_OUTER_R = 0.010;
+      const AXIS_INNER_R = 0.004;
+
+      // Corridors ± km
+      const CORRIDORS_KM = [1, 5, 10];
+      const CORR_OUTER_R = 0.0065;
+      const CORR_INNER_R = 0.0028;
+
+      // Perpendicular controls tube size
+      const CTRL_OUTER_R = 0.0075;
+      const CTRL_INNER_R = 0.0030;
 
       // Motion
       const AUTO_SPIN  = 0.00125;
@@ -116,11 +124,13 @@
       const DAMPING    = 0.92;
       const MAX_PITCH  = 0.55;
 
+      // km->radians
+      const EARTH_RADIUS_KM = 6371.0;
+
       // ---------------- Helpers ----------------
       const DEG2RAD = Math.PI / 180;
       function clamp(x, a, b){ return Math.max(a, Math.min(b, x)); }
       function wrapLonRad(lam){
-        // wrap to [-PI, PI]
         const TWO_PI = Math.PI * 2;
         lam = (lam + Math.PI) % TWO_PI;
         if (lam < 0) lam += TWO_PI;
@@ -138,14 +148,12 @@
         return t;
       }
 
-      function applyTexSettings(tex, { colorSpace=null, maxAniso=1, linear=true } = {}){
+      function applyTexSettings(tex, { colorSpace=null, maxAniso=1 } = {}){
         if (colorSpace) tex.colorSpace = colorSpace;
         tex.anisotropy = maxAniso;
         tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
-        if (linear){
-          tex.minFilter = THREE.LinearMipmapLinearFilter;
-          tex.magFilter = THREE.LinearFilter;
-        }
+        tex.minFilter = THREE.LinearMipmapLinearFilter;
+        tex.magFilter = THREE.LinearFilter;
       }
 
       function latLonToVec3(latDeg, lonDeg, radius){
@@ -159,7 +167,7 @@
         );
       }
 
-      // Great-circle destination formula (from start, initial bearing, angular distance)
+      // Great-circle destination point
       function greatCirclePoint(lat1, lon1, bearingRad, delta){
         const sinLat1 = Math.sin(lat1), cosLat1 = Math.cos(lat1);
         const sinD = Math.sin(delta), cosD = Math.cos(delta);
@@ -174,13 +182,10 @@
         return { lat: lat2, lon: lon2 };
       }
 
-      // Rhumb line stepping (loxodrome)
+      // Rhumb step
       function rhumbStep(lat1, lon1, bearingRad, d){
-        // d is angular distance step (radians)
         const dPhi = d * Math.cos(bearingRad);
         let lat2 = lat1 + dPhi;
-
-        // prevent singularities at poles
         lat2 = clamp(lat2, (-89.9)*DEG2RAD, (89.9)*DEG2RAD);
 
         const dPsi = Math.log(
@@ -202,10 +207,7 @@
         const step = stepDeg * DEG2RAD;
         for (let d = 0; d <= Math.PI*2 + step*0.5; d += step){
           const p = greatCirclePoint(lat1, lon1, br, d);
-          // convert rad back to deg for vec
-          const latOut = p.lat / DEG2RAD;
-          const lonOut = p.lon / DEG2RAD;
-          pts.push(latLonToVec3(latOut, lonOut, radius));
+          pts.push(latLonToVec3(p.lat / DEG2RAD, p.lon / DEG2RAD, radius));
         }
         return pts;
       }
@@ -224,26 +226,48 @@
           const p = rhumbStep(lat, lon, br, step);
           lat = p.lat; lon = p.lon;
           fwd.push(latLonToVec3(lat/DEG2RAD, lon/DEG2RAD, radius));
-          if (Math.abs(lat) > (89.7*DEG2RAD)) break; // near pole
+          if (Math.abs(lat) > (89.7*DEG2RAD)) break;
         }
 
-        // backward (bearing + 180)
+        // backward
         lat = lat1; lon = lon1;
         const back = [];
-        const brBack = wrapLonRad(br + Math.PI); // bearing rad wrap ok
+        const brBack = wrapLonRad(br + Math.PI);
         for (let i=0; i<maxSteps; i++){
           const p = rhumbStep(lat, lon, brBack, step);
           lat = p.lat; lon = p.lon;
           back.push(latLonToVec3(lat/DEG2RAD, lon/DEG2RAD, radius));
           if (Math.abs(lat) > (89.7*DEG2RAD)) break;
         }
-
-        // combine: reverse(back) + fwd
         back.reverse();
         return back.concat(fwd);
       }
 
-      function makeGlowTube(points, color, outerR, innerR){
+      // Offset a curve sideways by ±km (corridor)
+      function offsetCurve(points, km, radius){
+        const a = (km / EARTH_RADIUS_KM);
+        const cosA = Math.cos(a);
+        const sinA = Math.sin(a);
+
+        const out = [];
+        const n = points.length;
+
+        for (let i=0; i<n; i++){
+          const pPrev = points[Math.max(0, i-1)];
+          const pNext = points[Math.min(n-1, i+1)];
+          const p = points[i];
+
+          const t = pNext.clone().sub(pPrev).normalize();
+          const v = p.clone().normalize();
+          const s = new THREE.Vector3().crossVectors(t, v).normalize();
+
+          const vp = v.clone().multiplyScalar(cosA).add(s.clone().multiplyScalar(sinA)).normalize();
+          out.push(vp.multiplyScalar(radius));
+        }
+        return out;
+      }
+
+      function makeGlowTube(points, color, outerR, innerR, outerOpacity=0.22, innerOpacity=0.92){
         const curve = new THREE.CatmullRomCurve3(points, false, "catmullrom", 0.05);
         const tubularSegments = Math.max(300, points.length * 2);
 
@@ -252,7 +276,7 @@
           new THREE.MeshBasicMaterial({
             color,
             transparent:true,
-            opacity:0.22,
+            opacity:outerOpacity,
             blending:THREE.AdditiveBlending,
             depthWrite:false
           })
@@ -263,7 +287,7 @@
           new THREE.MeshBasicMaterial({
             color,
             transparent:true,
-            opacity:0.92,
+            opacity:innerOpacity,
             blending:THREE.AdditiveBlending,
             depthWrite:false
           })
@@ -289,6 +313,59 @@
           } catch {}
         }
         return { tex: null, used: "(fallback)" };
+      }
+
+      // Text sprite labels
+      function makeTextSprite(text){
+        const padX = 18, padY = 12;
+        const fontSize = 44;
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        ctx.font = `600 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
+        const metrics = ctx.measureText(text);
+        const w = Math.ceil(metrics.width + padX*2);
+        const h = Math.ceil(fontSize + padY*2);
+        canvas.width = w;
+        canvas.height = h;
+
+        const r = 14;
+
+        ctx.fillStyle = "rgba(0,0,0,0.45)";
+        ctx.strokeStyle = "rgba(255,255,255,0.18)";
+        ctx.lineWidth = 3;
+
+        ctx.beginPath();
+        ctx.moveTo(r, 0);
+        ctx.arcTo(w, 0, w, h, r);
+        ctx.arcTo(w, h, 0, h, r);
+        ctx.arcTo(0, h, 0, 0, r);
+        ctx.arcTo(0, 0, w, 0, r);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = `700 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
+        ctx.fillStyle = "rgba(255,255,255,0.92)";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, padX, h/2);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+
+        const material = new THREE.SpriteMaterial({
+          map: texture,
+          transparent: true,
+          depthWrite: false
+        });
+
+        const sprite = new THREE.Sprite(material);
+        const aspect = w / h;
+        const base = 0.46;
+        sprite.scale.set(base * aspect, base, 1);
+        return sprite;
       }
 
       // ---------------- Main ----------------
@@ -321,7 +398,7 @@
         sunLight.position.set(5, 1.5, 2.5);
         scene.add(sunLight);
 
-        // Fallback textures (renders instantly)
+        // Fallback textures (instant render)
         const dayMap    = makeFallbackTexture("#1f2b3a");
         const nightMap  = makeFallbackTexture("#000");
         const specMap   = makeFallbackTexture("#111");
@@ -333,10 +410,10 @@
         applyTexSettings(nightMap, { colorSpace: THREE.SRGBColorSpace, maxAniso });
         applyTexSettings(cloudMap, { colorSpace: THREE.SRGBColorSpace, maxAniso });
         applyTexSettings(starMap,  { colorSpace: THREE.SRGBColorSpace, maxAniso });
-        applyTexSettings(specMap,   { colorSpace: THREE.NoColorSpace, maxAniso });
-        applyTexSettings(normalMap, { colorSpace: THREE.NoColorSpace, maxAniso });
+        applyTexSettings(specMap,  { colorSpace: THREE.NoColorSpace, maxAniso });
+        applyTexSettings(normalMap,{ colorSpace: THREE.NoColorSpace, maxAniso });
 
-        // Stars background
+        // Stars
         {
           const starGeo = new THREE.SphereGeometry(90, 64, 64);
           const starMat = new THREE.MeshBasicMaterial({ map: starMap, side: THREE.BackSide });
@@ -346,13 +423,17 @@
         const earthRadius = 1.0;
         const SEG = 96;
 
-        // Earth shader with normal map (continents definition)
+        // Earth shader (with normal + coastline enhancement)
         const earthUniforms = {
           dayMap:      { value: dayMap },
           specMap:     { value: specMap },
           normalMap:   { value: normalMap },
+          texel:       { value: new THREE.Vector2(1/2048, 1/1024) }, // updated after load
           normalScale: { value: NORMAL_SCALE },
           dayContrast: { value: DAY_CONTRAST },
+          coastStrength:{ value: COAST_STRENGTH },
+          coastLow:    { value: COAST_LOW },
+          coastHigh:   { value: COAST_HIGH },
           sunDir:      { value: new THREE.Vector3(1,0,0) },
           cameraPos:   { value: new THREE.Vector3() }
         };
@@ -377,8 +458,14 @@
             uniform sampler2D dayMap;
             uniform sampler2D specMap;
             uniform sampler2D normalMap;
+            uniform vec2 texel;
+
             uniform float normalScale;
             uniform float dayContrast;
+
+            uniform float coastStrength;
+            uniform float coastLow;
+            uniform float coastHigh;
 
             uniform vec3 sunDir;
             uniform vec3 cameraPos;
@@ -389,6 +476,7 @@
 
             vec3 srgbToLinear(vec3 c){ return pow(c, vec3(2.2)); }
             vec3 linearToSrgb(vec3 c){ return pow(max(c,0.0), vec3(1.0/2.2)); }
+            float luma(vec3 c){ return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
 
             vec3 perturbNormal(vec3 surfPos, vec3 surfNorm, vec2 uv){
               vec3 map = texture2D(normalMap, uv).xyz * 2.0 - 1.0;
@@ -409,6 +497,20 @@
               return normalize(TBN * map);
             }
 
+            float coastlineEdge(vec2 uv){
+              // simple gradient edge detection on dayMap luma
+              vec3 c  = srgbToLinear(texture2D(dayMap, uv).rgb);
+              float m = luma(c);
+
+              float ml = luma(srgbToLinear(texture2D(dayMap, uv - vec2(texel.x, 0.0)).rgb));
+              float mr = luma(srgbToLinear(texture2D(dayMap, uv + vec2(texel.x, 0.0)).rgb));
+              float md = luma(srgbToLinear(texture2D(dayMap, uv - vec2(0.0, texel.y)).rgb));
+              float mu = luma(srgbToLinear(texture2D(dayMap, uv + vec2(0.0, texel.y)).rgb));
+
+              float g = abs(mr-ml) + abs(mu-md);
+              return smoothstep(coastLow, coastHigh, g);
+            }
+
             void main(){
               vec3 L = normalize(sunDir);
               vec3 V = normalize(cameraPos - vPosW);
@@ -418,6 +520,10 @@
 
               vec3 dayCol = srgbToLinear(texture2D(dayMap, vUv).rgb);
               dayCol = pow(dayCol, vec3(1.0/dayContrast));
+
+              // Add subtle coastline darkening to emphasize continents
+              float edge = coastlineEdge(vUv);
+              dayCol *= (1.0 - coastStrength * edge * 0.55);
 
               float specMask = texture2D(specMap, vUv).r;
 
@@ -569,16 +675,39 @@
         );
         scene.add(atmosphere);
 
-        // ---------------- E.D.E.N. Axis Geometry ----------------
+        // ---------------- Axis Geometry: Rhumb + Great Circle + Corridors + Perps ----------------
         const axisRadius = earthRadius * AXIS_ALT;
 
-        // Great circle (geodesic) in BLUE glow
+        // Great Circle (Blue)
         const gcPts = buildGreatCirclePoints(ANCHOR_LAT, ANCHOR_LON, AXIS_BEARING, axisRadius, 0.75);
         const greatCircle = makeGlowTube(gcPts, BLUE, AXIS_OUTER_R, AXIS_INNER_R);
 
-        // Rhumb line (loxodrome) in GOLD glow
+        // Rhumb (Gold)
         const rhPts = buildRhumbPoints(ANCHOR_LAT, ANCHOR_LON, AXIS_BEARING, axisRadius, 0.35, 5000);
         const rhumbLine = makeGlowTube(rhPts, GOLD, AXIS_OUTER_R, AXIS_INNER_R);
+
+        // Corridors
+        function buildCorridors(points, color){
+          const g = new THREE.Group();
+          for (const km of CORRIDORS_KM){
+            const plus  = offsetCurve(points, +km, axisRadius);
+            const minus = offsetCurve(points, -km, axisRadius);
+
+            const tPlus  = makeGlowTube(plus,  color, CORR_OUTER_R, CORR_INNER_R, 0.12, 0.55);
+            const tMinus = makeGlowTube(minus, color, CORR_OUTER_R, CORR_INNER_R, 0.12, 0.55);
+            g.add(tPlus, tMinus);
+          }
+          return g;
+        }
+
+        const gcCorridors = buildCorridors(gcPts, BLUE);
+        const rhCorridors = buildCorridors(rhPts, GOLD);
+
+        // Perpendicular Controls 132°/312° (through anchor)
+        const perp1 = buildGreatCirclePoints(ANCHOR_LAT, ANCHOR_LON, AXIS_BEARING + 90, axisRadius, 0.75);
+        const perp2 = buildGreatCirclePoints(ANCHOR_LAT, ANCHOR_LON, AXIS_BEARING - 90, axisRadius, 0.75);
+        const perpA = makeGlowTube(perp1, CTRL, CTRL_OUTER_R, CTRL_INNER_R, 0.10, 0.60);
+        const perpB = makeGlowTube(perp2, CTRL, CTRL_OUTER_R, CTRL_INNER_R, 0.10, 0.60);
 
         // Anchor marker
         const anchorMarker = new THREE.Mesh(
@@ -593,11 +722,37 @@
         );
         anchorMarker.position.copy(latLonToVec3(ANCHOR_LAT, ANCHOR_LON, earthRadius * 1.026));
 
-        // Group rotation (everything rotates together)
+        // Continent labels
+        const labels = new THREE.Group();
+        const labelRadius = earthRadius * 1.095;
+
+        const continents = [
+          { name:"North America", lat:  40, lon: -100 },
+          { name:"South America", lat: -15, lon:  -60 },
+          { name:"Europe",        lat:  52, lon:   15 },
+          { name:"Africa",        lat:   5, lon:   20 },
+          { name:"Asia",          lat:  35, lon:   95 },
+          { name:"Australia",     lat: -25, lon:  135 },
+          { name:"Antarctica",    lat: -80, lon:    0 }
+        ];
+
+        for (const c of continents){
+          const s = makeTextSprite(c.name);
+          s.position.copy(latLonToVec3(c.lat, c.lon, labelRadius));
+          labels.add(s);
+        }
+
+        // Rotation group (everything spins together)
         const globe = new THREE.Group();
         scene.remove(earth, nightLights, cloudShadow, clouds, atmosphere);
+
         globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
-        globe.add(greatCircle, rhumbLine, anchorMarker);
+        globe.add(greatCircle, gcCorridors);
+        globe.add(rhumbLine,   rhCorridors);
+        globe.add(perpA, perpB);
+        globe.add(anchorMarker);
+        globe.add(labels);
+
         scene.add(globe);
 
         // ---------------- Selective Bloom ----------------
@@ -605,12 +760,14 @@
         const bloomLayer = new THREE.Layers();
         bloomLayer.set(BLOOM_LAYER);
 
-        // Bloom targets
         nightLights.layers.enable(BLOOM_LAYER);
         atmosphere.layers.enable(BLOOM_LAYER);
-        greatCircle.traverse(o => o.layers && o.layers.enable(BLOOM_LAYER));
-        rhumbLine.traverse(o => o.layers && o.layers.enable(BLOOM_LAYER));
-        anchorMarker.layers.enable(BLOOM_LAYER);
+
+        // Bloom the axis suite
+        [greatCircle, gcCorridors, rhumbLine, rhCorridors, perpA, perpB, anchorMarker].forEach(obj => {
+          obj.traverse?.(o => o.layers?.enable(BLOOM_LAYER));
+          obj.layers?.enable(BLOOM_LAYER);
+        });
 
         const darkMaterial = new THREE.MeshBasicMaterial({ color:"black" });
         const materials = new Map();
@@ -706,6 +863,9 @@
         function animate(){
           requestAnimationFrame(animate);
 
+          // labels face camera
+          labels.children.forEach(s => s.quaternion.copy(camera.quaternion));
+
           clouds.rotation.y += cloudSpin;
           cloudShadow.rotation.y += cloudSpin + 0.00015;
 
@@ -748,8 +908,9 @@
         const cdnJS = "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/";
         const cdn3J = "https://threejs.org/examples/textures/";
 
+        // Prefer higher-res day texture first (4096 -> 2048)
         const sources = {
-          day:    [cdnJS+"planets/earth_atmos_2048.jpg",     cdn3J+"planets/earth_atmos_2048.jpg"],
+          day:    [cdnJS+"planets/earth_atmos_4096.jpg", cdn3J+"planets/earth_atmos_4096.jpg", cdnJS+"planets/earth_atmos_2048.jpg", cdn3J+"planets/earth_atmos_2048.jpg"],
           night:  [cdnJS+"planets/earth_lights_2048.png",    cdn3J+"planets/earth_lights_2048.png"],
           spec:   [cdnJS+"planets/earth_specular_2048.jpg",  cdn3J+"planets/earth_specular_2048.jpg"],
           normal: [cdnJS+"planets/earth_normal_2048.jpg",    cdn3J+"planets/earth_normal_2048.jpg"],
@@ -766,9 +927,16 @@
           loadFirst(sources.stars),
         ]);
 
+        function updateTexelFrom(tex){
+          const w = tex?.image?.width || 2048;
+          const h = tex?.image?.height || 1024;
+          earthUniforms.texel.value.set(1/Math.max(1,w), 1/Math.max(1,h));
+        }
+
         if (dayRes.tex){
           applyTexSettings(dayRes.tex, { colorSpace: THREE.SRGBColorSpace, maxAniso });
           earthUniforms.dayMap.value = dayRes.tex;
+          updateTexelFrom(dayRes.tex);
         }
         if (nightRes.tex){
           applyTexSettings(nightRes.tex, { colorSpace: THREE.SRGBColorSpace, maxAniso });
@@ -792,7 +960,7 @@
         if (starsRes.tex){
           applyTexSettings(starsRes.tex, { colorSpace: THREE.SRGBColorSpace, maxAniso });
           scene.traverse((o) => {
-            if (o.isMesh && o.material && o.material.map === starMap){
+            if (o.isMesh && o.material && o.material.map && o.material.map === starMap){
               o.material.map = starsRes.tex;
               o.material.needsUpdate = true;
             }
@@ -801,7 +969,7 @@
 
         setHUD(
           "Running",
-          `Anchor: ${ANCHOR_LAT.toFixed(6)}, ${ANCHOR_LON.toFixed(6)}\nAxis bearings: 42° / 222°\n\nTextures:\nday: ${dayRes.used}\nnight: ${nightRes.used}\nspec: ${specRes.used}\nnormal: ${normalRes.used}\ncloud: ${cloudRes.used}\nstars: ${starsRes.used}`
+          `Anchor: ${ANCHOR_LAT.toFixed(6)}, ${ANCHOR_LON.toFixed(6)}\nAxis: 42° / 222°\nPerps: 132° / 312°\nCorridors: ±1/±5/±10 km\nCoasts: ON\n\nTextures:\nday: ${dayRes.used}\nnight: ${nightRes.used}\nspec: ${specRes.used}\nnormal: ${normalRes.used}\ncloud: ${cloudRes.used}\nstars: ${starsRes.used}`
         );
         autoHideHUD();
 
