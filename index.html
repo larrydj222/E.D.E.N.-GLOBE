@@ -19,6 +19,8 @@
       --aqua: #7fffd4;
       --violet:#a078ff;
       --white:#ffffff;
+
+      --green: rgba(120,255,200,0.88);
     }
 
     html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
@@ -193,8 +195,13 @@
       flex: 0 0 auto;
     }
 
-    /* ON colors */
-    .pill.on .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 16px rgba(120,255,200,0.24); }
+    /* Default ON = GREEN (this covers Welcome / Mission / Switchboard) */
+    .pill.on .dot{
+      background: var(--green);
+      box-shadow: 0 0 16px rgba(120,255,200,0.24);
+    }
+
+    /* Layer-specific ON colors (override GREEN for specific toggles) */
     .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
     .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 16px rgba(91,188,255,0.22); }
 
@@ -205,14 +212,10 @@
     .pill.on[data-key="aurora"]     .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 16px rgba(160,120,255,0.18); }
     .pill.on[data-key="nightLights"].dot{ background: rgba(140,255,200,0.92); box-shadow:0 0 16px rgba(140,255,200,0.18); }
 
-    /* Switchboard glow (white) */
+    /* Switchboard glow (keep it, but do NOT override dot color) */
     .pill.switch.on{
       border-color: rgba(255,255,255,0.22);
       box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset, 0 0 28px rgba(255,255,255,0.10);
-    }
-    .pill.switch.on .dot{
-      background: rgba(255,255,255,0.92);
-      box-shadow: 0 0 20px rgba(255,255,255,0.24);
     }
 
     #statusBar{
@@ -353,7 +356,7 @@
 </head>
 
 <body>
-  <!-- Floating open button (clean brand: no icon) -->
+  <!-- Floating open button -->
   <button id="openBtn" aria-label="Open MAP E.D.E.N.">MAP E.D.E.N.</button>
 
   <div id="drawer">
@@ -384,7 +387,7 @@
         </button>
       </div>
 
-      <!-- Switchboard group (only visible when Switchboard ON) -->
+      <!-- Switchboard group -->
       <div id="switchboardGroup">
         <div class="grid2">
           <button class="pill on" data-key="rhumb222"><span class="left"><span class="dot"></span><span class="label">Rhumb 222 SW</span></span></button>
@@ -427,24 +430,22 @@
         <button id="modalClose" aria-label="Close modal">✕</button>
       </div>
       <div id="modalBody">
-        <!-- Welcome iframe (loads your drop-in HTML file) -->
         <iframe id="welcomeFrame" title="MAP E.D.E.N. Welcome" loading="lazy"></iframe>
 
-        <!-- Mission content (simple placeholder you can edit) -->
         <div id="missionContent" style="display:none;">
-          <h2>MAP E.D.E.N. Mission</h2>
+          <h2>MISSION</h2>
           <p>
-            Turn the 42° / 222° axis hypothesis into a coordinated, evidence-first experiment by producing sensor datasets
-            that are repeatable, controlled, and comparable across stations and time.
+            MAP E.D.E.N. is the operational field platform for Project E.D.E.N. (Earth Diametric &amp; Energy Network)—a secure, repeatable way to run real-world tests along defined Earth corridors, beginning with the 42°/222° diametric axis (42° and 222° are opposite bearings on the same straight line). Based on a 20+ year personal observation record, the Founder identified “222” as a persistent recurring numeric event marker across routine environments (time displays, identifiers, signage). This long-duration recurrence served as the initial trigger for structuring Project E.D.E.N. as a measurement-first field program.
           </p>
           <p>
-            This globe is a visual switchboard for the core overlays (Rhumb, Great Circle, Corridors, Field previews) while keeping the Earth render clean.
+            Over time, and in multiple documented sessions, the “222” event marker also coincided with a compass bearing of 222° (SW)—reinforcing the 42/222 line as a repeatable corridor for formal testing. MAP E.D.E.N. equips trusted operators with clear protocols to collect environmental field measurements and navigation-behavior observations, including human biological magnetoreception and magnetically influenced orientation, homing, and migratory navigation in animals and insects, so results can be compared across time.
           </p>
         </div>
       </div>
     </div>
   </div>
 
+<!--============ PART 1 END — PASTE PART 2 NEXT (do NOT add anything between) ============ --
   <script type="module">
     import * as THREE from "three";
     import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
@@ -491,18 +492,25 @@
     closeBtn.addEventListener("click", () => setDrawerClosed(true));
     handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
 
+    // ---- Button “green light” behavior for Welcome / Mission / Switchboard ----
+    function setTopButtonState(which){
+      // which: "welcome" | "mission" | null
+      welcomeBtn.classList.toggle("on", which === "welcome");
+      missionBtn.classList.toggle("on", which === "mission");
+      // Switchboard handled separately via setSwitchboard()
+    }
+
     // Modal controls
     function openModal(kind){
       modalMask.classList.add("on");
       if (kind === "welcome"){
+        setTopButtonState("welcome");
         modalTitle.textContent = "WELCOME";
         missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
-
-        // Drop-in HTML file (put this file next to this globe HTML in your repo)
-        const WELCOME_FILE = "welcome.html";
-        welcomeFrame.src = encodeURI(WELCOME_FILE);
+        welcomeFrame.src = "welcome.html";
       } else {
+        setTopButtonState("mission");
         modalTitle.textContent = "MISSION";
         welcomeFrame.style.display = "none";
         missionContent.style.display = "block";
@@ -510,7 +518,7 @@
     }
     function closeModal(){
       modalMask.classList.remove("on");
-      // avoid iOS memory spikes by unloading iframe when closed
+      setTopButtonState(null);
       if (welcomeFrame.style.display !== "none") welcomeFrame.src = "about:blank";
     }
     modalClose.addEventListener("click", closeModal);
@@ -522,7 +530,7 @@
     let switchboardOn = false;
     function setSwitchboard(on){
       switchboardOn = !!on;
-      switchBtn.classList.toggle("on", switchboardOn);
+      switchBtn.classList.toggle("on", switchboardOn);   // ✅ green dot when ON
       switchGrp.classList.toggle("on", switchboardOn);
       switchHint.textContent = switchboardOn ? "Tap to close" : "Tap to open";
     }
@@ -611,7 +619,7 @@
       return g;
     }
 
-    // Text-only sprite (NO border box, professional glow)
+    // Text-only sprite (no box)
     function makeTextSprite(text, {
       fontSize=22,
       color="rgba(255,255,255,0.92)",
@@ -630,7 +638,6 @@
 
       canvas.width = w; canvas.height = h;
 
-      // subtle glow
       ctx.font = `900 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
       ctx.textBaseline = "middle";
       ctx.textAlign = "left";
@@ -744,7 +751,7 @@
           const tex = await tryOne(u);
           tex.colorSpace = THREE.SRGBColorSpace;
           return tex;
-        } catch { /* keep trying */ }
+        } catch {}
       }
 
       showError(`Texture fallback used for: ${label}\n(CDN blocked/failed on this device/network)`);
@@ -770,7 +777,7 @@
         renderer.setSize(innerWidth, innerHeight);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.15; // brighter globe
+        renderer.toneMappingExposure = 1.15;
         document.body.appendChild(renderer.domElement);
 
         const ambient = new THREE.AmbientLight(0xffffff, 0.18);
@@ -814,7 +821,7 @@
         const earthRadius = 1.0;
         const SEG = 96;
 
-        // Earth shader (boost ocean clarity & saturation gently)
+        // Earth shader
         const earthUniforms = {
           dayMap:    { value: dayMap },
           specMap:   { value: specMap },
@@ -856,7 +863,6 @@
 
               vec3 dayCol = srgbToLinear(texture2D(dayMap, vUv).rgb);
 
-              // gentle punch: brighter oceans + crisp clouds in the base map
               float lum = dot(dayCol, vec3(0.2126,0.7152,0.0722));
               vec3 sat = mix(vec3(lum), dayCol, 1.15);
               vec3 c = pow(max(sat, 0.0), vec3(0.90));
@@ -935,7 +941,7 @@
           })
         );
 
-        // Clouds (fresh, brighter)
+        // Clouds
         const cloudShadow = new THREE.Mesh(
           new THREE.SphereGeometry(earthRadius * 1.0015, SEG, SEG),
           new THREE.MeshBasicMaterial({
@@ -1049,7 +1055,7 @@
         overlays.gc42.add(makeGlowTube(gc42, 0.0032, 0x5bbcff, 0x5bbcff, 0.55, 0.20));
         overlays.rhumb42.add(makeGlowTube(rh42, 0.0032, 0xf6c24a, 0xf6c24a, 0.55, 0.18));
 
-        // Perpendiculars (same controls for 222 / 42)
+        // Perpendicular controls 132/312
         function arcFromBearing(bearingDeg){
           const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, bearingDeg, 1.2)
             .filter((_, i) => i > 40 && i < 260)
@@ -1058,7 +1064,7 @@
         }
         overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
-        // Names (TEXT ONLY — no border boxes on globe)
+        // Names
         {
           const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 7, glow:"rgba(246,194,74,0.18)" });
           n222.position.copy(latLonToVec3(18, -18, earthRadius*1.10));
@@ -1073,7 +1079,7 @@
           overlays.perpName.add(pLabel);
         }
 
-        // Continents (TEXT ONLY)
+        // Continents
         const CONT = [
           { name:"North America", lat: 45,  lon:-102 },
           { name:"South America", lat:-16,  lon:-60 },
@@ -1089,7 +1095,7 @@
           overlays.continents.add(s);
         }
 
-        // Corridors (±1/±5/±10 km) around BOTH 222 and 42
+        // Corridors ±1/±5/±10 km
         const kmToUnit = (km)=> (km/6371)*earthRadius;
         const corridorRadii = [
           { km: 1,  r: kmToUnit(1),  o: 0.16 },
@@ -1099,12 +1105,11 @@
         for (const c of corridorRadii){
           overlays.corridors.add(makeGlowTube(gc222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
           overlays.corridors.add(makeGlowTube(rh222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
-
           overlays.corridors.add(makeGlowTube(gc42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.8));
           overlays.corridors.add(makeGlowTube(rh42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.75));
         }
 
-        // Station marker (ONLY Station 1)
+        // Station 1 marker
         function makeStationMarker(label, lat, lon, color=0x7fffd4){
           const g = new THREE.Group();
           const p = latLonToVec3(lat, lon, earthRadius*1.02);
@@ -1127,7 +1132,7 @@
         }
         overlays.stations.add(makeStationMarker("Exit 222 • Station 1", ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
 
-        // Magnetic field (simple dipole preview)
+        // Magnetic field preview (simple dipole lines)
         function makeDipoleFieldLines(){
           const g = new THREE.Group();
           const col = 0x5bbcff;
@@ -1162,7 +1167,7 @@
         }
         overlays.magField.add(makeDipoleFieldLines());
 
-        // Aurora (belt preview)
+        // Aurora belt preview
         function makeAuroraBelt(latDeg=67, color=0xa078ff){
           const g = new THREE.Group();
           for (const lat of [latDeg, -latDeg]){
@@ -1178,7 +1183,6 @@
         const BLOOM_LAYER = 1;
         const bloomLayer = new THREE.Layers(); bloomLayer.set(BLOOM_LAYER);
 
-        // Only glow on: nightLights + atmosphere + lines/corridors/aurora
         nightLights.layers.enable(BLOOM_LAYER);
         atmosphere.layers.enable(BLOOM_LAYER);
         Object.values(overlays).forEach(g=>{
@@ -1262,11 +1266,11 @@
           overlays.magField.visible = state.magField;
           overlays.aurora.visible = state.aurora;
 
-          nightLights.visible = state.nightLights; // ensure it actually appears
+          nightLights.visible = state.nightLights;
         }
 
         function setPill(key, on){
-          const b = document.querySelector(\`.pill[data-key="\${key}"]\`);
+          const b = document.querySelector(`.pill[data-key="${key}"]`);
           if (b) b.classList.toggle("on", !!on);
         }
         Object.keys(state).forEach(k => setPill(k, state[k]));
@@ -1350,7 +1354,7 @@
           camera.position.z = clamp(camera.position.z + (e.deltaY * 0.0025), Z_MIN, Z_MAX);
         }, { passive:true });
 
-        // --------- Resize / Orientation (prevents freeze/crash on iOS rotations) ----------
+        // --------- Resize / Orientation ----------
         let resizeTimer = 0;
         function doResize(){
           if (!renderer || !camera) return;
@@ -1368,16 +1372,13 @@
           finalComposer.setSize(w, h);
           bloomPass.setSize(w, h);
         }
-
         function scheduleResize(){
           clearTimeout(resizeTimer);
           resizeTimer = setTimeout(()=> requestAnimationFrame(doResize), 160);
         }
-
         window.addEventListener("resize", scheduleResize, { passive:true });
         window.addEventListener("orientationchange", scheduleResize, { passive:true });
 
-        // Pause render when tab hidden (stability)
         document.addEventListener("visibilitychange", ()=>{
           running = !document.hidden;
           if (running && !rafId) animate();
@@ -1420,5 +1421,268 @@
       }
     })();
   </script>
+</body>
+</html>
+
+  <!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>MAP E.D.E.N. — Welcome</title>
+  <style>
+    :root{
+      --bg:#050508;
+      --glass: rgba(12,14,18,0.70);
+      --stroke: rgba(255,255,255,0.12);
+      --stroke2: rgba(255,255,255,0.16);
+      --txt: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.72);
+      --muted2: rgba(255,255,255,0.52);
+      --gold: #f6c24a;
+      --green: rgba(120,255,200,0.88);
+      --blue: rgba(91,188,255,0.92);
+      --aqua: rgba(127,255,212,0.90);
+      --violet: rgba(160,120,255,0.92);
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      color: var(--txt);
+      font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(1200px 700px at 50% 0%, rgba(246,194,74,0.12), rgba(0,0,0,0) 60%),
+        radial-gradient(900px 700px at 50% 100%, rgba(255,255,255,0.06), rgba(0,0,0,0) 55%),
+        var(--bg);
+    }
+
+    main{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 26px 18px 46px;
+    }
+
+    header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom: 14px;
+    }
+
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .title{
+      font: 900 22px/1.1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.2px;
+    }
+    .subtitle{
+      font: 650 13px/1.4 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      color: var(--muted);
+      max-width: 760px;
+    }
+
+    .tag{
+      font: 800 11px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.70);
+      padding: 10px 12px;
+      border: 1px solid var(--stroke2);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      white-space: nowrap;
+    }
+
+    .card{
+      border: 1px solid var(--stroke);
+      border-radius: 22px;
+      background: var(--glass);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.42);
+      overflow:hidden;
+      margin: 14px 0;
+    }
+
+    .inner{ padding: 18px 18px 20px; }
+
+    h2{
+      margin: 0 0 10px;
+      font: 900 18px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.2px;
+    }
+
+    p{
+      margin: 0 0 12px;
+      font: 650 14px/1.55 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      color: rgba(255,255,255,0.82);
+    }
+
+    .hr{
+      height:1px;
+      background: rgba(255,255,255,0.10);
+      margin: 14px 0;
+    }
+
+    .pillRow{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 0 18px 18px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.78);
+      font: 800 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+    }
+
+    .dot{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      background: rgba(255,255,255,0.16);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.05);
+    }
+    .dot.gold{ background: var(--gold); box-shadow:0 0 16px rgba(246,194,74,0.22); }
+    .dot.green{ background: var(--green); box-shadow:0 0 16px rgba(120,255,200,0.18); }
+    .dot.blue{ background: var(--blue); box-shadow:0 0 16px rgba(91,188,255,0.18); }
+    .dot.aqua{ background: var(--aqua); box-shadow:0 0 16px rgba(127,255,212,0.16); }
+    .dot.violet{ background: var(--violet); box-shadow:0 0 16px rgba(160,120,255,0.16); }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding: 14px;
+    }
+    .mini{
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.05);
+      padding: 14px 14px 12px;
+    }
+    .mini h3{
+      margin:0 0 6px;
+      font: 900 13px/1.25 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.2px;
+    }
+    .mini p{
+      margin:0;
+      font: 650 12px/1.45 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      color: rgba(255,255,255,0.72);
+    }
+
+    .foot{
+      margin-top: 18px;
+      color: rgba(255,255,255,0.58);
+      font: 650 12px/1.5 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+    }
+    .legal{
+      margin-top: 8px;
+      color: rgba(255,255,255,0.42);
+      font: 650 11px/1.45 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+    }
+
+    @media (max-width: 720px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <header>
+      <div class="brand">
+        <div class="title">MAP E.D.E.N.</div>
+        <div class="subtitle">
+          MAP E.D.E.N. is the operational field platform for Project E.D.E.N. (Earth Diametric &amp; Energy Network)—a secure, repeatable way to run real-world tests along defined Earth corridors, beginning with the 42°/222° diametric axis (42° and 222° are opposite bearings on the same straight line). Based on a 20+ year personal observation record, the Founder identified “222” as a persistent recurring numeric event marker across routine environments (time displays, identifiers, signage). This long-duration recurrence served as the initial trigger for structuring Project E.D.E.N. as a measurement-first field program.
+          <br/><br/>
+          Over time, and in multiple documented sessions, the “222” event marker also coincided with a compass bearing of 222° (SW)—reinforcing the 42/222 line as a repeatable corridor for formal testing.
+        </div>
+      </div>
+      <div class="tag">WELCOME</div>
+    </header>
+
+    <section class="card">
+      <div class="inner">
+        <h2>Mission</h2>
+        <p>
+          MAP E.D.E.N. equips trusted operators with clear protocols to collect environmental field measurements and
+          navigation-behavior observations, including human biological magnetoreception and magnetically influenced
+          orientation, homing, and migratory navigation in animals and insects, so results can be compared across time.
+        </p>
+        <div class="hr"></div>
+        <p>
+          <strong>Goal:</strong> turn the 42°/222° axis hypothesis into a coordinated, evidence-first experiment by producing
+          sensor datasets that are repeatable, controlled, and comparable across stations and time.
+        </p>
+      </div>
+
+      <div class="pillRow">
+        <div class="pill"><span class="dot gold"></span>Rhumb (True)</div>
+        <div class="pill"><span class="dot blue"></span>Geodesic (WGS84)</div>
+        <div class="pill"><span class="dot aqua"></span>Stations</div>
+        <div class="pill"><span class="dot violet"></span>Optional Field Overlays</div>
+        <div class="pill"><span class="dot green"></span>Protocols</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="inner">
+        <h2>How MAP E.D.E.N. Works</h2>
+        <p>
+          This Welcome page is loaded inside the MAP E.D.E.N. interface via an iframe (<code>welcome.html</code>).
+          Keep this file in the same folder as <code>index.html</code> in your GitHub Pages repo.
+        </p>
+        <p>
+          Use the globe “Switchboard” to toggle overlays. The goal is clean visualization + standardized field capture so results can be compared across time and operators.
+        </p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="grid">
+        <div class="mini">
+          <h3>Core Corridor</h3>
+          <p>42° (NE) and 222° (SW) are opposite bearings on the same axis. EDEN begins by instrumenting this line and testing repeatability vs controls.</p>
+        </div>
+        <div class="mini">
+          <h3>Measurement-First</h3>
+          <p>Export raw sensor data (UTC), document environment, reduce noise, and keep protocols consistent across sessions.</p>
+        </div>
+        <div class="mini">
+          <h3>Operator Protocol</h3>
+          <p>Repeat captures, log metadata, and compare: station-to-station, day-to-day, and control-vs-test.</p>
+        </div>
+        <div class="mini">
+          <h3>Replication</h3>
+          <p>Design every run so an independent party can reproduce it later under similar conditions.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="foot">
+      Close this window to return to the live globe.
+    </div>
+    <div class="legal">
+      © 2025 MAP E.D.E.N. / Project E.D.E.N. • For research and testing use.
+    </div>
+  </main>
 </body>
 </html>
