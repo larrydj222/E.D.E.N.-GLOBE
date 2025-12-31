@@ -129,7 +129,7 @@
       #drawerBody{
         margin-top: 12px;
         overflow: auto;
-        max-height: calc(100vh - 170px); /* safe for portrait + landscape */
+        max-height: calc(100vh - 170px);
         padding-right: 2px;
         -webkit-overflow-scrolling: touch;
       }
@@ -139,9 +139,10 @@
         grid-template-columns: 1fr 1fr;
         gap: 12px;
       }
-      .grid1{
+
+      .grid3{
         display:grid;
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
         gap: 12px;
       }
 
@@ -198,8 +199,8 @@
         box-shadow: 0 0 18px rgba(255,255,255,0.22);
       }
 
-      /* Mission panel */
-      #missionPanel{
+      /* Welcome/Mission panels */
+      #welcomePanel, #missionPanel{
         display:none;
         margin-top: 12px;
         padding: 12px 14px;
@@ -209,7 +210,7 @@
         color: rgba(255,255,255,0.88);
         font: 700 12px/1.45 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       }
-      #missionPanel strong{ font-weight: 900; }
+      #welcomePanel strong, #missionPanel strong{ font-weight: 900; }
 
       /* Switch group hidden unless open */
       #switchGroup{ display:none; margin-top: 12px; }
@@ -243,12 +244,16 @@
       /* collapsed state */
       #drawer.collapsed #drawerBody { display:none; }
 
+      @media (max-width: 620px){
+        .grid3{ grid-template-columns: 1fr 1fr; }
+        #switchboardBtn{ grid-column: 1 / span 2; }
+      }
+
       @media (max-width: 420px){
         .pill { padding: 12px 12px; border-radius: 16px; font-size: 13px; }
         #drawerBody{ max-height: calc(100vh - 165px); }
       }
 
-      /* Landscape: keep globe usable + allow scroll for controls */
       @media (orientation: landscape){
         #drawer{
           width: min(920px, calc(100vw - 28px));
@@ -260,7 +265,6 @@
       }
     </style>
 
-    <!-- Import Map -->
     <script type="importmap">
       {
         "imports": {
@@ -272,7 +276,7 @@
   </head>
 
   <body>
-    <!-- Floating open button (no hamburger) -->
+    <!-- Floating open button (clean brand, no hamburger) -->
     <button id="openBtn" aria-label="Open MAP E.D.E.N.">MAP E.D.E.N.</button>
 
     <div id="drawer">
@@ -287,8 +291,12 @@
       </div>
 
       <div id="drawerBody">
-        <!-- Mission + Switchboard row -->
-        <div class="grid2">
+        <!-- Welcome / Mission / Switchboard row (in order) -->
+        <div class="grid3">
+          <button class="pill" id="welcomeBtn" data-key="welcome">
+            <span class="dot"></span>Welcome
+          </button>
+
           <button class="pill" id="missionBtn" data-key="mission">
             <span class="dot"></span>Mission
           </button>
@@ -297,6 +305,10 @@
             <span class="dot"></span>Switchboard
             <span class="rightHint" id="switchHint">Tap to open</span>
           </button>
+        </div>
+
+        <div id="welcomePanel">
+          <strong>Welcome:</strong> Drag the globe to rotate • Pinch to zoom • Use Switchboard to toggle layers (Rhumb, Great Circle, Names, Stations, Night Lights, and more).
         </div>
 
         <div id="missionPanel">
@@ -346,8 +358,11 @@
       const closeBtn = document.getElementById("closeBtn");
       const handle = document.getElementById("handle");
 
+      const welcomeBtn = document.getElementById("welcomeBtn");
+      const welcomePanel = document.getElementById("welcomePanel");
       const missionBtn = document.getElementById("missionBtn");
       const missionPanel = document.getElementById("missionPanel");
+
       const switchboardBtn = document.getElementById("switchboardBtn");
       const switchGroup = document.getElementById("switchGroup");
       const switchHint = document.getElementById("switchHint");
@@ -369,6 +384,13 @@
       openBtn.addEventListener("click", () => setDrawerClosed(false));
       closeBtn.addEventListener("click", () => setDrawerClosed(true));
       handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
+
+      // Welcome toggle
+      welcomeBtn.addEventListener("click", ()=>{
+        const isOn = welcomePanel.style.display === "block";
+        welcomePanel.style.display = isOn ? "none" : "block";
+        welcomeBtn.classList.toggle("on", !isOn);
+      });
 
       // Mission toggle
       missionBtn.addEventListener("click", ()=>{
@@ -411,11 +433,6 @@
           radius * Math.sin(lat),
           radius * Math.cos(lat) * Math.sin(lon)
         );
-      }
-
-      function vec3ToLatLon(v){
-        const r = v.length();
-        return { lat: Math.asin(v.y/r)*RAD, lon: Math.atan2(v.z,v.x)*RAD };
       }
 
       function greatCirclePoints(lat0Deg, lon0Deg, bearingDeg, stepDeg=1.0){
@@ -481,15 +498,17 @@
         return g;
       }
 
-      // Smaller, cleaner label sprites (reduced glow)
+      // TEXT-ONLY label sprite (NO background box by default)
       function makeLabelSprite(text, {
         fontSize=22,
-        padding=14,
-        color="rgba(255,255,255,0.94)",
-        bg="rgba(0,0,0,0.20)",
-        opacity=0.68,
-        scale=0.0043,
-        glow=true
+        padding=10,
+        color="rgba(255,255,255,0.92)",
+        bg=null,                 // null => no box (fix for Names/Continents)
+        opacity=0.78,
+        scale=0.0042,
+        glow=true,
+        glowColor="rgba(255,255,255,0.18)",
+        glowBlur=5
       } = {}){
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
@@ -500,17 +519,19 @@
         const h = Math.ceil(fontSize + padding*2);
         canvas.width = w; canvas.height = h;
 
-        // rounded bg
-        ctx.fillStyle = bg;
-        const r = Math.min(18, h/2);
-        ctx.beginPath();
-        ctx.moveTo(r,0); ctx.arcTo(w,0,w,h,r); ctx.arcTo(w,h,0,h,r); ctx.arcTo(0,h,0,0,r); ctx.arcTo(0,0,w,0,r);
-        ctx.closePath(); ctx.fill();
+        // optional rounded bg (used for station tags only)
+        if (bg !== null){
+          ctx.fillStyle = bg;
+          const r = Math.min(18, h/2);
+          ctx.beginPath();
+          ctx.moveTo(r,0); ctx.arcTo(w,0,w,h,r); ctx.arcTo(w,h,0,h,r); ctx.arcTo(0,h,0,0,r); ctx.arcTo(0,0,w,0,r);
+          ctx.closePath(); ctx.fill();
+        }
 
-        // subtle glow
+        // subtle glow (kept small/pro)
         if (glow){
-          ctx.shadowColor = "rgba(255,255,255,0.22)";
-          ctx.shadowBlur = 6;
+          ctx.shadowColor = glowColor;
+          ctx.shadowBlur = glowBlur;
         } else {
           ctx.shadowBlur = 0;
         }
@@ -528,7 +549,7 @@
         return spr;
       }
 
-      // --------- Fallback textures (so globe always renders) ----------
+      // --------- Fallback textures ----------
       function solidTexture(hex="#222"){
         const c=document.createElement("canvas");
         c.width=2; c.height=2;
@@ -557,11 +578,10 @@
       }
 
       function makeFallbackEarthDay(){
-        // Bluer ocean + cleaner greens + gentle cloud haze
         const c=document.createElement("canvas");
         c.width=1024; c.height=512;
         const ctx=c.getContext("2d");
-        ctx.fillStyle="#0f2f66"; ctx.fillRect(0,0,c.width,c.height); // ocean
+        ctx.fillStyle="#0f2f66"; ctx.fillRect(0,0,c.width,c.height);
         ctx.globalAlpha=0.92; ctx.fillStyle="#2c7a4b";
         for(let i=0;i<38;i++){
           const x=Math.random()*c.width, y=Math.random()*c.height;
@@ -626,7 +646,7 @@
           } catch { /* keep trying */ }
         }
 
-        // show (non-fatal) warning once per label
+        // non-fatal warning
         showError(`Texture fallback used for: ${label}\n(CDN blocked/failed on this device/network)`);
         return fallbackTex;
       }
@@ -642,19 +662,29 @@
           camera.position.set(0, 0, 4.2);
 
           const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
-          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          // slightly lower cap helps iOS rotations not crash
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
           renderer.setSize(innerWidth, innerHeight);
           renderer.outputColorSpace = THREE.SRGBColorSpace;
           renderer.toneMapping = THREE.ACESFilmicToneMapping;
-          renderer.toneMappingExposure = 1.18; // brighter globe
+          renderer.toneMappingExposure = 1.18;
           document.body.appendChild(renderer.domElement);
+
+          // iOS/Safari rotation stability: handle context loss
+          renderer.domElement.addEventListener("webglcontextlost", (e)=>{
+            e.preventDefault();
+            statusEl.textContent = "WebGL context lost — recovering…";
+          }, false);
+          renderer.domElement.addEventListener("webglcontextrestored", ()=>{
+            // safest recovery on iOS: reload
+            location.reload();
+          }, false);
 
           scene.add(new THREE.AmbientLight(0xffffff, 0.18));
           const sunLight = new THREE.DirectionalLight(0xffffff, 1.35);
           sunLight.position.set(5, 1.5, 2.5);
           scene.add(sunLight);
 
-          // Texture URLs (3 CDNs)
           const BASES = [
             "https://threejs.org/examples/textures/",
             "https://unpkg.com/three@0.161.0/examples/textures/",
@@ -688,7 +718,7 @@
           const earthRadius = 1.0;
           const SEG = 96;
 
-          // Earth shader (blue ocean bias + fresh contrast)
+          // Earth shader
           const earthUniforms = {
             dayMap:    { value: dayMap },
             specMap:   { value: specMap },
@@ -729,8 +759,6 @@
                 vec3 V = normalize(cameraPos - vPosW);
 
                 vec3 dayCol = srgbToLinear(texture2D(dayMap, vUv).rgb);
-
-                // subtle "bluer ocean" push without wrecking land
                 dayCol.b *= 1.08;
                 dayCol.g *= 1.02;
 
@@ -759,7 +787,7 @@
 
           const earth = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, SEG, SEG), earthMat);
 
-          // Night lights (additive) — toggled by state.nightLights
+          // Night lights (additive)
           const lightsUniforms = {
             nightMap: { value: nightMap },
             sunDir:   { value: new THREE.Vector3(1,0,0) },
@@ -812,7 +840,7 @@
             })
           );
 
-          // Clouds (fresh + a bit brighter)
+          // Clouds
           const cloudShadow = new THREE.Mesh(
             new THREE.SphereGeometry(earthRadius * 1.0015, SEG, SEG),
             new THREE.MeshBasicMaterial({
@@ -908,11 +936,11 @@
           };
           Object.values(overlays).forEach(g => globe.add(g));
 
-          // Station 1 (DMS) -> decimal
+          // Station 1
           const ANCHOR = {
             name: "Exit 222 • Station 1",
-            lat: 38 + 9/60 + 39/3600,          // 38°9′39″ N
-            lon: -(79 + 4/60 + 24/3600)        // 79°4′24″ W
+            lat: 38 + 9/60 + 39/3600,
+            lon: -(79 + 4/60 + 24/3600)
           };
 
           // Bearings
@@ -937,21 +965,23 @@
             .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
           overlays.rhumb42.add(makeGlowTube(rh42Pts, 0.0030, 0xf6c24a, 0xf6c24a, 1.0, 0.18));
 
-          // Names (same style as continents; just label sprites)
+          // Names (TEXT ONLY — no borders/boxes)
           {
-            const n1 = makeLabelSprite("Rhumb 222 SW", { bg:"rgba(246,194,74,0.10)" });
+            const common = { bg: null, glow: true, glowBlur: 4, opacity: 0.82, fontSize: 20, scale: 0.0041 };
+
+            const n1 = makeLabelSprite("Rhumb 222 SW", common);
             n1.position.copy(latLonToVec3(28, -20, earthRadius*1.11));
             overlays.names222.add(n1);
 
-            const n2 = makeLabelSprite("Great Circle 222 SW", { bg:"rgba(91,188,255,0.10)" });
+            const n2 = makeLabelSprite("Great Circle 222 SW", common);
             n2.position.copy(latLonToVec3(-8, 68, earthRadius*1.11));
             overlays.names222.add(n2);
 
-            const n3 = makeLabelSprite("Rhumb 42 NE", { bg:"rgba(246,194,74,0.08)" });
+            const n3 = makeLabelSprite("Rhumb 42 NE", common);
             n3.position.copy(latLonToVec3(46, 120, earthRadius*1.11));
             overlays.names42.add(n3);
 
-            const n4 = makeLabelSprite("Great Circle 42 NE", { bg:"rgba(91,188,255,0.08)" });
+            const n4 = makeLabelSprite("Great Circle 42 NE", common);
             n4.position.copy(latLonToVec3(5, -120, earthRadius*1.11));
             overlays.names42.add(n4);
           }
@@ -965,14 +995,14 @@
           }
           overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
-          // Perp name (small)
+          // Perp name (text only)
           {
-            const pLabel = makeLabelSprite("132° / 312°", { bg:"rgba(91,188,255,0.08)" });
+            const pLabel = makeLabelSprite("132° / 312°", { bg:null, fontSize: 19, opacity: 0.80, scale: 0.0040, glowBlur: 4 });
             pLabel.position.copy(latLonToVec3(56, 110, earthRadius*1.12));
             overlays.perpName.add(pLabel);
           }
 
-          // Continents labels (no outlines)
+          // Continents (text only — no boxes)
           const CONT = [
             { name:"North America", lat: 45,  lon:-102 },
             { name:"South America", lat:-16,  lon:-60 },
@@ -983,12 +1013,12 @@
             { name:"Antarctica",    lat:-80,  lon:  0 }
           ];
           for (const c of CONT){
-            const s = makeLabelSprite(c.name, {});
+            const s = makeLabelSprite(c.name, { bg:null, fontSize: 20, opacity: 0.82, scale: 0.0041, glowBlur: 4 });
             s.position.copy(latLonToVec3(c.lat, c.lon, earthRadius*1.10));
             overlays.continents.add(s);
           }
 
-          // Corridors (visual thickness bands)
+          // Corridors
           const kmToUnit = (km)=> (km/6371)*earthRadius;
           const corridorRadii = [
             { km: 1,  r: kmToUnit(1),  o: 0.14 },
@@ -996,15 +1026,13 @@
             { km: 10, r: kmToUnit(10), o: 0.06 }
           ];
           for (const c of corridorRadii){
-            // GC 222 + 42
             overlays.corridors.add(makeGlowTube(gc222Pts, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
             overlays.corridors.add(makeGlowTube(gc42Pts,  c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
-            // Rh 222 + 42
             overlays.corridors.add(makeGlowTube(rh222Pts, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.95));
             overlays.corridors.add(makeGlowTube(rh42Pts,  c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.85));
           }
 
-          // Station marker (ONLY one station)
+          // Station marker (tag keeps subtle panel)
           function makeStationMarker(label, lat, lon, color=0x7fffd4){
             const g = new THREE.Group();
             const p = latLonToVec3(lat, lon, earthRadius*1.02);
@@ -1019,7 +1047,10 @@
             );
             glow.position.copy(p);
 
-            const tag = makeLabelSprite(label, { fontSize: 20, padding: 12, bg:"rgba(0,0,0,0.22)", opacity: 0.62, scale: 0.0040 });
+            const tag = makeLabelSprite(label, {
+              fontSize: 19, padding: 12, bg:"rgba(0,0,0,0.22)", opacity: 0.62, scale: 0.0040,
+              glow: true, glowBlur: 5, glowColor:"rgba(255,255,255,0.16)"
+            });
             tag.position.copy(latLonToVec3(lat, lon, earthRadius*1.12));
 
             g.add(glow, pin, tag);
@@ -1062,7 +1093,7 @@
           }
           overlays.magField.add(makeDipoleFieldLines());
 
-          // Aurora (belt preview)
+          // Aurora
           function makeAuroraBelt(latDeg=67, color=0xa078ff){
             const g = new THREE.Group();
             for (const lat of [latDeg, -latDeg]){
@@ -1078,231 +1109,6 @@
           const BLOOM_LAYER = 1;
           const bloomLayer = new THREE.Layers(); bloomLayer.set(BLOOM_LAYER);
 
-          // only bloom a few elements (gentle)
           nightLights.layers.enable(BLOOM_LAYER);
           atmosphere.layers.enable(BLOOM_LAYER);
-          [overlays.rhumb222, overlays.rhumb42, overlays.gc222, overlays.gc42, overlays.perpLine, overlays.corridors, overlays.aurora].forEach(g=>{
-            g.traverse(o => o.layers && o.layers.enable(BLOOM_LAYER));
-          });
-
-          const darkMaterial = new THREE.MeshBasicMaterial({ color:"black" });
-          const materials = new Map();
-
-          function darkenNonBloom(obj){
-            if (obj.isMesh && !bloomLayer.test(obj.layers)){
-              materials.set(obj.uuid, obj.material);
-              obj.material = darkMaterial;
-            }
-          }
-          function restoreMaterial(obj){
-            if (materials.has(obj.uuid)){
-              obj.material = materials.get(obj.uuid);
-              materials.delete(obj.uuid);
-            }
-          }
-
-          const renderScene = new RenderPass(scene, camera);
-
-          // softer bloom than before (avoids huge glow on labels)
-          const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.05, 0.78, 0.12);
-
-          const bloomComposer = new EffectComposer(renderer);
-          bloomComposer.renderToScreen = false;
-          bloomComposer.addPass(renderScene);
-          bloomComposer.addPass(bloomPass);
-
-          const finalPass = new ShaderPass({
-            uniforms: { tDiffuse: { value: null }, bloomTexture: { value: null } },
-            vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
-            fragmentShader: `uniform sampler2D tDiffuse; uniform sampler2D bloomTexture; varying vec2 vUv;
-              void main(){ gl_FragColor = texture2D(tDiffuse,vUv) + texture2D(bloomTexture,vUv); }`
-          });
-
-          const finalComposer = new EffectComposer(renderer);
-          finalComposer.addPass(renderScene);
-          finalComposer.addPass(finalPass);
-          finalComposer.addPass(new OutputPass());
-
-          function renderBloom(){
-            scene.traverse(darkenNonBloom);
-            bloomComposer.render();
-            finalPass.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
-            scene.traverse(restoreMaterial);
-          }
-
-          // --------- Interaction ----------
-          let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
-          const AUTO_SPIN=0.0013, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
-
-          let pinching=false, pinchStartDist=0, pinchStartZ=camera.position.z;
-          const Z_MIN=2.2, Z_MAX=8.0;
-
-          function getPoint(e){
-            if (e.touches && e.touches.length) return { x:e.touches[0].clientX, y:e.touches[0].clientY };
-            return { x:e.clientX, y:e.clientY };
-          }
-          function dist2(t1,t2){
-            const dx=t1.clientX-t2.clientX, dy=t1.clientY-t2.clientY;
-            return Math.sqrt(dx*dx+dy*dy);
-          }
-
-          function down(e){
-            if (isUIEventTarget(e.target)) return;
-
-            if (e.touches && e.touches.length === 2){
-              pinching=true;
-              pinchStartDist = dist2(e.touches[0], e.touches[1]);
-              pinchStartZ = camera.position.z;
-              return;
-            }
-            dragging=true;
-            const p=getPoint(e);
-            lastX=p.x; lastY=p.y;
-          }
-
-          function move(e){
-            if (isUIEventTarget(e.target)) return;
-
-            if (pinching && e.touches && e.touches.length === 2){
-              const d = dist2(e.touches[0], e.touches[1]);
-              const ratio = pinchStartDist > 0 ? (pinchStartDist / d) : 1.0;
-              camera.position.z = clamp(pinchStartZ * ratio, Z_MIN, Z_MAX);
-              return;
-            }
-
-            if(!dragging) return;
-            const p=getPoint(e);
-            const dx=p.x-lastX, dy=p.y-lastY;
-            lastX=p.x; lastY=p.y;
-
-            globe.rotation.y += dx*DRAG_SENS;
-            globe.rotation.x = clamp(globe.rotation.x + dy*PITCH_SENS, -MAX_PITCH, MAX_PITCH);
-
-            velY = dx*DRAG_SENS;
-            velX = dy*PITCH_SENS;
-          }
-
-          function up(){ dragging=false; pinching=false; }
-
-          const el = renderer.domElement;
-          el.addEventListener("touchstart", down, { passive:true });
-          el.addEventListener("touchmove", move, { passive:true });
-          el.addEventListener("touchend", up, { passive:true });
-          el.addEventListener("mousedown", down);
-          window.addEventListener("mousemove", move);
-          window.addEventListener("mouseup", up);
-
-          window.addEventListener("wheel", (e)=>{
-            if (isUIEventTarget(e.target)) return;
-            camera.position.z = clamp(camera.position.z + (e.deltaY * 0.0025), Z_MIN, Z_MAX);
-          }, { passive:true });
-
-          // --------- Toggles ----------
-          const state = {
-            rhumb222: false,
-            rhumb42:  false,
-            gc222:    false,
-            gc42:     false,
-
-            names222: false,
-            names42:  false,
-
-            perpLine: false,
-            perpName: false,
-            continents:false,
-
-            stations: true,
-            corridors:false,
-            magField: false,
-            aurora:   false,
-
-            nightLights: true
-          };
-
-          function applyVisibility(){
-            overlays.rhumb222.visible = state.rhumb222;
-            overlays.rhumb42.visible  = state.rhumb42;
-            overlays.gc222.visible    = state.gc222;
-            overlays.gc42.visible     = state.gc42;
-
-            overlays.names222.visible = state.names222;
-            overlays.names42.visible  = state.names42;
-
-            overlays.perpLine.visible = state.perpLine;
-            overlays.perpName.visible = state.perpName;
-
-            overlays.continents.visible = state.continents;
-
-            overlays.stations.visible  = state.stations;
-            overlays.corridors.visible = state.corridors;
-
-            overlays.magField.visible = state.magField;
-            overlays.aurora.visible   = state.aurora;
-
-            nightLights.visible = state.nightLights;
-          }
-          applyVisibility();
-
-          function setPill(key, on){
-            const b = document.querySelector(`.pill[data-key="${key}"]`);
-            if (b) b.classList.toggle("on", !!on);
-          }
-          Object.keys(state).forEach(k => setPill(k, state[k]));
-
-          document.querySelectorAll(".pill").forEach(btn=>{
-            btn.addEventListener("click", ()=>{
-              const key = btn.dataset.key;
-              if (!(key in state)) return;
-              state[key] = !state[key];
-              setPill(key, state[key]);
-              applyVisibility();
-            });
-          });
-
-          // --------- Animate ----------
-          const sunDrift = 0.00005;
-          const cloudSpin = 0.0020;
-
-          function animate(){
-            requestAnimationFrame(animate);
-
-            clouds.rotation.y += cloudSpin;
-            cloudShadow.rotation.y += cloudSpin + 0.00015;
-
-            if(!dragging && !pinching){
-              globe.rotation.y += AUTO_SPIN + velY;
-              globe.rotation.x = clamp(globe.rotation.x + velX, -MAX_PITCH, MAX_PITCH);
-              velY *= DAMPING;
-              velX *= DAMPING;
-            }
-
-            sunLight.position.applyAxisAngle(new THREE.Vector3(0,1,0), sunDrift);
-            const sunDir = sunLight.position.clone().normalize();
-
-            earthUniforms.sunDir.value.copy(sunDir);
-            earthUniforms.cameraPos.value.copy(camera.position);
-            lightsUniforms.sunDir.value.copy(sunDir);
-            atmoUniforms.sunDir.value.copy(sunDir);
-            atmoUniforms.cameraPos.value.copy(camera.position);
-
-            renderBloom();
-            finalComposer.render();
-          }
-          animate();
-
-          addEventListener("resize", ()=>{
-            camera.aspect = innerWidth/innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(innerWidth, innerHeight);
-            bloomComposer.setSize(innerWidth, innerHeight);
-            finalComposer.setSize(innerWidth, innerHeight);
-            bloomPass.setSize(innerWidth, innerHeight);
-          });
-
-        } catch (err){
-          showError("Top-level error:\n" + (err?.stack || err?.message || err));
-        }
-      })();
-    </script>
-  </body>
-</html>
+          [over
