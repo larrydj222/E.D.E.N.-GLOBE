@@ -11,25 +11,33 @@
         --stroke: rgba(255,255,255,0.12);
         --stroke2: rgba(255,255,255,0.14);
         --text: rgba(255,255,255,0.92);
-        --muted: rgba(255,255,255,0.70);
-        --muted2: rgba(255,255,255,0.46);
+        --muted: rgba(255,255,255,0.68);
+        --muted2: rgba(255,255,255,0.45);
 
-        --gold: #f6c24a;
-        --blue: #5bbcff;
-        --aqua: #7fffd4;
-        --violet: #a078ff;
+        --gold: #f6c24a;   /* Rhumb 222 */
+        --blue: #5bbcff;   /* Great circle 222 */
+        --aqua: #7fffd4;   /* Stations */
+        --violet:#a078ff;  /* Aurora */
       }
 
-      html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
+      html, body {
+        height: 100%;
+        margin: 0;
+        background: #000;
+        overflow: hidden;
+      }
+
+      /* Keep globe gestures smooth, but allow UI scroll */
+      body { touch-action: none; }
       canvas { display:block; width:100vw !important; height:100vh !important; }
 
-      /* ---------- Floating OPEN button ---------- */
+      /* ---------- Floating OPEN button (when drawer closed) ---------- */
       #openBtn{
         position: fixed;
         left: 18px;
         bottom: 18px;
         z-index: 10000;
-        display: none; /* shown only when drawer closed */
+        display: none;
         align-items: center;
         gap: 10px;
         padding: 12px 14px;
@@ -43,6 +51,7 @@
         cursor: pointer;
         user-select: none;
         -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
       }
       #openBtn:active { transform: translateY(1px); }
       #openBtn svg { width: 16px; height: 16px; opacity: 0.9; }
@@ -59,11 +68,16 @@
         background: var(--glass);
         border: 1px solid var(--stroke);
         border-radius: 22px;
-        padding: 14px 14px 16px;
+        padding: 14px 14px 12px;
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         box-shadow: 0 14px 44px rgba(0,0,0,0.42);
         user-select: none;
+
+        /* allow internal scrolling */
+        max-height: calc(100vh - 28px);
+        overflow: hidden;
+        touch-action: pan-y;
       }
 
       #drawer.closed{
@@ -74,6 +88,13 @@
       }
       #drawer:not(.closed){
         transition: transform 240ms ease, opacity 200ms ease;
+      }
+
+      #drawerBody{
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 10px;
+        touch-action: pan-y;
       }
 
       #handle {
@@ -95,15 +116,16 @@
       #titleBlock{
         display:flex;
         flex-direction:column;
-        gap:6px;
+        gap:4px;
+        padding-right: 6px;
       }
 
       #title {
-        font: 900 20px/1.06 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-        letter-spacing: 0.2px;
+        font: 900 18px/1.1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+        letter-spacing: 0.25px;
       }
       #subtitle{
-        font: 650 12.5px/1.25 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+        font: 650 12px/1.25 -apple-system, system-ui, Segoe UI, Roboto, Arial;
         color: var(--muted);
       }
 
@@ -120,97 +142,115 @@
         justify-content:center;
         -webkit-tap-highlight-color: transparent;
         flex: 0 0 auto;
+        touch-action: manipulation;
       }
       #closeBtn:active { transform: translateY(1px); }
 
-      #rowWrap{
-        display:flex;
-        flex-direction:column;
-        gap:12px;
+      /* ---------- Buttons / layout ---------- */
+      #primaryRow{
         margin-top: 12px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
       }
 
-      /* --- Parent row (Switchboard) --- */
-      .parentRow{ display:block; }
+      #switchboardGroup{
+        margin-top: 12px;
+        display: none; /* shown only when Switchboard ON */
+      }
 
-      /* --- Switch group grid (2 columns like screenshot) --- */
-      #switchGroup{
+      .grid2{
         display:grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
       }
-      #switchGroup.hidden{ display:none; }
 
-      /* --- Pills --- */
       .pill{
+        width: 100%;
         display:inline-flex;
         align-items:center;
         justify-content:flex-start;
         gap:10px;
-        padding: 14px 16px;
+        padding: 12px 14px;
         border-radius: 18px;
         border: 1px solid rgba(255,255,255,0.14);
         background: rgba(255,255,255,0.06);
         color: var(--text);
-        font: 900 15px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+        font: 850 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
         letter-spacing: 0.15px;
         cursor:pointer;
         -webkit-tap-highlight-color: transparent;
-        min-height: 52px;
+        touch-action: manipulation;
       }
       .pill:active { transform: translateY(1px); }
-      .pill.full{ grid-column: 1 / -1; justify-content:space-between; }
+
+      .pill .rightHint{
+        margin-left:auto;
+        font: 750 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+        color: rgba(255,255,255,0.62);
+      }
 
       .dot{
-        width: 10px; height: 10px;
+        width: 10px;
+        height: 10px;
         border-radius: 50%;
         background: rgba(255,255,255,0.16);
         box-shadow: 0 0 0 rgba(0,0,0,0);
         flex: 0 0 auto;
       }
 
-      .rightHint{
-        margin-left:auto;
-        font: 800 13px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-        color: rgba(255,255,255,0.64);
-        letter-spacing: 0.1px;
+      /* Generic ON */
+      .pill.on{
+        background: rgba(255,255,255,0.09);
+        border-color: rgba(255,255,255,0.18);
       }
 
-      /* ON colors */
-      .pill.on .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 18px rgba(120,255,200,0.30); }
+      /* Switchboard glow white */
+      .pill.on[data-key="switchboard"] .dot{
+        background: rgba(255,255,255,0.92);
+        box-shadow: 0 0 22px rgba(255,255,255,0.30);
+      }
+      .pill.on[data-key="switchboard"]{
+        box-shadow: 0 10px 34px rgba(255,255,255,0.08);
+      }
+
+      /* ON colors per layer */
       .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 18px rgba(246,194,74,0.30); }
-      .pill.on[data-key="rhumb42"]  .dot{ background: rgba(246,194,74,0.70); box-shadow:0 0 18px rgba(246,194,74,0.22); }
+      .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.90); box-shadow:0 0 18px rgba(91,188,255,0.26); }
 
-      .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 18px rgba(91,188,255,0.26); }
-      .pill.on[data-key="gc42"]     .dot{ background: rgba(91,188,255,0.70); box-shadow:0 0 18px rgba(91,188,255,0.20); }
+      .pill.on[data-key="rhumb42"]  .dot{ background: rgba(246,194,74,0.85); box-shadow:0 0 18px rgba(246,194,74,0.22); }
+      .pill.on[data-key="gc42"]     .dot{ background: rgba(91,188,255,0.82); box-shadow:0 0 18px rgba(91,188,255,0.18); }
 
-      .pill.on[data-key="names222"] .dot{ background: rgba(255,255,255,0.90); box-shadow:0 0 18px rgba(255,255,255,0.18); }
-      .pill.on[data-key="names42"]  .dot{ background: rgba(255,255,255,0.78); box-shadow:0 0 18px rgba(255,255,255,0.14); }
+      .pill.on[data-key="names222"] .dot{ background: rgba(255,255,255,0.80); box-shadow:0 0 18px rgba(255,255,255,0.18); }
+      .pill.on[data-key="names42"]  .dot{ background: rgba(255,255,255,0.72); box-shadow:0 0 18px rgba(255,255,255,0.14); }
+
+      .pill.on[data-key="perpLine"] .dot{ background: rgba(91,188,255,0.82); box-shadow:0 0 18px rgba(91,188,255,0.16); }
+      .pill.on[data-key="continents"] .dot{ background: rgba(255,255,255,0.70); box-shadow:0 0 18px rgba(255,255,255,0.12); }
 
       .pill.on[data-key="stations"] .dot{ background: rgba(127,255,212,0.86); box-shadow:0 0 18px rgba(127,255,212,0.24); }
+      .pill.on[data-key="corridors"] .dot{ background: rgba(246,194,74,0.80); box-shadow:0 0 18px rgba(246,194,74,0.16); }
+
+      .pill.on[data-key="magField"] .dot{ background: rgba(91,188,255,0.60); box-shadow:0 0 18px rgba(91,188,255,0.10); }
       .pill.on[data-key="aurora"]   .dot{ background: rgba(160,120,255,0.90); box-shadow:0 0 18px rgba(160,120,255,0.26); }
 
       .pill.on[data-key="nightLights"] .dot{ background: rgba(120,255,200,0.88); box-shadow:0 0 18px rgba(120,255,200,0.30); }
+      .pill.on[data-key="perpName"] .dot{ background: rgba(255,255,255,0.62); box-shadow:0 0 18px rgba(255,255,255,0.10); }
 
-      /* ✅ Switchboard white glow when OPEN */
-      .pill.parent.sb-on{
-        border: 1px solid rgba(255,255,255,0.26) !important;
-        background: rgba(255,255,255,0.10) !important;
-        box-shadow:
-          0 0 0 1px rgba(255,255,255,0.10) inset,
-          0 0 22px rgba(255,255,255,0.14),
-          0 8px 26px rgba(0,0,0,0.30);
+      #missionPanel{
+        display:none;
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(0,0,0,0.18);
+        color: rgba(255,255,255,0.86);
+        font: 650 12px/1.35 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       }
-      .pill.parent.sb-on .dot{
-        background: rgba(255,255,255,0.92) !important;
-        box-shadow: 0 0 18px rgba(255,255,255,0.28) !important;
-      }
-      .pill.parent.sb-on .rightHint{ color: rgba(255,255,255,0.82) !important; }
 
       #statusLine{
-        margin-top: 2px;
+        margin-top:12px;
         color: var(--muted2);
-        font: 800 11.5px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+        font: 750 11px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
         display:flex;
         justify-content:space-between;
         gap:12px;
@@ -220,7 +260,7 @@
       }
 
       #errors{
-        margin-top: 10px;
+        margin-top: 12px;
         display:none;
         padding: 10px 12px;
         border-radius: 14px;
@@ -231,14 +271,13 @@
         white-space: pre-wrap;
       }
 
-      /* collapsed state */
-      #drawer.collapsed #rowWrap,
-      #drawer.collapsed #statusLine,
-      #drawer.collapsed #errors { display:none; }
+      /* collapsed drawer */
+      #drawer.collapsed #drawerBody{ display:none; }
       #drawer.collapsed { padding-bottom: 12px; }
 
       @media (max-width: 420px){
-        .pill{ padding: 13px 14px; border-radius: 16px; font-size: 14px; min-height: 50px; }
+        .pill { padding: 12px 12px; border-radius: 16px; font-size: 13px; }
+        .grid2, #primaryRow { gap: 10px; }
       }
     </style>
 
@@ -254,6 +293,7 @@
   </head>
 
   <body>
+    <!-- OPEN button -->
     <button id="openBtn" aria-label="Open MAP E.D.E.N.">
       <svg viewBox="0 0 24 24" fill="none">
         <path d="M4 7h16M4 12h16M4 17h16" stroke="rgba(255,255,255,0.88)" stroke-width="2.2" stroke-linecap="round"/>
@@ -261,6 +301,7 @@
       MAP E.D.E.N.
     </button>
 
+    <!-- Drawer -->
     <div id="drawer">
       <div id="handle" title="Tap to collapse/expand"></div>
 
@@ -272,43 +313,61 @@
         <button id="closeBtn" aria-label="Close drawer" title="Close">✕</button>
       </div>
 
-      <div id="rowWrap">
-        <!-- ✅ Switchboard is ALWAYS visible -->
-        <div class="parentRow">
-          <button id="switchboardBtn" class="pill parent full" type="button">
+      <div id="drawerBody">
+        <!-- Mission + Switchboard -->
+        <div id="primaryRow">
+          <button class="pill" data-key="mission">
             <span class="dot"></span>
-            <span>Switchboard</span>
-            <span id="switchboardHint" class="rightHint">Tap to open</span>
+            Mission
+            <span class="rightHint" id="missionHint">Tap</span>
+          </button>
+
+          <button class="pill" data-key="switchboard">
+            <span class="dot"></span>
+            Switchboard
+            <span class="rightHint" id="switchHint">Tap to open</span>
           </button>
         </div>
 
-        <!-- ✅ All other buttons appear ONLY when Switchboard is ON -->
-        <div id="switchGroup" class="hidden" aria-hidden="true">
-          <button class="pill on" data-key="rhumb222" type="button"><span class="dot"></span>Rhumb 222 SW</button>
-          <button class="pill" data-key="rhumb42" type="button"><span class="dot"></span>Rhumb 42 NE</button>
+        <div id="missionPanel">
+          <b>EDEN Mission (one sentence)</b><br/>
+          Turn the 42°/222° axis hypothesis into an evidence-first experiment by producing repeatable, controlled, comparable datasets across stations and time.<br/><br/>
+          <b>How to use</b><br/>
+          • Toggle layers in Switchboard.<br/>
+          • Drag globe to rotate • Pinch to zoom.<br/><br/>
+          <b>Station</b><br/>
+          Exit 222 is locked to Station 1 (anchor point).<br/>
+        </div>
 
-          <button class="pill on" data-key="gc222" type="button"><span class="dot"></span>Great Circle 222 SW</button>
-          <button class="pill" data-key="gc42" type="button"><span class="dot"></span>Great Circle 42 NE</button>
+        <!-- Switchboard group (only visible when Switchboard ON) -->
+        <div id="switchboardGroup">
+          <div class="grid2">
+            <button class="pill" data-key="rhumb222"><span class="dot"></span>Rhumb 222 SW</button>
+            <button class="pill" data-key="rhumb42"><span class="dot"></span>Rhumb 42 NE</button>
 
-          <button class="pill" data-key="names222" type="button"><span class="dot"></span>Names 222 SW</button>
-          <button class="pill" data-key="names42" type="button"><span class="dot"></span>Names 42 NE</button>
+            <button class="pill" data-key="gc222"><span class="dot"></span>Great Circle 222 SW</button>
+            <button class="pill" data-key="gc42"><span class="dot"></span>Great Circle 42 NE</button>
 
-          <button class="pill" data-key="perpLine" type="button"><span class="dot"></span>Perpendiculars</button>
-          <button class="pill" data-key="continents" type="button"><span class="dot"></span>Continents</button>
+            <button class="pill" data-key="names222"><span class="dot"></span>Names 222 SW</button>
+            <button class="pill" data-key="names42"><span class="dot"></span>Names 42 NE</button>
 
-          <button class="pill on" data-key="stations" type="button"><span class="dot"></span>Stations</button>
-          <button class="pill" data-key="corridors" type="button"><span class="dot"></span>Corridors</button>
+            <button class="pill" data-key="perpLine"><span class="dot"></span>Perpendiculars</button>
+            <button class="pill" data-key="continents"><span class="dot"></span>Continents</button>
 
-          <button class="pill" data-key="magField" type="button"><span class="dot"></span>Magnetic Field</button>
-          <button class="pill" data-key="aurora" type="button"><span class="dot"></span>Aurora</button>
+            <button class="pill" data-key="stations"><span class="dot"></span>Stations</button>
+            <button class="pill" data-key="corridors"><span class="dot"></span>Corridors</button>
 
-          <button class="pill on" data-key="nightLights" type="button"><span class="dot"></span>Night Lights</button>
-          <button class="pill" data-key="perpName" type="button"><span class="dot"></span>Perp Name</button>
+            <button class="pill" data-key="magField"><span class="dot"></span>Magnetic Field</button>
+            <button class="pill" data-key="aurora"><span class="dot"></span>Aurora</button>
+
+            <button class="pill" data-key="nightLights"><span class="dot"></span>Night Lights</button>
+            <button class="pill" data-key="perpName"><span class="dot"></span>Perp Name</button>
+          </div>
         </div>
 
         <div id="statusLine">
           <span id="status">Booting…</span>
-          <span id="stationText">Exit 222 • Station 1 @ 38°9′39″ N, 79°4′24″ W</span>
+          <span id="anchorLine">Exit 222 • Station 1 @ 38°9′39″ N, 79°4′24″ W</span>
         </div>
 
         <div id="errors"></div>
@@ -316,16 +375,18 @@
     </div>
 
     <script type="module">
-      const statusEl = document.getElementById("status");
-      const errorsEl = document.getElementById("errors");
-      const drawerEl = document.getElementById("drawer");
-      const openBtn  = document.getElementById("openBtn");
-      const closeBtn = document.getElementById("closeBtn");
-      const handle   = document.getElementById("handle");
-
-      const switchboardBtn  = document.getElementById("switchboardBtn");
-      const switchboardHint = document.getElementById("switchboardHint");
-      const switchGroupEl   = document.getElementById("switchGroup");
+      const statusEl   = document.getElementById("status");
+      const errorsEl   = document.getElementById("errors");
+      const drawerEl   = document.getElementById("drawer");
+      const openBtn    = document.getElementById("openBtn");
+      const closeBtn   = document.getElementById("closeBtn");
+      const handle     = document.getElementById("handle");
+      const missionBtn = document.querySelector('.pill[data-key="mission"]');
+      const switchBtn  = document.querySelector('.pill[data-key="switchboard"]');
+      const missionPanel = document.getElementById("missionPanel");
+      const switchGroup  = document.getElementById("switchboardGroup");
+      const switchHint   = document.getElementById("switchHint");
+      const missionHint  = document.getElementById("missionHint");
 
       function showError(msg){
         errorsEl.style.display = "block";
@@ -340,22 +401,14 @@
         openBtn.style.display = isClosed ? "inline-flex" : "none";
       }
       setDrawerClosed(false);
+
       openBtn.addEventListener("click", () => setDrawerClosed(false));
       closeBtn.addEventListener("click", () => setDrawerClosed(true));
       handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
 
-      // ✅ Switchboard: ONLY reveals/hides the button group
-      function setSwitchboardOpen(isOpen){
-        switchGroupEl.classList.toggle("hidden", !isOpen);
-        switchGroupEl.setAttribute("aria-hidden", String(!isOpen));
-        switchboardHint.textContent = isOpen ? "Tap to close" : "Tap to open";
-        switchboardBtn.classList.toggle("sb-on", !!isOpen);
+      function isUIEventTarget(target){
+        return !!(target && (target.closest?.("#drawer") || target.closest?.("#openBtn")));
       }
-      setSwitchboardOpen(false); // Default: only Switchboard visible
-      switchboardBtn.addEventListener("click", () => {
-        const isOpen = !switchGroupEl.classList.contains("hidden");
-        setSwitchboardOpen(!isOpen);
-      });
 
       import * as THREE from "three";
       import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
@@ -368,10 +421,6 @@
       const DEG = Math.PI/180;
       const RAD = 180/Math.PI;
 
-      function isUIEventTarget(target){
-        return !!(target && (target.closest?.("#drawer") || target.closest?.("#openBtn")));
-      }
-
       function latLonToVec3(latDeg, lonDeg, radius=1.0){
         const lat = latDeg * DEG;
         const lon = lonDeg * DEG;
@@ -380,6 +429,11 @@
           radius * Math.sin(lat),
           radius * Math.cos(lat) * Math.sin(lon)
         );
+      }
+
+      function vec3ToLatLon(v){
+        const r = v.length();
+        return { lat: Math.asin(v.y/r)*RAD, lon: Math.atan2(v.z,v.x)*RAD };
       }
 
       function greatCirclePoints(lat0Deg, lon0Deg, bearingDeg, stepDeg=1.0){
@@ -400,14 +454,14 @@
         return pts;
       }
 
-      function rhumbPoints(lat0Deg, lon0Deg, bearingDeg, stepKm=250){
+      function rhumbPoints(lat0Deg, lon0Deg, bearingDeg, stepKm=240){
         const R=6371;
         const φ1=lat0Deg*DEG;
         const λ1=lon0Deg*DEG;
         const θ=bearingDeg*DEG;
 
         const pts=[];
-        const maxSteps=120;
+        const maxSteps=130;
         for (const dir of [-1,+1]){
           let φ=φ1, λ=λ1;
           for (let i=0;i<maxSteps;i++){
@@ -431,10 +485,10 @@
       function makeGlowTube(pointsVec3, radius, coreColor, haloColor, coreOpacity=1.0, haloOpacity=0.32){
         if (!pointsVec3 || pointsVec3.length < 4) return new THREE.Group();
         const curve = new THREE.CatmullRomCurve3(pointsVec3, false, "catmullrom", 0.15);
-        const segs = Math.max(300, pointsVec3.length*2);
+        const segs = Math.max(320, pointsVec3.length*2);
 
         const coreGeom = new THREE.TubeGeometry(curve, segs, radius, 10, false);
-        const haloGeom = new THREE.TubeGeometry(curve, segs, radius*2.5, 10, false);
+        const haloGeom = new THREE.TubeGeometry(curve, segs, radius*2.6, 10, false);
 
         const coreMat = new THREE.MeshBasicMaterial({ color: coreColor, transparent: coreOpacity<1, opacity: coreOpacity, depthWrite:false });
         const haloMat = new THREE.MeshBasicMaterial({ color: haloColor, transparent:true, opacity: haloOpacity, blending: THREE.AdditiveBlending, depthWrite:false });
@@ -445,24 +499,40 @@
         return g;
       }
 
-      function makeLabelSprite(text, {fontSize=30, padding=16, color="#fff", bg="rgba(0,0,0,0.22)", opacity=0.70, scale=0.0052} = {}){
+      /* --- Text-only label (no boxes / no borders) --- */
+      function makeTextSprite(text, {fontSize=42, color="#ffffff", opacity=0.92, scale=0.0048} = {}){
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
+
+        // measure
         ctx.font = `900 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
         const m = ctx.measureText(text);
-        const w = Math.ceil(m.width + padding*2);
-        const h = Math.ceil(fontSize + padding*2);
+        const pad = Math.ceil(fontSize * 0.45);
+        const w = Math.ceil(m.width + pad*2);
+        const h = Math.ceil(fontSize + pad*1.4);
+
         canvas.width = w; canvas.height = h;
 
-        ctx.fillStyle = bg;
-        const r = Math.min(22, h/2);
-        ctx.beginPath();
-        ctx.moveTo(r,0); ctx.arcTo(w,0,w,h,r); ctx.arcTo(w,h,0,h,r); ctx.arcTo(0,h,0,0,r); ctx.arcTo(0,0,w,0,r);
-        ctx.closePath(); ctx.fill();
+        ctx.clearRect(0,0,w,h);
+
+        // glow + crisp text
+        ctx.font = `900 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "left";
+
+        ctx.shadowColor = "rgba(0,0,0,0.85)";
+        ctx.shadowBlur = 14;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 4;
 
         ctx.fillStyle = color;
-        ctx.textBaseline = "middle";
-        ctx.fillText(text, padding, h/2);
+        ctx.fillText(text, pad, h/2);
+
+        // subtle outer glow
+        ctx.shadowColor = "rgba(150,200,255,0.18)";
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetY = 0;
+        ctx.fillText(text, pad, h/2);
 
         const tex = new THREE.CanvasTexture(canvas);
         tex.colorSpace = THREE.SRGBColorSpace;
@@ -473,7 +543,7 @@
         return spr;
       }
 
-      // --------- Fallback textures (always renders) ----------
+      // --------- Fallback textures ----------
       function solidTexture(hex="#222"){
         const c=document.createElement("canvas");
         c.width=2; c.height=2;
@@ -489,9 +559,9 @@
         c.width=1024; c.height=1024;
         const ctx=c.getContext("2d");
         ctx.fillStyle="#000"; ctx.fillRect(0,0,c.width,c.height);
-        for(let i=0;i<2600;i++){
+        for(let i=0;i<2400;i++){
           const x=Math.random()*c.width, y=Math.random()*c.height;
-          const a=0.18+Math.random()*0.82;
+          const a=0.2+Math.random()*0.8;
           const s=Math.random()>0.995?2:1;
           ctx.fillStyle=`rgba(255,255,255,${a})`;
           ctx.fillRect(x,y,s,s);
@@ -501,7 +571,6 @@
         return t;
       }
 
-      // Brighter ocean + cleaner continents (no outlines)
       function makeFallbackEarthDay(){
         const c=document.createElement("canvas");
         c.width=1024; c.height=512;
@@ -509,34 +578,24 @@
 
         // ocean gradient
         const g = ctx.createLinearGradient(0,0,0,c.height);
-        g.addColorStop(0, "#0a2a68");
-        g.addColorStop(0.55, "#0b4aa8");
-        g.addColorStop(1, "#061a3f");
+        g.addColorStop(0, "#0a1d3b");
+        g.addColorStop(0.55, "#0d2f63");
+        g.addColorStop(1, "#061425");
         ctx.fillStyle=g; ctx.fillRect(0,0,c.width,c.height);
 
-        // continents blobs (clean, no borders)
-        ctx.globalAlpha=0.92;
-        ctx.fillStyle="#2f7a4a";
-        for(let i=0;i<42;i++){
+        // land blobs
+        ctx.globalAlpha=0.92; ctx.fillStyle="#2f7b49";
+        for(let i=0;i<40;i++){
           const x=Math.random()*c.width, y=Math.random()*c.height;
-          const r=28+Math.random()*95;
-          ctx.beginPath(); ctx.ellipse(x,y,r,r*0.66,Math.random()*Math.PI,0,Math.PI*2); ctx.fill();
+          const r=24+Math.random()*110;
+          ctx.beginPath(); ctx.ellipse(x,y,r,r*0.65,Math.random()*Math.PI,0,Math.PI*2); ctx.fill();
         }
 
-        // subtle shallow water
-        ctx.globalAlpha=0.18;
-        ctx.fillStyle="#49b9ff";
-        for(let i=0;i<22;i++){
+        // cloud haze
+        ctx.globalAlpha=0.14; ctx.fillStyle="#ffffff";
+        for(let i=0;i<120;i++){
           const x=Math.random()*c.width, y=Math.random()*c.height;
-          const r=60+Math.random()*140;
-          ctx.beginPath(); ctx.ellipse(x,y,r,r*0.42,Math.random()*Math.PI,0,Math.PI*2); ctx.fill();
-        }
-
-        // soft cloud haze
-        ctx.globalAlpha=0.10; ctx.fillStyle="#fff";
-        for(let i=0;i<90;i++){
-          const x=Math.random()*c.width, y=Math.random()*c.height;
-          const r=30+Math.random()*110;
+          const r=18+Math.random()*120;
           ctx.beginPath(); ctx.ellipse(x,y,r,r*0.45,0,0,Math.PI*2); ctx.fill();
         }
 
@@ -550,8 +609,8 @@
         c.width=1024; c.height=512;
         const ctx=c.getContext("2d");
         ctx.fillStyle="#000"; ctx.fillRect(0,0,c.width,c.height);
-        ctx.fillStyle="rgba(255,210,120,0.92)";
-        for(let i=0;i<2600;i++){
+        ctx.fillStyle="rgba(255,210,120,0.9)";
+        for(let i=0;i<2400;i++){
           const x=Math.random()*c.width, y=Math.random()*c.height;
           if(Math.random()<0.985) continue;
           ctx.fillRect(x,y,1,1);
@@ -566,18 +625,18 @@
         c.width=1024; c.height=512;
         const ctx=c.getContext("2d");
         ctx.clearRect(0,0,c.width,c.height);
-        ctx.fillStyle="rgba(255,255,255,0.40)";
+        ctx.fillStyle="rgba(255,255,255,0.42)";
         for(let i=0;i<160;i++){
           const x=Math.random()*c.width, y=Math.random()*c.height;
-          const r=40+Math.random()*140;
-          ctx.beginPath(); ctx.ellipse(x,y,r,r*0.50,0,0,Math.PI*2); ctx.fill();
+          const r=28+Math.random()*140;
+          ctx.beginPath(); ctx.ellipse(x,y,r,r*0.5,0,0,Math.PI*2); ctx.fill();
         }
         const t=new THREE.CanvasTexture(c);
         t.colorSpace=THREE.SRGBColorSpace;
         return t;
       }
 
-      async function loadTextureWithFallback(urls, fallbackTex){
+      async function loadTextureWithFallback(urls, fallbackTex, label){
         const loader = new THREE.TextureLoader();
         loader.setCrossOrigin("anonymous");
         const tryOne = (url) => new Promise((resolve, reject) => {
@@ -591,9 +650,48 @@
             return tex;
           } catch { /* keep trying */ }
         }
-        // quiet fallback (no red panel)
+
+        // Soft warning (kept in error panel)
+        showError(`Texture fallback used for: ${label}\n(CDN blocked/failed on this device/network)`);
         return fallbackTex;
       }
+
+      // ---------- UI: Switchboard + Mission ----------
+      const ui = {
+        switchboardOpen: false,
+        missionOpen: false
+      };
+
+      function setPillOn(key, on){
+        const b = document.querySelector(`.pill[data-key="${key}"]`);
+        if (b) b.classList.toggle("on", !!on);
+      }
+
+      function applySwitchboard(){
+        switchGroup.style.display = ui.switchboardOpen ? "block" : "none";
+        setPillOn("switchboard", ui.switchboardOpen);
+        switchHint.textContent = ui.switchboardOpen ? "Tap to close" : "Tap to open";
+      }
+
+      function applyMission(){
+        missionPanel.style.display = ui.missionOpen ? "block" : "none";
+        setPillOn("mission", ui.missionOpen);
+        missionHint.textContent = ui.missionOpen ? "Close" : "Tap";
+      }
+
+      missionBtn.addEventListener("click", ()=>{
+        ui.missionOpen = !ui.missionOpen;
+        applyMission();
+      });
+
+      switchBtn.addEventListener("click", ()=>{
+        ui.switchboardOpen = !ui.switchboardOpen;
+        applySwitchboard();
+      });
+
+      // initial
+      applySwitchboard();
+      applyMission();
 
       // ---------- Main ----------
       (async ()=>{
@@ -603,20 +701,23 @@
           const scene = new THREE.Scene();
 
           const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 5000);
-          camera.position.set(0, 0, 4.1);
+          camera.position.set(0, 0, 4.0);
 
           const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
           renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
           renderer.setSize(innerWidth, innerHeight);
           renderer.outputColorSpace = THREE.SRGBColorSpace;
           renderer.toneMapping = THREE.ACESFilmicToneMapping;
-          renderer.toneMappingExposure = 1.24; // ✅ brighter globe
+
+          // Brighter globe
+          renderer.toneMappingExposure = 1.25;
+
           document.body.appendChild(renderer.domElement);
 
-          // lighting tuned for brighter oceans + fresher clouds
-          scene.add(new THREE.AmbientLight(0xffffff, 0.16));
-          const sunLight = new THREE.DirectionalLight(0xffffff, 1.35);
-          sunLight.position.set(5, 1.5, 2.5);
+          // Lighting (brighter / cleaner)
+          scene.add(new THREE.AmbientLight(0xffffff, 0.22));
+          const sunLight = new THREE.DirectionalLight(0xffffff, 1.45);
+          sunLight.position.set(5, 1.8, 2.8);
           scene.add(sunLight);
 
           // Texture URLs (3 CDNs)
@@ -629,11 +730,13 @@
 
           statusEl.textContent = "Loading textures…";
 
-          const dayMap   = await loadTextureWithFallback(urls("planets/earth_atmos_2048.jpg"),   makeFallbackEarthDay());
-          const nightMap = await loadTextureWithFallback(urls("planets/earth_lights_2048.png"),  makeFallbackNight());
-          const specMap  = await loadTextureWithFallback(urls("planets/earth_specular_2048.jpg"), solidTexture("#000"));
-          const cloudMap = await loadTextureWithFallback(urls("planets/earth_clouds_1024.png"),  makeFallbackClouds());
-          const starMap  = await loadTextureWithFallback(urls("galaxy_starfield.png"),           makeFallbackStars());
+          // NOTE: these are “no-political-borders” style textures from three.js examples;
+          // if a CDN is blocked, we fall back to procedural textures.
+          const dayMap   = await loadTextureWithFallback(urls("planets/earth_atmos_2048.jpg"), makeFallbackEarthDay(), "earth day");
+          const nightMap = await loadTextureWithFallback(urls("planets/earth_lights_2048.png"), makeFallbackNight(), "earth night lights");
+          const specMap  = await loadTextureWithFallback(urls("planets/earth_specular_2048.jpg"), solidTexture("#000"), "earth specular");
+          const cloudMap = await loadTextureWithFallback(urls("planets/earth_clouds_1024.png"), makeFallbackClouds(), "earth clouds");
+          const starMap  = await loadTextureWithFallback(urls("galaxy_starfield.png"), makeFallbackStars(), "stars");
 
           const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
           [dayMap, nightMap, specMap, cloudMap, starMap].forEach((t)=>{
@@ -653,7 +756,7 @@
           const earthRadius = 1.0;
           const SEG = 96;
 
-          // Earth shader (stable + slightly richer saturation)
+          // Earth shader (brighter ocean tint + fresh clouds feel)
           const earthUniforms = {
             dayMap:    { value: dayMap },
             specMap:   { value: specMap },
@@ -695,24 +798,28 @@
 
                 vec3 dayCol = srgbToLinear(texture2D(dayMap, vUv).rgb);
 
-                // richer saturation + gentle contrast for "blue ocean" feel
+                // Boost ocean blue + overall clarity
                 float lum = dot(dayCol, vec3(0.2126,0.7152,0.0722));
                 vec3 sat = mix(vec3(lum), dayCol, 1.18);
+                // gentle cool tint
+                sat *= vec3(0.98, 1.02, 1.10);
+
+                // Mild contrast lift
                 vec3 c = pow(max(sat, 0.0), vec3(0.90));
 
                 float specMask = texture2D(specMap, vUv).r;
                 float ndl = dot(N, L);
-                float dayAmt = smoothstep(-0.06, 0.16, ndl);
+                float dayAmt = smoothstep(-0.05, 0.18, ndl);
 
-                vec3 nightBase = c * 0.11;
+                vec3 nightBase = c * 0.10;
                 vec3 col = mix(nightBase, c, dayAmt);
 
                 vec3 H = normalize(L + V);
-                float spec = pow(max(dot(N, H), 0.0), 80.0) * specMask * 0.46 * dayAmt;
+                float spec = pow(max(dot(N, H), 0.0), 85.0) * specMask * 0.55 * dayAmt;
                 col += vec3(spec);
 
-                float rim = pow(1.0 - max(dot(N, V), 0.0), 2.25);
-                col += vec3(0.08, 0.14, 0.22) * rim * (0.28 + 0.72 * dayAmt);
+                float rim = pow(1.0 - max(dot(N, V), 0.0), 2.2);
+                col += vec3(0.06, 0.14, 0.26) * rim * (0.25 + 0.75 * dayAmt);
 
                 gl_FragColor = vec4(linearToSrgb(col), 1.0);
               }
@@ -721,11 +828,11 @@
 
           const earth = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, SEG, SEG), earthMat);
 
-          // Night lights (additive) — visibility toggled by button
+          // Night lights (additive, toggleable)
           const lightsUniforms = {
             nightMap: { value: nightMap },
             sunDir:   { value: new THREE.Vector3(1,0,0) },
-            gain:     { value: 2.8 }
+            gain:     { value: 2.9 }
           };
 
           const nightLights = new THREE.Mesh(
@@ -760,11 +867,11 @@
                   vec3 L = normalize(sunDir);
 
                   float ndl = dot(N, L);
-                  float dayAmt = smoothstep(-0.05, 0.15, ndl);
+                  float dayAmt = smoothstep(-0.05, 0.18, ndl);
                   float nightAmt = 1.0 - dayAmt;
 
                   vec3 lights = srgbToLinear(texture2D(nightMap, vUv).rgb) * gain;
-                  float mask = smoothstep(0.06, 0.34, nightAmt);
+                  float mask = smoothstep(0.06, 0.38, nightAmt);
 
                   vec3 col = lights * mask;
                   float a = clamp(max(max(col.r, col.g), col.b), 0.0, 1.0);
@@ -774,7 +881,7 @@
             })
           );
 
-          // Clouds (fresh + bright)
+          // Clouds (brighter / fresher)
           const cloudShadow = new THREE.Mesh(
             new THREE.SphereGeometry(earthRadius * 1.0015, SEG, SEG),
             new THREE.MeshBasicMaterial({
@@ -788,23 +895,24 @@
           );
 
           const clouds = new THREE.Mesh(
-            new THREE.SphereGeometry(earthRadius * 1.012, SEG, SEG),
+            new THREE.SphereGeometry(earthRadius * 1.013, SEG, SEG),
             new THREE.MeshLambertMaterial({
               map: cloudMap,
+              color: 0xffffff,
               transparent: true,
-              opacity: 0.92,
+              opacity: 0.96,
               depthWrite: false
             })
           );
 
-          // Atmosphere (slightly stronger)
+          // Atmosphere
           const atmoUniforms = {
             sunDir:    { value: new THREE.Vector3(1,0,0) },
             cameraPos: { value: new THREE.Vector3() }
           };
 
           const atmosphere = new THREE.Mesh(
-            new THREE.SphereGeometry(earthRadius * 1.050, SEG, SEG),
+            new THREE.SphereGeometry(earthRadius * 1.048, SEG, SEG),
             new THREE.ShaderMaterial({
               uniforms: atmoUniforms,
               transparent: true,
@@ -833,11 +941,11 @@
                   vec3 L = normalize(sunDir);
                   vec3 V = normalize(cameraPos - vPosW);
 
-                  float rim = pow(1.0 - max(dot(N, V), 0.0), 3.1);
-                  float daySide = smoothstep(-0.16, 0.26, dot(N, L));
+                  float rim = pow(1.0 - max(dot(N, V), 0.0), 3.15);
+                  float daySide = smoothstep(-0.15, 0.30, dot(N, L));
 
-                  vec3 col = vec3(0.20, 0.58, 1.00) * rim * (0.28 + 0.72 * daySide);
-                  float alpha = rim * (0.22 + 0.68 * daySide);
+                  vec3 col = vec3(0.18, 0.62, 1.00) * rim * (0.22 + 0.78 * daySide);
+                  float alpha = rim * (0.18 + 0.66 * daySide);
                   gl_FragColor = vec4(col, alpha);
                 }
               `
@@ -867,85 +975,84 @@
           };
           Object.values(overlays).forEach(g => globe.add(g));
 
-          // ✅ Station 1 (Exit 222) — locked
+          // ---- Station 1 (LOCKED) ----
+          // 38°9′39″ N  79°4′24″ W  ->  38.160833, -79.073333
           const ANCHOR = {
             name: "Exit 222 • Station 1",
-            // 38°9′39″ N, 79°4′24″ W  => 38.1608333, -79.0733333
-            lat: 38.1608333333,
-            lon: -79.0733333333
+            lat: 38.160833,
+            lon: -79.073333
           };
+          const BEARING_222 = 222;
+          const BEARING_42  = 42;
 
-          // Bearings
-          const BEARING_222 = 222; // SW
-          const BEARING_42  = 42;  // NE
-
-          // Great Circles
-          const gc222 = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, BEARING_222, 1.0)
+          // Build paths
+          const gc222Pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, BEARING_222, 1.0)
             .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
-          const gc42 = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, BEARING_42, 1.0)
+          const gc42Pts  = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, BEARING_42, 1.0)
             .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
 
-          overlays.gc222.add(makeGlowTube(gc222, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.30));
-          overlays.gc42.add( makeGlowTube(gc42,  0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.22));
-
-          // Rhumbs
-          const rh222 = rhumbPoints(ANCHOR.lat, ANCHOR.lon, BEARING_222, 240)
+          const rh222Pts = rhumbPoints(ANCHOR.lat, ANCHOR.lon, BEARING_222, 240)
             .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
-          const rh42 = rhumbPoints(ANCHOR.lat, ANCHOR.lon, BEARING_42, 240)
+          const rh42Pts  = rhumbPoints(ANCHOR.lat, ANCHOR.lon, BEARING_42, 240)
             .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
 
-          overlays.rhumb222.add(makeGlowTube(rh222, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.28));
-          overlays.rhumb42.add( makeGlowTube(rh42,  0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.20));
+          // Draw lines
+          overlays.gc222.add(makeGlowTube(gc222Pts, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.30));
+          overlays.gc42.add( makeGlowTube(gc42Pts,  0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.22));
 
-          // Perpendiculars relative to 222 axis (132 / 312)
+          overlays.rhumb222.add(makeGlowTube(rh222Pts, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.28));
+          overlays.rhumb42.add( makeGlowTube(rh42Pts,  0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.20));
+
+          // Perpendiculars (132 / 312) based on anchor
           function arcFromBearing(bearingDeg){
             const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, bearingDeg, 1.2)
               .filter((_, i) => i > 40 && i < 260)
               .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
-            return makeGlowTube(pts, 0.0026, 0x5bbcff, 0x5bbcff, 1.0, 0.22);
+            return makeGlowTube(pts, 0.0026, 0x5bbcff, 0x5bbcff, 1.0, 0.18);
           }
           overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
-          // Names (match Continents style: just labels)
+          // Names (text-only, same style as Continents)
           {
-            const n222a = makeLabelSprite("Rhumb 222 SW");
-            n222a.position.copy(latLonToVec3(18, -35, earthRadius*1.10));
-            overlays.names222.add(n222a);
+            // Keep names minimal: just identifiers (no borders / outlines on globe)
+            const n1 = makeTextSprite("Rhumb 222 SW", { fontSize: 40, opacity: 0.90 });
+            n1.position.copy(latLonToVec3(20, -30, earthRadius*1.12));
+            overlays.names222.add(n1);
 
-            const n222b = makeLabelSprite("Great Circle 222 SW");
-            n222b.position.copy(latLonToVec3(-8, 65, earthRadius*1.10));
-            overlays.names222.add(n222b);
+            const n2 = makeTextSprite("Great Circle 222 SW", { fontSize: 40, opacity: 0.90 });
+            n2.position.copy(latLonToVec3(-10, 70, earthRadius*1.12));
+            overlays.names222.add(n2);
 
-            const n42a = makeLabelSprite("Rhumb 42 NE");
-            n42a.position.copy(latLonToVec3(52, -10, earthRadius*1.10));
-            overlays.names42.add(n42a);
+            const n3 = makeTextSprite("Rhumb 42 NE", { fontSize: 40, opacity: 0.88 });
+            n3.position.copy(latLonToVec3(35, 110, earthRadius*1.12));
+            overlays.names42.add(n3);
 
-            const n42b = makeLabelSprite("Great Circle 42 NE");
-            n42b.position.copy(latLonToVec3(10, 120, earthRadius*1.10));
-            overlays.names42.add(n42b);
+            const n4 = makeTextSprite("Great Circle 42 NE", { fontSize: 40, opacity: 0.88 });
+            n4.position.copy(latLonToVec3(-35, 150, earthRadius*1.12));
+            overlays.names42.add(n4);
 
-            const pLabel = makeLabelSprite("132° / 312°");
-            pLabel.position.copy(latLonToVec3(55, 110, earthRadius*1.11));
-            overlays.perpName.add(pLabel);
+            const pn = makeTextSprite("Perp 132° / 312°", { fontSize: 40, opacity: 0.86 });
+            pn.position.copy(latLonToVec3(58, 30, earthRadius*1.12));
+            overlays.perpName.add(pn);
           }
 
-          // Continents labels (no borders)
+          // Continents labels (text-only)
           const CONT = [
             { name:"North America", lat: 45,  lon:-102 },
             { name:"South America", lat:-16,  lon:-60 },
             { name:"Europe",        lat: 52,  lon: 15 },
-            { name:"Africa",        lat:  5,  lon:  20 },
-            { name:"Asia",          lat: 45,  lon:  95 },
+            { name:"Africa",        lat:  5,  lon: 20 },
+            { name:"Asia",          lat: 45,  lon: 95 },
             { name:"Australia",     lat:-25,  lon: 135 },
-            { name:"Antarctica",    lat:-80,  lon:   0 }
+            { name:"Antarctica",    lat:-80,  lon:  0 }
           ];
           for (const c of CONT){
-            const s = makeLabelSprite(c.name);
-            s.position.copy(latLonToVec3(c.lat, c.lon, earthRadius*1.10));
+            const s = makeTextSprite(c.name, { fontSize: 40, opacity: 0.88 });
+            s.position.copy(latLonToVec3(c.lat, c.lon, earthRadius*1.12));
             overlays.continents.add(s);
           }
 
-          // Corridors (±1/±5/±10 km) around BOTH 222 + 42 lines
+          // Corridors (visual width bands; kept simple + clean)
           const kmToUnit = (km)=> (km/6371)*earthRadius;
           const corridorRadii = [
             { km: 1,  r: kmToUnit(1),  o: 0.18 },
@@ -953,38 +1060,36 @@
             { km: 10, r: kmToUnit(10), o: 0.07 }
           ];
           for (const c of corridorRadii){
-            // 222
-            overlays.corridors.add(makeGlowTube(gc222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
-            overlays.corridors.add(makeGlowTube(rh222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
-            // 42
-            overlays.corridors.add(makeGlowTube(gc42,  c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.65));
-            overlays.corridors.add(makeGlowTube(rh42,  c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.58));
+            overlays.corridors.add(makeGlowTube(gc222Pts, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
+            overlays.corridors.add(makeGlowTube(rh222Pts, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
+            overlays.corridors.add(makeGlowTube(gc42Pts,  c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.75));
+            overlays.corridors.add(makeGlowTube(rh42Pts,  c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.65));
           }
 
-          // Station marker (ONLY one)
+          // Station marker (single, locked)
           function makeStationMarker(label, lat, lon, color=0x7fffd4){
             const g = new THREE.Group();
             const p = latLonToVec3(lat, lon, earthRadius*1.02);
 
             const pin = new THREE.Mesh(
               new THREE.SphereGeometry(0.010, 18, 18),
-              new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.96 })
+              new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.95 })
             );
             pin.position.copy(p);
 
             const glow = new THREE.Mesh(
-              new THREE.SphereGeometry(0.020, 18, 18),
+              new THREE.SphereGeometry(0.022, 18, 18),
               new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.18, blending:THREE.AdditiveBlending, depthWrite:false })
             );
             glow.position.copy(p);
 
-            const tag = makeLabelSprite(label, { fontSize: 28, bg:"rgba(0,0,0,0.26)", opacity: 0.72 });
-            tag.position.copy(latLonToVec3(lat, lon, earthRadius*1.12));
+            const tag = makeTextSprite(label, { fontSize: 40, opacity: 0.90, scale: 0.0045 });
+            tag.position.copy(latLonToVec3(lat, lon, earthRadius*1.14));
 
             g.add(glow, pin, tag);
             return g;
           }
-          overlays.stations.add(makeStationMarker(ANCHOR.name, ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
+          overlays.stations.add(makeStationMarker("Exit 222 • Station 1", ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
 
           // Magnetic field (simple dipole preview)
           function makeDipoleFieldLines(){
@@ -1037,7 +1142,8 @@
           const BLOOM_LAYER = 1;
           const bloomLayer = new THREE.Layers(); bloomLayer.set(BLOOM_LAYER);
 
-          // bloom targets
+          // Objects that can bloom (even if hidden)
+          nightLights.layers.enable(BLOOM_LAYER);
           atmosphere.layers.enable(BLOOM_LAYER);
           [overlays.rhumb222, overlays.rhumb42, overlays.gc222, overlays.gc42, overlays.perpLine, overlays.corridors, overlays.aurora].forEach(g=>{
             g.traverse(o => o.layers && o.layers.enable(BLOOM_LAYER));
@@ -1061,7 +1167,7 @@
 
           const renderScene = new RenderPass(scene, camera);
 
-          const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.25, 0.88, 0.10);
+          const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.15, 0.85, 0.10);
 
           const bloomComposer = new EffectComposer(renderer);
           bloomComposer.renderToScreen = false;
@@ -1087,9 +1193,67 @@
             scene.traverse(restoreMaterial);
           }
 
-          // --------- Interaction ----------
+          // --------- Toggles (Switchboard buttons) ----------
+          const state = {
+            rhumb222: true,
+            rhumb42:  false,
+            gc222:    true,
+            gc42:     false,
+            names222: false,
+            names42:  false,
+            perpLine: false,
+            continents:false,
+            stations: true,
+            corridors:false,
+            magField: false,
+            aurora:   false,
+            nightLights: false,
+            perpName: false
+          };
+
+          function applyVisibility(){
+            overlays.rhumb222.visible = state.rhumb222;
+            overlays.rhumb42.visible  = state.rhumb42;
+            overlays.gc222.visible    = state.gc222;
+            overlays.gc42.visible     = state.gc42;
+
+            overlays.names222.visible = state.names222;
+            overlays.names42.visible  = state.names42;
+
+            overlays.perpLine.visible = state.perpLine;
+            overlays.continents.visible = state.continents;
+
+            overlays.stations.visible = state.stations;
+            overlays.corridors.visible = state.corridors;
+
+            overlays.magField.visible = state.magField;
+            overlays.aurora.visible = state.aurora;
+
+            nightLights.visible = state.nightLights;
+
+            overlays.perpName.visible = state.perpName;
+          }
+
+          function refreshPills(){
+            Object.keys(state).forEach(k => setPillOn(k, state[k]));
+          }
+
+          applyVisibility();
+          refreshPills();
+
+          document.querySelectorAll('#switchboardGroup .pill').forEach(btn=>{
+            btn.addEventListener("click", ()=>{
+              const key = btn.dataset.key;
+              if (!(key in state)) return;
+              state[key] = !state[key];
+              setPillOn(key, state[key]);
+              applyVisibility();
+            });
+          });
+
+          // --------- Interaction (globe rotate/zoom) ----------
           let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
-          const AUTO_SPIN=0.0013, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
+          const AUTO_SPIN=0.0012, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
 
           let pinching=false, pinchStartDist=0, pinchStartZ=camera.position.z;
           const Z_MIN=2.2, Z_MAX=8.0;
@@ -1154,79 +1318,21 @@
             camera.position.z = clamp(camera.position.z + (e.deltaY * 0.0025), Z_MIN, Z_MAX);
           }, { passive:true });
 
-          // --------- Toggles ----------
-          const state = {
-            rhumb222: true,
-            rhumb42: false,
-            gc222: true,
-            gc42: false,
-            names222: false,
-            names42: false,
-            perpLine: false,
-            perpName: false,
-            continents: false,
-            stations: true,
-            corridors: false,
-            magField: false,
-            aurora: false,
-            nightLights: true
-          };
-
-          function applyVisibility(){
-            overlays.rhumb222.visible = state.rhumb222;
-            overlays.rhumb42.visible  = state.rhumb42;
-            overlays.gc222.visible    = state.gc222;
-            overlays.gc42.visible     = state.gc42;
-
-            overlays.names222.visible = state.names222;
-            overlays.names42.visible  = state.names42;
-
-            overlays.perpLine.visible = state.perpLine;
-            overlays.perpName.visible = state.perpName;
-
-            overlays.continents.visible = state.continents;
-            overlays.stations.visible   = state.stations;
-            overlays.corridors.visible  = state.corridors;
-            overlays.magField.visible   = state.magField;
-            overlays.aurora.visible     = state.aurora;
-
-            // ✅ Night lights ACTUALLY toggle on globe
-            nightLights.visible = state.nightLights;
-          }
-          applyVisibility();
-
-          function setPill(key, on){
-            const b = document.querySelector(`.pill[data-key="${key}"]`);
-            if (b) b.classList.toggle("on", !!on);
-          }
-          Object.keys(state).forEach(k => setPill(k, state[k]));
-
-          document.querySelectorAll(".pill[data-key]").forEach(btn=>{
-            btn.addEventListener("click", ()=>{
-              const key = btn.dataset.key;
-              if (!(key in state)) return;
-              state[key] = !state[key];
-              setPill(key, state[key]);
-              applyVisibility();
-            });
-          });
-
           // --------- Animate ----------
-          let velDecay = DAMPING;
-          const sunDrift = 0.00005;
-          const cloudSpin = 0.00205;
+          const sunDrift = 0.000045;
+          const cloudSpin = 0.0020;
 
           function animate(){
             requestAnimationFrame(animate);
 
             clouds.rotation.y += cloudSpin;
-            cloudShadow.rotation.y += cloudSpin + 0.00015;
+            cloudShadow.rotation.y += cloudSpin + 0.00014;
 
             if(!dragging && !pinching){
               globe.rotation.y += AUTO_SPIN + velY;
               globe.rotation.x = clamp(globe.rotation.x + velX, -MAX_PITCH, MAX_PITCH);
-              velY *= velDecay;
-              velX *= velDecay;
+              velY *= DAMPING;
+              velX *= DAMPING;
             }
 
             sunLight.position.applyAxisAngle(new THREE.Vector3(0,1,0), sunDrift);
