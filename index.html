@@ -14,30 +14,23 @@
         --muted: rgba(255,255,255,0.68);
         --muted2: rgba(255,255,255,0.45);
 
-        --gold: #f6c24a;   /* Rhumb 222 */
-        --blue: #5bbcff;   /* Great circle 222 */
-        --aqua: #7fffd4;   /* Stations */
-        --violet:#a078ff;  /* Aurora */
+        --gold: #f6c24a;
+        --blue: #5bbcff;
+        --aqua: #7fffd4;
+        --violet:#a078ff;
+        --white:#ffffff;
       }
 
-      html, body {
-        height: 100%;
-        margin: 0;
-        background: #000;
-        overflow: hidden;
-      }
-
-      /* Keep globe gestures smooth, but allow UI scroll */
-      body { touch-action: none; }
+      html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
       canvas { display:block; width:100vw !important; height:100vh !important; }
 
-      /* ---------- Floating OPEN button (when drawer closed) ---------- */
+      /* ---------- Floating OPEN button ---------- */
       #openBtn{
         position: fixed;
         left: 18px;
         bottom: 18px;
         z-index: 10000;
-        display: none;
+        display: none; /* shown only when drawer closed */
         align-items: center;
         gap: 10px;
         padding: 12px 14px;
@@ -51,7 +44,6 @@
         cursor: pointer;
         user-select: none;
         -webkit-tap-highlight-color: transparent;
-        touch-action: manipulation;
       }
       #openBtn:active { transform: translateY(1px); }
       #openBtn svg { width: 16px; height: 16px; opacity: 0.9; }
@@ -62,22 +54,22 @@
         left: 50%;
         transform: translateX(-50%);
         bottom: 18px;
-        width: min(720px, calc(100vw - 28px));
+        width: min(760px, calc(100vw - 28px));
         z-index: 9999;
         color: var(--text);
         background: var(--glass);
         border: 1px solid var(--stroke);
         border-radius: 22px;
-        padding: 14px 14px 12px;
+        padding: 14px 14px 14px;
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         box-shadow: 0 14px 44px rgba(0,0,0,0.42);
         user-select: none;
 
-        /* allow internal scrolling */
-        max-height: calc(100vh - 28px);
-        overflow: hidden;
-        touch-action: pan-y;
+        /* landscape / small-height: allow scroll inside */
+        max-height: calc(100vh - 36px - env(safe-area-inset-top, 0px));
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
       }
 
       #drawer.closed{
@@ -88,13 +80,6 @@
       }
       #drawer:not(.closed){
         transition: transform 240ms ease, opacity 200ms ease;
-      }
-
-      #drawerBody{
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        padding-bottom: 10px;
-        touch-action: pan-y;
       }
 
       #handle {
@@ -117,12 +102,11 @@
         display:flex;
         flex-direction:column;
         gap:4px;
-        padding-right: 6px;
       }
 
       #title {
         font: 900 18px/1.1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-        letter-spacing: 0.25px;
+        letter-spacing: 0.2px;
       }
       #subtitle{
         font: 650 12px/1.25 -apple-system, system-ui, Segoe UI, Roboto, Arial;
@@ -142,31 +126,24 @@
         justify-content:center;
         -webkit-tap-highlight-color: transparent;
         flex: 0 0 auto;
-        touch-action: manipulation;
       }
       #closeBtn:active { transform: translateY(1px); }
 
-      /* ---------- Buttons / layout ---------- */
-      #primaryRow{
-        margin-top: 12px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
+      #rowWrap{
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+        margin-top: 10px;
       }
 
-      #switchboardGroup{
-        margin-top: 12px;
-        display: none; /* shown only when Switchboard ON */
-      }
-
-      .grid2{
+      /* use grid for perfect equal rows */
+      .row{
         display:grid;
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        gap:10px;
       }
 
       .pill{
-        width: 100%;
         display:inline-flex;
         align-items:center;
         justify-content:flex-start;
@@ -176,79 +153,74 @@
         border: 1px solid rgba(255,255,255,0.14);
         background: rgba(255,255,255,0.06);
         color: var(--text);
-        font: 850 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+        font: 900 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
         letter-spacing: 0.15px;
         cursor:pointer;
         -webkit-tap-highlight-color: transparent;
-        touch-action: manipulation;
+        min-height: 46px;
       }
       .pill:active { transform: translateY(1px); }
 
       .pill .rightHint{
         margin-left:auto;
-        font: 750 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
         color: rgba(255,255,255,0.62);
+        font: 800 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+        letter-spacing: 0.10px;
+        white-space: nowrap;
       }
 
-      .dot{
-        width: 10px;
-        height: 10px;
+      .dot {
+        width: 10px; height: 10px;
         border-radius: 50%;
         background: rgba(255,255,255,0.16);
         box-shadow: 0 0 0 rgba(0,0,0,0);
         flex: 0 0 auto;
       }
 
-      /* Generic ON */
-      .pill.on{
-        background: rgba(255,255,255,0.09);
-        border-color: rgba(255,255,255,0.18);
-      }
-
-      /* Switchboard glow white */
-      .pill.on[data-key="switchboard"] .dot{
-        background: rgba(255,255,255,0.92);
-        box-shadow: 0 0 22px rgba(255,255,255,0.30);
-      }
-      .pill.on[data-key="switchboard"]{
-        box-shadow: 0 10px 34px rgba(255,255,255,0.08);
-      }
-
-      /* ON colors per layer */
+      /* ON colors */
+      .pill.on .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 18px rgba(120,255,200,0.30); }
       .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 18px rgba(246,194,74,0.30); }
+      .pill.on[data-key="rhumb42"]  .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 18px rgba(246,194,74,0.30); }
       .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.90); box-shadow:0 0 18px rgba(91,188,255,0.26); }
-
-      .pill.on[data-key="rhumb42"]  .dot{ background: rgba(246,194,74,0.85); box-shadow:0 0 18px rgba(246,194,74,0.22); }
-      .pill.on[data-key="gc42"]     .dot{ background: rgba(91,188,255,0.82); box-shadow:0 0 18px rgba(91,188,255,0.18); }
-
-      .pill.on[data-key="names222"] .dot{ background: rgba(255,255,255,0.80); box-shadow:0 0 18px rgba(255,255,255,0.18); }
-      .pill.on[data-key="names42"]  .dot{ background: rgba(255,255,255,0.72); box-shadow:0 0 18px rgba(255,255,255,0.14); }
-
-      .pill.on[data-key="perpLine"] .dot{ background: rgba(91,188,255,0.82); box-shadow:0 0 18px rgba(91,188,255,0.16); }
-      .pill.on[data-key="continents"] .dot{ background: rgba(255,255,255,0.70); box-shadow:0 0 18px rgba(255,255,255,0.12); }
-
+      .pill.on[data-key="gc42"]     .dot{ background: rgba(91,188,255,0.90); box-shadow:0 0 18px rgba(91,188,255,0.26); }
       .pill.on[data-key="stations"] .dot{ background: rgba(127,255,212,0.86); box-shadow:0 0 18px rgba(127,255,212,0.24); }
-      .pill.on[data-key="corridors"] .dot{ background: rgba(246,194,74,0.80); box-shadow:0 0 18px rgba(246,194,74,0.16); }
-
-      .pill.on[data-key="magField"] .dot{ background: rgba(91,188,255,0.60); box-shadow:0 0 18px rgba(91,188,255,0.10); }
       .pill.on[data-key="aurora"]   .dot{ background: rgba(160,120,255,0.90); box-shadow:0 0 18px rgba(160,120,255,0.26); }
+      .pill.on[data-key="nightLights"] .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 18px rgba(120,255,200,0.28); }
 
-      .pill.on[data-key="nightLights"] .dot{ background: rgba(120,255,200,0.88); box-shadow:0 0 18px rgba(120,255,200,0.30); }
-      .pill.on[data-key="perpName"] .dot{ background: rgba(255,255,255,0.62); box-shadow:0 0 18px rgba(255,255,255,0.10); }
+      /* Switchboard special glow when ON */
+      .pill.switch.on{
+        border-color: rgba(255,255,255,0.28);
+        box-shadow: 0 0 22px rgba(255,255,255,0.10);
+      }
+      .pill.switch.on .dot{
+        background: rgba(255,255,255,0.92);
+        box-shadow: 0 0 18px rgba(255,255,255,0.22);
+      }
+
+      /* Mission special */
+      .pill.mission.on .dot{
+        background: rgba(255,255,255,0.92);
+        box-shadow: 0 0 18px rgba(255,255,255,0.20);
+      }
+
+      /* Switch group visibility + collapse behavior */
+      #switchGroup{ display:none; }
+      #drawer.switch-open #switchGroup{ display:flex; flex-direction:column; gap:10px; }
 
       #missionPanel{
         display:none;
-        margin-top: 12px;
-        padding: 12px 14px;
-        border-radius: 18px;
+        margin-top: 8px;
+        padding: 10px 12px;
+        border-radius: 16px;
         border: 1px solid rgba(255,255,255,0.14);
         background: rgba(0,0,0,0.18);
-        color: rgba(255,255,255,0.86);
+        color: rgba(255,255,255,0.80);
         font: 650 12px/1.35 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       }
+      #drawer.mission-open #missionPanel{ display:block; }
 
       #statusLine{
-        margin-top:12px;
+        margin-top:10px;
         color: var(--muted2);
         font: 750 11px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
         display:flex;
@@ -260,7 +232,7 @@
       }
 
       #errors{
-        margin-top: 12px;
+        margin-top: 10px;
         display:none;
         padding: 10px 12px;
         border-radius: 14px;
@@ -271,13 +243,15 @@
         white-space: pre-wrap;
       }
 
-      /* collapsed drawer */
-      #drawer.collapsed #drawerBody{ display:none; }
+      /* collapsed state */
+      #drawer.collapsed #rowWrap,
+      #drawer.collapsed #statusLine,
+      #drawer.collapsed #errors { display:none; }
       #drawer.collapsed { padding-bottom: 12px; }
 
       @media (max-width: 420px){
         .pill { padding: 12px 12px; border-radius: 16px; font-size: 13px; }
-        .grid2, #primaryRow { gap: 10px; }
+        .pill .rightHint{ font-size: 11px; }
       }
     </style>
 
@@ -293,7 +267,6 @@
   </head>
 
   <body>
-    <!-- OPEN button -->
     <button id="openBtn" aria-label="Open MAP E.D.E.N.">
       <svg viewBox="0 0 24 24" fill="none">
         <path d="M4 7h16M4 12h16M4 17h16" stroke="rgba(255,255,255,0.88)" stroke-width="2.2" stroke-linecap="round"/>
@@ -301,7 +274,6 @@
       MAP E.D.E.N.
     </button>
 
-    <!-- Drawer -->
     <div id="drawer">
       <div id="handle" title="Tap to collapse/expand"></div>
 
@@ -313,61 +285,64 @@
         <button id="closeBtn" aria-label="Close drawer" title="Close">✕</button>
       </div>
 
-      <div id="drawerBody">
-        <!-- Mission + Switchboard -->
-        <div id="primaryRow">
-          <button class="pill" data-key="mission">
-            <span class="dot"></span>
-            Mission
-            <span class="rightHint" id="missionHint">Tap</span>
+      <div id="rowWrap">
+        <!-- Mission (left) + Switchboard (right) -->
+        <div class="row">
+          <button class="pill mission" id="missionBtn" data-key="mission">
+            <span class="dot"></span>Mission
           </button>
 
-          <button class="pill" data-key="switchboard">
-            <span class="dot"></span>
-            Switchboard
+          <button class="pill switch" id="switchBtn" data-key="switchboard">
+            <span class="dot"></span>Switchboard
             <span class="rightHint" id="switchHint">Tap to open</span>
           </button>
         </div>
 
         <div id="missionPanel">
-          <b>EDEN Mission (one sentence)</b><br/>
-          Turn the 42°/222° axis hypothesis into an evidence-first experiment by producing repeatable, controlled, comparable datasets across stations and time.<br/><br/>
-          <b>How to use</b><br/>
-          • Toggle layers in Switchboard.<br/>
-          • Drag globe to rotate • Pinch to zoom.<br/><br/>
-          <b>Station</b><br/>
-          Exit 222 is locked to Station 1 (anchor point).<br/>
+          <b>Mission:</b> turn the 42° / 222° axis hypothesis into a coordinated, evidence-first experiment by producing sensor datasets that are repeatable, controlled, and comparable across stations and time.
         </div>
 
-        <!-- Switchboard group (only visible when Switchboard ON) -->
-        <div id="switchboardGroup">
-          <div class="grid2">
-            <button class="pill" data-key="rhumb222"><span class="dot"></span>Rhumb 222 SW</button>
+        <!-- All toggles live inside switchGroup and only appear when Switchboard is ON -->
+        <div id="switchGroup">
+          <div class="row">
+            <button class="pill on" data-key="rhumb222"><span class="dot"></span>Rhumb 222 SW</button>
             <button class="pill" data-key="rhumb42"><span class="dot"></span>Rhumb 42 NE</button>
+          </div>
 
-            <button class="pill" data-key="gc222"><span class="dot"></span>Great Circle 222 SW</button>
+          <div class="row">
+            <button class="pill on" data-key="gc222"><span class="dot"></span>Great Circle 222 SW</button>
             <button class="pill" data-key="gc42"><span class="dot"></span>Great Circle 42 NE</button>
+          </div>
 
+          <div class="row">
             <button class="pill" data-key="names222"><span class="dot"></span>Names 222 SW</button>
             <button class="pill" data-key="names42"><span class="dot"></span>Names 42 NE</button>
+          </div>
 
+          <div class="row">
             <button class="pill" data-key="perpLine"><span class="dot"></span>Perpendiculars</button>
             <button class="pill" data-key="continents"><span class="dot"></span>Continents</button>
+          </div>
 
-            <button class="pill" data-key="stations"><span class="dot"></span>Stations</button>
+          <div class="row">
+            <button class="pill on" data-key="stations"><span class="dot"></span>Stations</button>
             <button class="pill" data-key="corridors"><span class="dot"></span>Corridors</button>
+          </div>
 
+          <div class="row">
             <button class="pill" data-key="magField"><span class="dot"></span>Magnetic Field</button>
             <button class="pill" data-key="aurora"><span class="dot"></span>Aurora</button>
+          </div>
 
-            <button class="pill" data-key="nightLights"><span class="dot"></span>Night Lights</button>
+          <div class="row">
+            <button class="pill on" data-key="nightLights"><span class="dot"></span>Night Lights</button>
             <button class="pill" data-key="perpName"><span class="dot"></span>Perp Name</button>
           </div>
         </div>
 
         <div id="statusLine">
           <span id="status">Booting…</span>
-          <span id="anchorLine">Exit 222 • Station 1 @ 38°9′39″ N, 79°4′24″ W</span>
+          <span id="stationInfo">Exit 222 • Station 1 @ 38°9′39″ N, 79°4′24″ W</span>
         </div>
 
         <div id="errors"></div>
@@ -375,18 +350,16 @@
     </div>
 
     <script type="module">
-      const statusEl   = document.getElementById("status");
-      const errorsEl   = document.getElementById("errors");
-      const drawerEl   = document.getElementById("drawer");
-      const openBtn    = document.getElementById("openBtn");
-      const closeBtn   = document.getElementById("closeBtn");
-      const handle     = document.getElementById("handle");
-      const missionBtn = document.querySelector('.pill[data-key="mission"]');
-      const switchBtn  = document.querySelector('.pill[data-key="switchboard"]');
-      const missionPanel = document.getElementById("missionPanel");
-      const switchGroup  = document.getElementById("switchboardGroup");
-      const switchHint   = document.getElementById("switchHint");
-      const missionHint  = document.getElementById("missionHint");
+      const statusEl = document.getElementById("status");
+      const errorsEl = document.getElementById("errors");
+      const drawerEl = document.getElementById("drawer");
+      const openBtn = document.getElementById("openBtn");
+      const closeBtn = document.getElementById("closeBtn");
+      const handle = document.getElementById("handle");
+
+      const missionBtn = document.getElementById("missionBtn");
+      const switchBtn  = document.getElementById("switchBtn");
+      const switchHint = document.getElementById("switchHint");
 
       function showError(msg){
         errorsEl.style.display = "block";
@@ -406,9 +379,21 @@
       closeBtn.addEventListener("click", () => setDrawerClosed(true));
       handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
 
-      function isUIEventTarget(target){
-        return !!(target && (target.closest?.("#drawer") || target.closest?.("#openBtn")));
+      // Mission toggle
+      missionBtn.addEventListener("click", ()=>{
+        const on = !drawerEl.classList.contains("mission-open");
+        drawerEl.classList.toggle("mission-open", on);
+        missionBtn.classList.toggle("on", on);
+      });
+
+      // Switchboard toggle controls visibility of ALL other buttons
+      function setSwitchboard(on){
+        drawerEl.classList.toggle("switch-open", !!on);
+        switchBtn.classList.toggle("on", !!on);
+        switchHint.textContent = on ? "Tap to close" : "Tap to open";
       }
+      setSwitchboard(false);
+      switchBtn.addEventListener("click", ()=> setSwitchboard(!drawerEl.classList.contains("switch-open")));
 
       import * as THREE from "three";
       import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
@@ -420,6 +405,10 @@
       const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
       const DEG = Math.PI/180;
       const RAD = 180/Math.PI;
+
+      function isUIEventTarget(target){
+        return !!(target && (target.closest?.("#drawer") || target.closest?.("#openBtn")));
+      }
 
       function latLonToVec3(latDeg, lonDeg, radius=1.0){
         const lat = latDeg * DEG;
@@ -454,14 +443,14 @@
         return pts;
       }
 
-      function rhumbPoints(lat0Deg, lon0Deg, bearingDeg, stepKm=240){
+      function rhumbPoints(lat0Deg, lon0Deg, bearingDeg, stepKm=250){
         const R=6371;
         const φ1=lat0Deg*DEG;
         const λ1=lon0Deg*DEG;
         const θ=bearingDeg*DEG;
 
         const pts=[];
-        const maxSteps=130;
+        const maxSteps=120;
         for (const dir of [-1,+1]){
           let φ=φ1, λ=λ1;
           for (let i=0;i<maxSteps;i++){
@@ -482,13 +471,13 @@
         return pts;
       }
 
-      function makeGlowTube(pointsVec3, radius, coreColor, haloColor, coreOpacity=1.0, haloOpacity=0.32){
+      function makeGlowTube(pointsVec3, radius, coreColor, haloColor, coreOpacity=1.0, haloOpacity=0.28){
         if (!pointsVec3 || pointsVec3.length < 4) return new THREE.Group();
         const curve = new THREE.CatmullRomCurve3(pointsVec3, false, "catmullrom", 0.15);
-        const segs = Math.max(320, pointsVec3.length*2);
+        const segs = Math.max(280, pointsVec3.length*2);
 
         const coreGeom = new THREE.TubeGeometry(curve, segs, radius, 10, false);
-        const haloGeom = new THREE.TubeGeometry(curve, segs, radius*2.6, 10, false);
+        const haloGeom = new THREE.TubeGeometry(curve, segs, radius*2.4, 10, false);
 
         const coreMat = new THREE.MeshBasicMaterial({ color: coreColor, transparent: coreOpacity<1, opacity: coreOpacity, depthWrite:false });
         const haloMat = new THREE.MeshBasicMaterial({ color: haloColor, transparent:true, opacity: haloOpacity, blending: THREE.AdditiveBlending, depthWrite:false });
@@ -499,51 +488,69 @@
         return g;
       }
 
-      /* --- Text-only label (no boxes / no borders) --- */
-      function makeTextSprite(text, {fontSize=42, color="#ffffff", opacity=0.92, scale=0.0048} = {}){
+      /* --- Text-only label (smaller, subtle glow, pro) --- */
+      function makeTextSprite(
+        text,
+        {
+          fontSize = 28,
+          color = "#ffffff",
+          opacity = 0.88,
+          scale = 0.0032,
+          glow = true
+        } = {}
+      ){
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
 
-        // measure
         ctx.font = `900 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
         const m = ctx.measureText(text);
-        const pad = Math.ceil(fontSize * 0.45);
-        const w = Math.ceil(m.width + pad*2);
-        const h = Math.ceil(fontSize + pad*1.4);
 
-        canvas.width = w; canvas.height = h;
+        const padX = Math.ceil(fontSize * 0.55);
+        const padY = Math.ceil(fontSize * 0.45);
+        const w = Math.ceil(m.width + padX * 2);
+        const h = Math.ceil(fontSize + padY * 2);
 
-        ctx.clearRect(0,0,w,h);
+        canvas.width = w;
+        canvas.height = h;
 
-        // glow + crisp text
+        ctx.clearRect(0, 0, w, h);
         ctx.font = `900 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
         ctx.textBaseline = "middle";
         ctx.textAlign = "left";
 
-        ctx.shadowColor = "rgba(0,0,0,0.85)";
-        ctx.shadowBlur = 14;
+        // subtle dark edge
+        ctx.shadowColor = "rgba(0,0,0,0.55)";
+        ctx.shadowBlur = 6;
         ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 4;
-
+        ctx.shadowOffsetY = 2;
         ctx.fillStyle = color;
-        ctx.fillText(text, pad, h/2);
+        ctx.fillText(text, padX, h / 2);
 
-        // subtle outer glow
-        ctx.shadowColor = "rgba(150,200,255,0.18)";
-        ctx.shadowBlur = 10;
-        ctx.shadowOffsetY = 0;
-        ctx.fillText(text, pad, h/2);
+        // very light outer glow
+        if (glow) {
+          ctx.shadowColor = "rgba(140,190,255,0.14)";
+          ctx.shadowBlur = 6;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+          ctx.fillText(text, padX, h / 2);
+        }
 
         const tex = new THREE.CanvasTexture(canvas);
         tex.colorSpace = THREE.SRGBColorSpace;
 
-        const mat = new THREE.SpriteMaterial({ map: tex, transparent:true, depthWrite:false, opacity });
+        const mat = new THREE.SpriteMaterial({
+          map: tex,
+          transparent: true,
+          depthWrite: false,
+          opacity
+        });
+
         const spr = new THREE.Sprite(mat);
-        spr.scale.set(w*scale, h*scale, 1);
+        spr.scale.set(w * scale, h * scale, 1);
         return spr;
       }
 
-      // --------- Fallback textures ----------
+      // --------- Fallback textures (better blue ocean + fresh clouds) ----------
       function solidTexture(hex="#222"){
         const c=document.createElement("canvas");
         c.width=2; c.height=2;
@@ -559,10 +566,10 @@
         c.width=1024; c.height=1024;
         const ctx=c.getContext("2d");
         ctx.fillStyle="#000"; ctx.fillRect(0,0,c.width,c.height);
-        for(let i=0;i<2400;i++){
+        for(let i=0;i<2600;i++){
           const x=Math.random()*c.width, y=Math.random()*c.height;
-          const a=0.2+Math.random()*0.8;
-          const s=Math.random()>0.995?2:1;
+          const a=0.18+Math.random()*0.78;
+          const s=Math.random()>0.996?2:1;
           ctx.fillStyle=`rgba(255,255,255,${a})`;
           ctx.fillRect(x,y,s,s);
         }
@@ -573,32 +580,40 @@
 
       function makeFallbackEarthDay(){
         const c=document.createElement("canvas");
-        c.width=1024; c.height=512;
+        c.width=2048; c.height=1024;
         const ctx=c.getContext("2d");
 
-        // ocean gradient
+        // ocean gradient (deeper + brighter blue)
         const g = ctx.createLinearGradient(0,0,0,c.height);
-        g.addColorStop(0, "#0a1d3b");
-        g.addColorStop(0.55, "#0d2f63");
-        g.addColorStop(1, "#061425");
-        ctx.fillStyle=g; ctx.fillRect(0,0,c.width,c.height);
+        g.addColorStop(0, "#071226");
+        g.addColorStop(0.45, "#0b2a5e");
+        g.addColorStop(1, "#061021");
+        ctx.fillStyle=g;
+        ctx.fillRect(0,0,c.width,c.height);
 
-        // land blobs
-        ctx.globalAlpha=0.92; ctx.fillStyle="#2f7b49";
+        // soft land noise blobs (no outlines)
+        ctx.globalAlpha=0.85;
+        for(let i=0;i<70;i++){
+          const x=Math.random()*c.width, y=Math.random()*c.height;
+          const r=50+Math.random()*220;
+          ctx.fillStyle = `rgba(${40+Math.random()*30}, ${95+Math.random()*60}, ${55+Math.random()*30}, 0.55)`;
+          ctx.beginPath();
+          ctx.ellipse(x,y,r,r*(0.50+Math.random()*0.25),Math.random()*Math.PI,0,Math.PI*2);
+          ctx.fill();
+        }
+
+        // shallow water tint
+        ctx.globalAlpha=0.18;
+        ctx.fillStyle="#3aa6ff";
         for(let i=0;i<40;i++){
           const x=Math.random()*c.width, y=Math.random()*c.height;
-          const r=24+Math.random()*110;
-          ctx.beginPath(); ctx.ellipse(x,y,r,r*0.65,Math.random()*Math.PI,0,Math.PI*2); ctx.fill();
+          const r=60+Math.random()*260;
+          ctx.beginPath();
+          ctx.ellipse(x,y,r,r*0.35,Math.random()*Math.PI,0,Math.PI*2);
+          ctx.fill();
         }
 
-        // cloud haze
-        ctx.globalAlpha=0.14; ctx.fillStyle="#ffffff";
-        for(let i=0;i<120;i++){
-          const x=Math.random()*c.width, y=Math.random()*c.height;
-          const r=18+Math.random()*120;
-          ctx.beginPath(); ctx.ellipse(x,y,r,r*0.45,0,0,Math.PI*2); ctx.fill();
-        }
-
+        ctx.globalAlpha=1;
         const t=new THREE.CanvasTexture(c);
         t.colorSpace=THREE.SRGBColorSpace;
         return t;
@@ -609,10 +624,10 @@
         c.width=1024; c.height=512;
         const ctx=c.getContext("2d");
         ctx.fillStyle="#000"; ctx.fillRect(0,0,c.width,c.height);
-        ctx.fillStyle="rgba(255,210,120,0.9)";
-        for(let i=0;i<2400;i++){
+        ctx.fillStyle="rgba(255,210,120,0.95)";
+        for(let i=0;i<2600;i++){
+          if(Math.random()<0.988) continue;
           const x=Math.random()*c.width, y=Math.random()*c.height;
-          if(Math.random()<0.985) continue;
           ctx.fillRect(x,y,1,1);
         }
         const t=new THREE.CanvasTexture(c);
@@ -622,15 +637,20 @@
 
       function makeFallbackClouds(){
         const c=document.createElement("canvas");
-        c.width=1024; c.height=512;
+        c.width=2048; c.height=1024;
         const ctx=c.getContext("2d");
         ctx.clearRect(0,0,c.width,c.height);
-        ctx.fillStyle="rgba(255,255,255,0.42)";
-        for(let i=0;i<160;i++){
+
+        // fresher brighter clouds
+        ctx.fillStyle="rgba(255,255,255,0.22)";
+        for(let i=0;i<170;i++){
           const x=Math.random()*c.width, y=Math.random()*c.height;
-          const r=28+Math.random()*140;
-          ctx.beginPath(); ctx.ellipse(x,y,r,r*0.5,0,0,Math.PI*2); ctx.fill();
+          const r=40+Math.random()*160;
+          ctx.beginPath();
+          ctx.ellipse(x,y,r,r*0.48,Math.random()*Math.PI,0,Math.PI*2);
+          ctx.fill();
         }
+
         const t=new THREE.CanvasTexture(c);
         t.colorSpace=THREE.SRGBColorSpace;
         return t;
@@ -651,47 +671,25 @@
           } catch { /* keep trying */ }
         }
 
-        // Soft warning (kept in error panel)
         showError(`Texture fallback used for: ${label}\n(CDN blocked/failed on this device/network)`);
         return fallbackTex;
       }
 
-      // ---------- UI: Switchboard + Mission ----------
-      const ui = {
-        switchboardOpen: false,
-        missionOpen: false
-      };
-
-      function setPillOn(key, on){
-        const b = document.querySelector(`.pill[data-key="${key}"]`);
-        if (b) b.classList.toggle("on", !!on);
+      function toDMS(lat, lon){
+        function dms(deg){
+          const abs = Math.abs(deg);
+          const d = Math.floor(abs);
+          const mfloat = (abs - d) * 60;
+          const m = Math.floor(mfloat);
+          const s = Math.round((mfloat - m) * 60);
+          return {d, m, s};
+        }
+        const la = dms(lat);
+        const lo = dms(lon);
+        const ns = lat >= 0 ? "N" : "S";
+        const ew = lon >= 0 ? "E" : "W";
+        return `${la.d}°${la.m}′${la.s}″ ${ns}, ${lo.d}°${lo.m}′${lo.s}″ ${ew}`;
       }
-
-      function applySwitchboard(){
-        switchGroup.style.display = ui.switchboardOpen ? "block" : "none";
-        setPillOn("switchboard", ui.switchboardOpen);
-        switchHint.textContent = ui.switchboardOpen ? "Tap to close" : "Tap to open";
-      }
-
-      function applyMission(){
-        missionPanel.style.display = ui.missionOpen ? "block" : "none";
-        setPillOn("mission", ui.missionOpen);
-        missionHint.textContent = ui.missionOpen ? "Close" : "Tap";
-      }
-
-      missionBtn.addEventListener("click", ()=>{
-        ui.missionOpen = !ui.missionOpen;
-        applyMission();
-      });
-
-      switchBtn.addEventListener("click", ()=>{
-        ui.switchboardOpen = !ui.switchboardOpen;
-        applySwitchboard();
-      });
-
-      // initial
-      applySwitchboard();
-      applyMission();
 
       // ---------- Main ----------
       (async ()=>{
@@ -701,23 +699,19 @@
           const scene = new THREE.Scene();
 
           const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 5000);
-          camera.position.set(0, 0, 4.0);
+          camera.position.set(0, 0, 4.1);
 
           const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
           renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
           renderer.setSize(innerWidth, innerHeight);
           renderer.outputColorSpace = THREE.SRGBColorSpace;
           renderer.toneMapping = THREE.ACESFilmicToneMapping;
-
-          // Brighter globe
-          renderer.toneMappingExposure = 1.25;
-
+          renderer.toneMappingExposure = 1.15; // brighter globe
           document.body.appendChild(renderer.domElement);
 
-          // Lighting (brighter / cleaner)
-          scene.add(new THREE.AmbientLight(0xffffff, 0.22));
-          const sunLight = new THREE.DirectionalLight(0xffffff, 1.45);
-          sunLight.position.set(5, 1.8, 2.8);
+          scene.add(new THREE.AmbientLight(0xffffff, 0.16));
+          const sunLight = new THREE.DirectionalLight(0xffffff, 1.35);
+          sunLight.position.set(5, 1.5, 2.5);
           scene.add(sunLight);
 
           // Texture URLs (3 CDNs)
@@ -730,13 +724,11 @@
 
           statusEl.textContent = "Loading textures…";
 
-          // NOTE: these are “no-political-borders” style textures from three.js examples;
-          // if a CDN is blocked, we fall back to procedural textures.
-          const dayMap   = await loadTextureWithFallback(urls("planets/earth_atmos_2048.jpg"), makeFallbackEarthDay(), "earth day");
-          const nightMap = await loadTextureWithFallback(urls("planets/earth_lights_2048.png"), makeFallbackNight(), "earth night lights");
+          const dayMap   = await loadTextureWithFallback(urls("planets/earth_atmos_2048.jpg"),  makeFallbackEarthDay(), "earth day");
+          const nightMap = await loadTextureWithFallback(urls("planets/earth_lights_2048.png"), makeFallbackNight(),    "earth night lights");
           const specMap  = await loadTextureWithFallback(urls("planets/earth_specular_2048.jpg"), solidTexture("#000"), "earth specular");
-          const cloudMap = await loadTextureWithFallback(urls("planets/earth_clouds_1024.png"), makeFallbackClouds(), "earth clouds");
-          const starMap  = await loadTextureWithFallback(urls("galaxy_starfield.png"), makeFallbackStars(), "stars");
+          const cloudMap = await loadTextureWithFallback(urls("planets/earth_clouds_1024.png"), makeFallbackClouds(),   "earth clouds");
+          const starMap  = await loadTextureWithFallback(urls("galaxy_starfield.png"),          makeFallbackStars(),    "stars");
 
           const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
           [dayMap, nightMap, specMap, cloudMap, starMap].forEach((t)=>{
@@ -756,7 +748,7 @@
           const earthRadius = 1.0;
           const SEG = 96;
 
-          // Earth shader (brighter ocean tint + fresh clouds feel)
+          // Earth shader (brighter ocean / fresh contrast)
           const earthUniforms = {
             dayMap:    { value: dayMap },
             specMap:   { value: specMap },
@@ -798,28 +790,24 @@
 
                 vec3 dayCol = srgbToLinear(texture2D(dayMap, vUv).rgb);
 
-                // Boost ocean blue + overall clarity
+                // slight saturation / brightness lift (pro, not neon)
                 float lum = dot(dayCol, vec3(0.2126,0.7152,0.0722));
                 vec3 sat = mix(vec3(lum), dayCol, 1.18);
-                // gentle cool tint
-                sat *= vec3(0.98, 1.02, 1.10);
-
-                // Mild contrast lift
                 vec3 c = pow(max(sat, 0.0), vec3(0.90));
 
                 float specMask = texture2D(specMap, vUv).r;
                 float ndl = dot(N, L);
-                float dayAmt = smoothstep(-0.05, 0.18, ndl);
+                float dayAmt = smoothstep(-0.06, 0.16, ndl);
 
                 vec3 nightBase = c * 0.10;
                 vec3 col = mix(nightBase, c, dayAmt);
 
                 vec3 H = normalize(L + V);
-                float spec = pow(max(dot(N, H), 0.0), 85.0) * specMask * 0.55 * dayAmt;
+                float spec = pow(max(dot(N, H), 0.0), 90.0) * specMask * 0.55 * dayAmt;
                 col += vec3(spec);
 
-                float rim = pow(1.0 - max(dot(N, V), 0.0), 2.2);
-                col += vec3(0.06, 0.14, 0.26) * rim * (0.25 + 0.75 * dayAmt);
+                float rim = pow(1.0 - max(dot(N, V), 0.0), 2.3);
+                col += vec3(0.06, 0.12, 0.22) * rim * (0.28 + 0.72 * dayAmt);
 
                 gl_FragColor = vec4(linearToSrgb(col), 1.0);
               }
@@ -828,11 +816,11 @@
 
           const earth = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, SEG, SEG), earthMat);
 
-          // Night lights (additive, toggleable)
+          // Night lights (additive) — now toggleable
           const lightsUniforms = {
             nightMap: { value: nightMap },
             sunDir:   { value: new THREE.Vector3(1,0,0) },
-            gain:     { value: 2.9 }
+            gain:     { value: 2.8 }
           };
 
           const nightLights = new THREE.Mesh(
@@ -867,11 +855,11 @@
                   vec3 L = normalize(sunDir);
 
                   float ndl = dot(N, L);
-                  float dayAmt = smoothstep(-0.05, 0.18, ndl);
+                  float dayAmt = smoothstep(-0.06, 0.16, ndl);
                   float nightAmt = 1.0 - dayAmt;
 
                   vec3 lights = srgbToLinear(texture2D(nightMap, vUv).rgb) * gain;
-                  float mask = smoothstep(0.06, 0.38, nightAmt);
+                  float mask = smoothstep(0.05, 0.40, nightAmt);
 
                   vec3 col = lights * mask;
                   float a = clamp(max(max(col.r, col.g), col.b), 0.0, 1.0);
@@ -895,12 +883,11 @@
           );
 
           const clouds = new THREE.Mesh(
-            new THREE.SphereGeometry(earthRadius * 1.013, SEG, SEG),
+            new THREE.SphereGeometry(earthRadius * 1.012, SEG, SEG),
             new THREE.MeshLambertMaterial({
               map: cloudMap,
-              color: 0xffffff,
               transparent: true,
-              opacity: 0.96,
+              opacity: 0.92,
               depthWrite: false
             })
           );
@@ -912,7 +899,7 @@
           };
 
           const atmosphere = new THREE.Mesh(
-            new THREE.SphereGeometry(earthRadius * 1.048, SEG, SEG),
+            new THREE.SphereGeometry(earthRadius * 1.045, SEG, SEG),
             new THREE.ShaderMaterial({
               uniforms: atmoUniforms,
               transparent: true,
@@ -941,11 +928,11 @@
                   vec3 L = normalize(sunDir);
                   vec3 V = normalize(cameraPos - vPosW);
 
-                  float rim = pow(1.0 - max(dot(N, V), 0.0), 3.15);
-                  float daySide = smoothstep(-0.15, 0.30, dot(N, L));
+                  float rim = pow(1.0 - max(dot(N, V), 0.0), 3.2);
+                  float daySide = smoothstep(-0.15, 0.25, dot(N, L));
 
-                  vec3 col = vec3(0.18, 0.62, 1.00) * rim * (0.22 + 0.78 * daySide);
-                  float alpha = rim * (0.18 + 0.66 * daySide);
+                  vec3 col = vec3(0.20, 0.60, 1.00) * rim * (0.24 + 0.76 * daySide);
+                  float alpha = rim * (0.16 + 0.62 * daySide);
                   gl_FragColor = vec4(col, alpha);
                 }
               `
@@ -975,35 +962,39 @@
           };
           Object.values(overlays).forEach(g => globe.add(g));
 
-          // ---- Station 1 (LOCKED) ----
-          // 38°9′39″ N  79°4′24″ W  ->  38.160833, -79.073333
+          // Station: 38°9′39″ N 79°4′24″ W
           const ANCHOR = {
             name: "Exit 222 • Station 1",
             lat: 38.160833,
             lon: -79.073333
           };
+
+          document.getElementById("stationInfo").textContent =
+            `Exit 222 • Station 1 @ ${toDMS(ANCHOR.lat, ANCHOR.lon)}`;
+
+          // Bearings
           const BEARING_222 = 222;
           const BEARING_42  = 42;
 
-          // Build paths
-          const gc222Pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, BEARING_222, 1.0)
+          // Great circles
+          const gc222 = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, BEARING_222, 1.0)
             .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
-          const gc42Pts  = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, BEARING_42, 1.0)
+          overlays.gc222.add(makeGlowTube(gc222, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.26));
+
+          const gc42 = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, BEARING_42, 1.0)
             .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+          overlays.gc42.add(makeGlowTube(gc42, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.26));
 
-          const rh222Pts = rhumbPoints(ANCHOR.lat, ANCHOR.lon, BEARING_222, 240)
+          // Rhumbs
+          const rh222 = rhumbPoints(ANCHOR.lat, ANCHOR.lon, BEARING_222, 240)
             .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
-          const rh42Pts  = rhumbPoints(ANCHOR.lat, ANCHOR.lon, BEARING_42, 240)
+          overlays.rhumb222.add(makeGlowTube(rh222, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.24));
+
+          const rh42 = rhumbPoints(ANCHOR.lat, ANCHOR.lon, BEARING_42, 240)
             .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+          overlays.rhumb42.add(makeGlowTube(rh42, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.24));
 
-          // Draw lines
-          overlays.gc222.add(makeGlowTube(gc222Pts, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.30));
-          overlays.gc42.add( makeGlowTube(gc42Pts,  0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.22));
-
-          overlays.rhumb222.add(makeGlowTube(rh222Pts, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.28));
-          overlays.rhumb42.add( makeGlowTube(rh42Pts,  0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.20));
-
-          // Perpendiculars (132 / 312) based on anchor
+          // Perpendiculars (132 / 312)
           function arcFromBearing(bearingDeg){
             const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, bearingDeg, 1.2)
               .filter((_, i) => i > 40 && i < 260)
@@ -1012,31 +1003,30 @@
           }
           overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
-          // Names (text-only, same style as Continents)
+          // Names (text-only, same style as continents)
           {
-            // Keep names minimal: just identifiers (no borders / outlines on globe)
-            const n1 = makeTextSprite("Rhumb 222 SW", { fontSize: 40, opacity: 0.90 });
-            n1.position.copy(latLonToVec3(20, -30, earthRadius*1.12));
-            overlays.names222.add(n1);
+            const a1 = makeTextSprite("Rhumb 222 SW", { fontSize: 28, opacity: 0.88, scale: 0.0031 });
+            a1.position.copy(latLonToVec3(26, -18, earthRadius*1.11));
+            overlays.names222.add(a1);
 
-            const n2 = makeTextSprite("Great Circle 222 SW", { fontSize: 40, opacity: 0.90 });
-            n2.position.copy(latLonToVec3(-10, 70, earthRadius*1.12));
-            overlays.names222.add(n2);
+            const a2 = makeTextSprite("Great Circle 222 SW", { fontSize: 28, opacity: 0.88, scale: 0.0031 });
+            a2.position.copy(latLonToVec3(-8, 68, earthRadius*1.11));
+            overlays.names222.add(a2);
 
-            const n3 = makeTextSprite("Rhumb 42 NE", { fontSize: 40, opacity: 0.88 });
-            n3.position.copy(latLonToVec3(35, 110, earthRadius*1.12));
-            overlays.names42.add(n3);
+            const b1 = makeTextSprite("Rhumb 42 NE", { fontSize: 28, opacity: 0.88, scale: 0.0031 });
+            b1.position.copy(latLonToVec3(40, 105, earthRadius*1.11));
+            overlays.names42.add(b1);
 
-            const n4 = makeTextSprite("Great Circle 42 NE", { fontSize: 40, opacity: 0.88 });
-            n4.position.copy(latLonToVec3(-35, 150, earthRadius*1.12));
-            overlays.names42.add(n4);
+            const b2 = makeTextSprite("Great Circle 42 NE", { fontSize: 28, opacity: 0.88, scale: 0.0031 });
+            b2.position.copy(latLonToVec3(-28, -125, earthRadius*1.11));
+            overlays.names42.add(b2);
 
-            const pn = makeTextSprite("Perp 132° / 312°", { fontSize: 40, opacity: 0.86 });
-            pn.position.copy(latLonToVec3(58, 30, earthRadius*1.12));
-            overlays.perpName.add(pn);
+            const p = makeTextSprite("132° / 312°", { fontSize: 28, opacity: 0.86, scale: 0.0031 });
+            p.position.copy(latLonToVec3(55, 110, earthRadius*1.11));
+            overlays.perpName.add(p);
           }
 
-          // Continents labels (text-only)
+          // Continents (labels only)
           const CONT = [
             { name:"North America", lat: 45,  lon:-102 },
             { name:"South America", lat:-16,  lon:-60 },
@@ -1047,23 +1037,23 @@
             { name:"Antarctica",    lat:-80,  lon:  0 }
           ];
           for (const c of CONT){
-            const s = makeTextSprite(c.name, { fontSize: 40, opacity: 0.88 });
-            s.position.copy(latLonToVec3(c.lat, c.lon, earthRadius*1.12));
+            const s = makeTextSprite(c.name, { fontSize: 28, opacity: 0.86, scale: 0.0031 });
+            s.position.copy(latLonToVec3(c.lat, c.lon, earthRadius*1.11));
             overlays.continents.add(s);
           }
 
-          // Corridors (visual width bands; kept simple + clean)
+          // Corridors (±1/±5/±10 km) around BOTH directions and BOTH types
           const kmToUnit = (km)=> (km/6371)*earthRadius;
           const corridorRadii = [
-            { km: 1,  r: kmToUnit(1),  o: 0.18 },
-            { km: 5,  r: kmToUnit(5),  o: 0.10 },
-            { km: 10, r: kmToUnit(10), o: 0.07 }
+            { km: 1,  r: kmToUnit(1),  o: 0.14 },
+            { km: 5,  r: kmToUnit(5),  o: 0.09 },
+            { km: 10, r: kmToUnit(10), o: 0.06 }
           ];
           for (const c of corridorRadii){
-            overlays.corridors.add(makeGlowTube(gc222Pts, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
-            overlays.corridors.add(makeGlowTube(rh222Pts, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
-            overlays.corridors.add(makeGlowTube(gc42Pts,  c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.75));
-            overlays.corridors.add(makeGlowTube(rh42Pts,  c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.65));
+            overlays.corridors.add(makeGlowTube(gc222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
+            overlays.corridors.add(makeGlowTube(rh222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
+            overlays.corridors.add(makeGlowTube(gc42,  c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
+            overlays.corridors.add(makeGlowTube(rh42,  c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
           }
 
           // Station marker (single, locked)
@@ -1078,18 +1068,18 @@
             pin.position.copy(p);
 
             const glow = new THREE.Mesh(
-              new THREE.SphereGeometry(0.022, 18, 18),
-              new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.18, blending:THREE.AdditiveBlending, depthWrite:false })
+              new THREE.SphereGeometry(0.020, 18, 18),
+              new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.16, blending:THREE.AdditiveBlending, depthWrite:false })
             );
             glow.position.copy(p);
 
-            const tag = makeTextSprite(label, { fontSize: 40, opacity: 0.90, scale: 0.0045 });
+            const tag = makeTextSprite(label, { fontSize: 28, opacity: 0.90, scale: 0.0030 });
             tag.position.copy(latLonToVec3(lat, lon, earthRadius*1.14));
 
             g.add(glow, pin, tag);
             return g;
           }
-          overlays.stations.add(makeStationMarker("Exit 222 • Station 1", ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
+          overlays.stations.add(makeStationMarker(ANCHOR.name, ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
 
           // Magnetic field (simple dipole preview)
           function makeDipoleFieldLines(){
@@ -1101,12 +1091,12 @@
             for (const L of Ls){
               const pts = [];
               for (let t=-80; t<=80; t+=1.2){
-                const θ = (90 - t) * DEG;
-                const r = L * Math.sin(θ)*Math.sin(θ);
+                const theta = (90 - t) * DEG;
+                const r = L * Math.sin(theta)*Math.sin(theta);
                 const rr = earthRadius * r;
                 if (rr < earthRadius*1.04) continue;
-                const x = rr * Math.sin(θ);
-                const y = rr * Math.cos(θ);
+                const x = rr * Math.sin(theta);
+                const y = rr * Math.cos(theta);
                 pts.push(new THREE.Vector3(x, y, 0));
               }
 
@@ -1119,7 +1109,7 @@
                   return v.normalize().multiplyScalar(len);
                 });
                 const ringClamped = ring.filter(v => v.length() < earthRadius*7.5);
-                g.add(makeGlowTube(ringClamped, 0.0014, col, col, 0.0, 0.06));
+                g.add(makeGlowTube(ringClamped, 0.0014, col, col, 0.0, 0.05));
               }
             }
             return g;
@@ -1132,19 +1122,20 @@
             for (const lat of [latDeg, -latDeg]){
               const pts = [];
               for (let lon=-180; lon<=180; lon+=2) pts.push(latLonToVec3(lat, lon, earthRadius*1.05));
-              g.add(makeGlowTube(pts, 0.0026, color, color, 0.0, 0.12));
+              g.add(makeGlowTube(pts, 0.0026, color, color, 0.0, 0.10));
             }
             return g;
           }
           overlays.aurora.add(makeAuroraBelt(67));
 
-          // --------- Bloom (selective) ----------
+          // --------- Bloom (selective; keep text out of bloom) ----------
           const BLOOM_LAYER = 1;
           const bloomLayer = new THREE.Layers(); bloomLayer.set(BLOOM_LAYER);
 
-          // Objects that can bloom (even if hidden)
-          nightLights.layers.enable(BLOOM_LAYER);
+          // only glowy components on bloom layer
           atmosphere.layers.enable(BLOOM_LAYER);
+          nightLights.layers.enable(BLOOM_LAYER);
+
           [overlays.rhumb222, overlays.rhumb42, overlays.gc222, overlays.gc42, overlays.perpLine, overlays.corridors, overlays.aurora].forEach(g=>{
             g.traverse(o => o.layers && o.layers.enable(BLOOM_LAYER));
           });
@@ -1167,7 +1158,13 @@
 
           const renderScene = new RenderPass(scene, camera);
 
-          const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.15, 0.85, 0.10);
+          // ↓ less bloom so labels stay professional
+          const bloomPass = new UnrealBloomPass(
+            new THREE.Vector2(innerWidth, innerHeight),
+            0.95,  // strength
+            0.80,  // radius
+            0.12   // threshold
+          );
 
           const bloomComposer = new EffectComposer(renderer);
           bloomComposer.renderToScreen = false;
@@ -1193,65 +1190,7 @@
             scene.traverse(restoreMaterial);
           }
 
-          // --------- Toggles (Switchboard buttons) ----------
-          const state = {
-            rhumb222: true,
-            rhumb42:  false,
-            gc222:    true,
-            gc42:     false,
-            names222: false,
-            names42:  false,
-            perpLine: false,
-            continents:false,
-            stations: true,
-            corridors:false,
-            magField: false,
-            aurora:   false,
-            nightLights: false,
-            perpName: false
-          };
-
-          function applyVisibility(){
-            overlays.rhumb222.visible = state.rhumb222;
-            overlays.rhumb42.visible  = state.rhumb42;
-            overlays.gc222.visible    = state.gc222;
-            overlays.gc42.visible     = state.gc42;
-
-            overlays.names222.visible = state.names222;
-            overlays.names42.visible  = state.names42;
-
-            overlays.perpLine.visible = state.perpLine;
-            overlays.continents.visible = state.continents;
-
-            overlays.stations.visible = state.stations;
-            overlays.corridors.visible = state.corridors;
-
-            overlays.magField.visible = state.magField;
-            overlays.aurora.visible = state.aurora;
-
-            nightLights.visible = state.nightLights;
-
-            overlays.perpName.visible = state.perpName;
-          }
-
-          function refreshPills(){
-            Object.keys(state).forEach(k => setPillOn(k, state[k]));
-          }
-
-          applyVisibility();
-          refreshPills();
-
-          document.querySelectorAll('#switchboardGroup .pill').forEach(btn=>{
-            btn.addEventListener("click", ()=>{
-              const key = btn.dataset.key;
-              if (!(key in state)) return;
-              state[key] = !state[key];
-              setPillOn(key, state[key]);
-              applyVisibility();
-            });
-          });
-
-          // --------- Interaction (globe rotate/zoom) ----------
+          // --------- Interaction ----------
           let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
           const AUTO_SPIN=0.0012, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
 
@@ -1318,21 +1257,79 @@
             camera.position.z = clamp(camera.position.z + (e.deltaY * 0.0025), Z_MIN, Z_MAX);
           }, { passive:true });
 
+          // --------- Toggles ----------
+          const state = {
+            rhumb222: true,
+            rhumb42:  false,
+            gc222:    true,
+            gc42:     false,
+            names222: false,
+            names42:  false,
+            perpLine: false,
+            continents: false,
+            stations: true,
+            corridors: false,
+            magField: false,
+            aurora: false,
+            nightLights: true,
+            perpName: false
+          };
+
+          function applyVisibility(){
+            overlays.rhumb222.visible = state.rhumb222;
+            overlays.rhumb42.visible  = state.rhumb42;
+            overlays.gc222.visible    = state.gc222;
+            overlays.gc42.visible     = state.gc42;
+
+            overlays.names222.visible = state.names222;
+            overlays.names42.visible  = state.names42;
+
+            overlays.perpLine.visible = state.perpLine;
+            overlays.perpName.visible = state.perpName;
+
+            overlays.continents.visible = state.continents;
+            overlays.stations.visible  = state.stations;
+            overlays.corridors.visible = state.corridors;
+            overlays.magField.visible  = state.magField;
+            overlays.aurora.visible    = state.aurora;
+
+            nightLights.visible = state.nightLights;
+          }
+
+          function setPill(key, on){
+            const b = document.querySelector(`.pill[data-key="${key}"]`);
+            if (b) b.classList.toggle("on", !!on);
+          }
+
+          applyVisibility();
+          Object.keys(state).forEach(k => setPill(k, state[k]));
+
+          document.querySelectorAll(".pill").forEach(btn=>{
+            btn.addEventListener("click", ()=>{
+              const key = btn.dataset.key;
+              if (!(key in state)) return;
+              state[key] = !state[key];
+              setPill(key, state[key]);
+              applyVisibility();
+            });
+          });
+
           // --------- Animate ----------
-          const sunDrift = 0.000045;
+          let velDecay = 0.92;
+          const sunDrift = 0.00005;
           const cloudSpin = 0.0020;
 
           function animate(){
             requestAnimationFrame(animate);
 
             clouds.rotation.y += cloudSpin;
-            cloudShadow.rotation.y += cloudSpin + 0.00014;
+            cloudShadow.rotation.y += cloudSpin + 0.00015;
 
             if(!dragging && !pinching){
               globe.rotation.y += AUTO_SPIN + velY;
               globe.rotation.x = clamp(globe.rotation.x + velX, -MAX_PITCH, MAX_PITCH);
-              velY *= DAMPING;
-              velX *= DAMPING;
+              velY *= velDecay;
+              velX *= velDecay;
             }
 
             sunLight.position.applyAxisAngle(new THREE.Vector3(0,1,0), sunDrift);
