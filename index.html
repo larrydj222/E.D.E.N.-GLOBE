@@ -26,7 +26,6 @@
     html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
     canvas { display:block; width:100vw !important; height:100vh !important; }
 
-    /* ---------- Floating OPEN button ---------- */
     #openBtn{
       position: fixed;
       left: 18px;
@@ -50,7 +49,6 @@
     }
     #openBtn:active { transform: translateY(1px); }
 
-    /* ---------- Bottom Drawer ---------- */
     #drawer {
       position: fixed;
       left: 50%;
@@ -128,7 +126,6 @@
     }
     #closeBtn:active { transform: translateY(1px); }
 
-    /* Scrollable content area (fixes landscape usability) */
     #drawerBody{
       margin-top: 12px;
       overflow-y: auto;
@@ -195,13 +192,11 @@
       flex: 0 0 auto;
     }
 
-    /* Default ON = GREEN (this covers Welcome / Mission / Switchboard) */
     .pill.on .dot{
       background: var(--green);
       box-shadow: 0 0 16px rgba(120,255,200,0.24);
     }
 
-    /* Layer-specific ON colors (override GREEN for specific toggles) */
     .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
     .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 16px rgba(91,188,255,0.22); }
 
@@ -212,7 +207,6 @@
     .pill.on[data-key="aurora"]     .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 16px rgba(160,120,255,0.18); }
     .pill.on[data-key="nightLights"].dot{ background: rgba(140,255,200,0.92); box-shadow:0 0 16px rgba(140,255,200,0.18); }
 
-    /* Switchboard glow (keep it, but do NOT override dot color) */
     .pill.switch.on{
       border-color: rgba(255,255,255,0.22);
       box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset, 0 0 28px rgba(255,255,255,0.10);
@@ -231,6 +225,7 @@
       text-overflow:ellipsis;
     }
 
+    /* IMPORTANT: error box is ALWAYS visible if there is an error */
     #errors{
       margin-top: 10px;
       display:none;
@@ -243,17 +238,14 @@
       white-space: pre-wrap;
     }
 
-    /* collapsed state */
     #drawer.collapsed #drawerBody,
     #drawer.collapsed #statusBar,
     #drawer.collapsed #errors { display:none; }
     #drawer.collapsed { padding-bottom: 12px; }
 
-    /* Switchboard group hidden by default */
     #switchboardGroup{ display:none; }
     #switchboardGroup.on{ display:block; }
 
-    /* ---------- Modal (Welcome / Mission) ---------- */
     #modalMask{
       position: fixed;
       inset: 0;
@@ -333,7 +325,6 @@
     #missionContent p{ margin: 0 0 12px; color: rgba(255,255,255,0.80); }
 
     @media (max-width: 520px){
-      .gridTop{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .pill{ padding: 12px 12px; border-radius: 16px; font-size: 13px; }
       #drawerBody{ max-height: calc(100vh - 200px); }
       #subtitle{ max-width: 310px; }
@@ -343,20 +334,9 @@
       .gridTop{ grid-template-columns: 1fr; }
     }
   </style>
-
-  <!-- Import Map -->
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
-      }
-    }
-  </script>
 </head>
 
 <body>
-  <!-- Floating open button -->
   <button id="openBtn" aria-label="Open MAP E.D.E.N.">MAP E.D.E.N.</button>
 
   <div id="drawer">
@@ -371,7 +351,6 @@
     </div>
 
     <div id="drawerBody">
-      <!-- Top row: Welcome • Mission • Switchboard -->
       <div class="gridTop">
         <button class="pill" id="welcomeBtn">
           <span class="left"><span class="dot"></span><span class="label">Welcome</span></span>
@@ -387,7 +366,6 @@
         </button>
       </div>
 
-      <!-- Switchboard group -->
       <div id="switchboardGroup">
         <div class="grid2">
           <button class="pill on" data-key="rhumb222"><span class="left"><span class="dot"></span><span class="label">Rhumb 222 SW</span></span></button>
@@ -411,9 +389,10 @@
           <button class="pill on" data-key="nightLights"><span class="left"><span class="dot"></span><span class="label">Night Lights</span></span></button>
           <button class="pill" data-key="perpName"><span class="left"><span class="dot"></span><span class="label">Perp Name</span></span></button>
         </div>
-
-        <div id="errors"></div>
       </div>
+
+      <!-- error box moved OUTSIDE switchboard visibility -->
+      <div id="errors"></div>
     </div>
 
     <div id="statusBar">
@@ -422,7 +401,6 @@
     </div>
   </div>
 
-  <!-- Modal for Welcome / Mission -->
   <div id="modalMask" role="dialog" aria-modal="true" aria-label="MAP E.D.E.N. Modal">
     <div id="modal">
       <div id="modalTop">
@@ -443,16 +421,17 @@
         </div>
       </div>
     </div>
-  </div>
+  </div
 
-<!--============ PART 1 END — PASTE PART 2 NEXT (do NOT add anything between) ============ --
-  <script type="module">
-    import * as THREE from "three";
-    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
-    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
-    import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
-    import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
-    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+
+      <script type="module">
+    // ✅ iPhone/GitHub Pages safe imports (no importmap)
+    import * as THREE from "https://unpkg.com/three@0.161.0/build/three.module.js";
+    import { EffectComposer } from "https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/EffectComposer.js";
+    import { RenderPass } from "https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/RenderPass.js";
+    import { ShaderPass } from "https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/ShaderPass.js";
+    import { OutputPass } from "https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/OutputPass.js";
+    import { UnrealBloomPass } from "https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/UnrealBloomPass.js";
 
     // ---------- UI ----------
     const statusEl   = document.getElementById("status");
@@ -478,7 +457,7 @@
       if (!errorsEl) return;
       errorsEl.style.display = "block";
       errorsEl.textContent += (errorsEl.textContent ? "\n\n" : "") + msg;
-      statusEl.textContent = "Error (see panel)";
+      statusEl.textContent = "Error (see red box)";
     }
     window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
     window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
@@ -492,15 +471,11 @@
     closeBtn.addEventListener("click", () => setDrawerClosed(true));
     handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
 
-    // ---- Button “green light” behavior for Welcome / Mission / Switchboard ----
     function setTopButtonState(which){
-      // which: "welcome" | "mission" | null
       welcomeBtn.classList.toggle("on", which === "welcome");
       missionBtn.classList.toggle("on", which === "mission");
-      // Switchboard handled separately via setSwitchboard()
     }
 
-    // Modal controls
     function openModal(kind){
       modalMask.classList.add("on");
       if (kind === "welcome"){
@@ -526,11 +501,10 @@
     welcomeBtn.addEventListener("click", ()=>openModal("welcome"));
     missionBtn.addEventListener("click", ()=>openModal("mission"));
 
-    // Switchboard (only show layer toggles when ON)
     let switchboardOn = false;
     function setSwitchboard(on){
       switchboardOn = !!on;
-      switchBtn.classList.toggle("on", switchboardOn);   // ✅ green dot when ON
+      switchBtn.classList.toggle("on", switchboardOn);
       switchGrp.classList.toggle("on", switchboardOn);
       switchHint.textContent = switchboardOn ? "Tap to close" : "Tap to open";
     }
@@ -560,7 +534,6 @@
       const lat0 = lat0Deg * DEG;
       const lon0 = lon0Deg * DEG;
       const brng = bearingDeg * DEG;
-
       const pts = [];
       for(let d=-180; d<=180; d+=stepDeg){
         const δ = d * DEG;
@@ -619,7 +592,6 @@
       return g;
     }
 
-    // Text-only sprite (no box)
     function makeTextSprite(text, {
       fontSize=22,
       color="rgba(255,255,255,0.92)",
@@ -657,7 +629,6 @@
       return spr;
     }
 
-    // ---------- Fallback textures ----------
     function solidTexture(hex="#222"){
       const c=document.createElement("canvas");
       c.width=2; c.height=2;
@@ -787,7 +758,6 @@
         sunLight.position.set(5, 1.5, 2.5);
         scene.add(sunLight);
 
-        // Texture URLs (3 CDNs)
         const BASES = [
           "https://threejs.org/examples/textures/",
           "https://unpkg.com/three@0.161.0/examples/textures/",
@@ -821,7 +791,6 @@
         const earthRadius = 1.0;
         const SEG = 96;
 
-        // Earth shader
         const earthUniforms = {
           dayMap:    { value: dayMap },
           specMap:   { value: specMap },
@@ -888,7 +857,6 @@
 
         const earth = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, SEG, SEG), earthMat);
 
-        // Night lights (toggleable)
         const lightsUniforms = {
           nightMap: { value: nightMap },
           sunDir:   { value: new THREE.Vector3(1,0,0) },
@@ -941,7 +909,6 @@
           })
         );
 
-        // Clouds
         const cloudShadow = new THREE.Mesh(
           new THREE.SphereGeometry(earthRadius * 1.0015, SEG, SEG),
           new THREE.MeshBasicMaterial({
@@ -964,7 +931,6 @@
           })
         );
 
-        // Atmosphere
         const atmoUniforms = {
           sunDir:    { value: new THREE.Vector3(1,0,0) },
           cameraPos: { value: new THREE.Vector3() }
@@ -1011,12 +977,11 @@
           })
         );
 
-        // Globe group
         globe = new THREE.Group();
         globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
         scene.add(globe);
 
-        // --------- Overlays ----------
+        // --- overlays (same as before) ---
         const overlays = {
           rhumb222: new THREE.Group(),
           rhumb42:  new THREE.Group(),
@@ -1034,7 +999,6 @@
         };
         Object.values(overlays).forEach(g => globe.add(g));
 
-        // Anchor: 38°9′39″ N, 79°4′24″ W
         const ANCHOR = { name: "Exit 222 • Station 1", lat: 38.1608333333, lon: -79.0733333333 };
         const BEAR_222 = 222;
         const BEAR_42  = 42;
@@ -1051,11 +1015,9 @@
 
         overlays.gc222.add(makeGlowTube(gc222, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.28));
         overlays.rhumb222.add(makeGlowTube(rh222, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.26));
-
         overlays.gc42.add(makeGlowTube(gc42, 0.0032, 0x5bbcff, 0x5bbcff, 0.55, 0.20));
         overlays.rhumb42.add(makeGlowTube(rh42, 0.0032, 0xf6c24a, 0xf6c24a, 0.55, 0.18));
 
-        // Perpendicular controls 132/312
         function arcFromBearing(bearingDeg){
           const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, bearingDeg, 1.2)
             .filter((_, i) => i > 40 && i < 260)
@@ -1064,7 +1026,6 @@
         }
         overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
-        // Names
         {
           const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 7, glow:"rgba(246,194,74,0.18)" });
           n222.position.copy(latLonToVec3(18, -18, earthRadius*1.10));
@@ -1079,7 +1040,6 @@
           overlays.perpName.add(pLabel);
         }
 
-        // Continents
         const CONT = [
           { name:"North America", lat: 45,  lon:-102 },
           { name:"South America", lat:-16,  lon:-60 },
@@ -1095,7 +1055,6 @@
           overlays.continents.add(s);
         }
 
-        // Corridors ±1/±5/±10 km
         const kmToUnit = (km)=> (km/6371)*earthRadius;
         const corridorRadii = [
           { km: 1,  r: kmToUnit(1),  o: 0.16 },
@@ -1109,7 +1068,6 @@
           overlays.corridors.add(makeGlowTube(rh42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.75));
         }
 
-        // Station 1 marker
         function makeStationMarker(label, lat, lon, color=0x7fffd4){
           const g = new THREE.Group();
           const p = latLonToVec3(lat, lon, earthRadius*1.02);
@@ -1132,7 +1090,6 @@
         }
         overlays.stations.add(makeStationMarker("Exit 222 • Station 1", ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
 
-        // Magnetic field preview (simple dipole lines)
         function makeDipoleFieldLines(){
           const g = new THREE.Group();
           const col = 0x5bbcff;
@@ -1167,7 +1124,6 @@
         }
         overlays.magField.add(makeDipoleFieldLines());
 
-        // Aurora belt preview
         function makeAuroraBelt(latDeg=67, color=0xa078ff){
           const g = new THREE.Group();
           for (const lat of [latDeg, -latDeg]){
@@ -1179,7 +1135,7 @@
         }
         overlays.aurora.add(makeAuroraBelt(67));
 
-        // --------- Bloom (selective) ----------
+        // --------- Bloom ----------
         const BLOOM_LAYER = 1;
         const bloomLayer = new THREE.Layers(); bloomLayer.set(BLOOM_LAYER);
 
@@ -1205,8 +1161,8 @@
         }
 
         const renderScene = new RenderPass(scene, camera);
-
         bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.10, 0.85, 0.10);
+
         bloomComposer = new EffectComposer(renderer);
         bloomComposer.renderToScreen = false;
         bloomComposer.addPass(renderScene);
@@ -1286,7 +1242,7 @@
           });
         });
 
-        // --------- Interaction (drag + pinch) ----------
+        // --------- Interaction ----------
         let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
         const AUTO_SPIN=0.0012, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
 
@@ -1354,20 +1310,16 @@
           camera.position.z = clamp(camera.position.z + (e.deltaY * 0.0025), Z_MIN, Z_MAX);
         }, { passive:true });
 
-        // --------- Resize / Orientation ----------
+        // Resize
         let resizeTimer = 0;
         function doResize(){
           if (!renderer || !camera) return;
-
           const w = Math.max(1, window.innerWidth);
           const h = Math.max(1, window.innerHeight);
-
           camera.aspect = w/h;
           camera.updateProjectionMatrix();
-
           renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
           renderer.setSize(w, h, false);
-
           bloomComposer.setSize(w, h);
           finalComposer.setSize(w, h);
           bloomPass.setSize(w, h);
@@ -1384,7 +1336,7 @@
           if (running && !rafId) animate();
         });
 
-        // --------- Animate ----------
+        // Animate
         const sunDrift = 0.00005;
         const cloudSpin = 0.0020;
 
@@ -1424,7 +1376,7 @@
 </body>
 </html>
 
-  <!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
