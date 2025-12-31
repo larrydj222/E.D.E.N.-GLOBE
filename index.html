@@ -14,10 +14,10 @@
         --muted: rgba(255,255,255,0.68);
         --muted2: rgba(255,255,255,0.45);
 
-        --gold: #f6c24a;
-        --blue: #5bbcff;
-        --aqua: #7fffd4;
-        --violet: #a078ff;
+        --gold: #f6c24a;   /* 222 SW Rhumb */
+        --blue: #5bbcff;   /* 222 SW Geodesic */
+        --aqua: #7fffd4;   /* 42 NE Geodesic */
+        --violet: #a078ff; /* 42 NE Rhumb */
       }
 
       html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
@@ -130,7 +130,6 @@
         margin-top: 10px;
       }
 
-      /* ✅ rows are always evenly organized (2 columns) */
       .row{
         display:grid;
         grid-template-columns: 1fr 1fr;
@@ -164,10 +163,15 @@
 
       /* ON colors */
       .pill.on .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 18px rgba(120,255,200,0.30); }
-      .pill.on[data-key="rhumbLine"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 18px rgba(246,194,74,0.30); }
-      .pill.on[data-key="geoLine"]   .dot{ background: rgba(91,188,255,0.90); box-shadow:0 0 18px rgba(91,188,255,0.26); }
-      .pill.on[data-key="stations"]  .dot{ background: rgba(127,255,212,0.86); box-shadow:0 0 18px rgba(127,255,212,0.24); }
-      .pill.on[data-key="aurora"]    .dot{ background: rgba(160,120,255,0.90); box-shadow:0 0 18px rgba(160,120,255,0.26); }
+
+      .pill.on[data-key="rhumbSW"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 18px rgba(246,194,74,0.30); }
+      .pill.on[data-key="geoSW"]   .dot{ background: rgba(91,188,255,0.90); box-shadow:0 0 18px rgba(91,188,255,0.26); }
+
+      .pill.on[data-key="rhumbNE"] .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 18px rgba(160,120,255,0.26); }
+      .pill.on[data-key="geoNE"]   .dot{ background: rgba(127,255,212,0.90); box-shadow:0 0 18px rgba(127,255,212,0.24); }
+
+      .pill.on[data-key="stations"] .dot{ background: rgba(127,255,212,0.86); box-shadow:0 0 18px rgba(127,255,212,0.24); }
+      .pill.on[data-key="aurora"]   .dot{ background: rgba(160,120,255,0.90); box-shadow:0 0 18px rgba(160,120,255,0.26); }
 
       #statusLine{
         margin-top:10px;
@@ -234,34 +238,43 @@
       </div>
 
       <div id="rowWrap">
+        <!-- ✅ 222 SW + 42 NE (Rhumb) -->
         <div class="row">
-          <button class="pill on" data-key="rhumbLine"><span class="dot"></span>Rhumb 222°</button>
-          <button class="pill" data-key="rhumbName"><span class="dot"></span>Rhumb Name</button>
+          <button class="pill on" data-key="rhumbSW"><span class="dot"></span>Rhumb 222 SW</button>
+          <button class="pill" data-key="rhumbNE"><span class="dot"></span>Rhumb 42 NE</button>
         </div>
 
+        <!-- ✅ 222 SW + 42 NE (Geodesic / Great Circle) -->
         <div class="row">
-          <button class="pill on" data-key="geoLine"><span class="dot"></span>Geodesic 222°</button>
-          <button class="pill" data-key="geoName"><span class="dot"></span>Geo Name</button>
+          <button class="pill on" data-key="geoSW"><span class="dot"></span>Great Circle 222 SW</button>
+          <button class="pill" data-key="geoNE"><span class="dot"></span>Great Circle 42 NE</button>
         </div>
 
+        <!-- ✅ Names per axis -->
+        <div class="row">
+          <button class="pill" data-key="namesSW"><span class="dot"></span>Names 222 SW</button>
+          <button class="pill" data-key="namesNE"><span class="dot"></span>Names 42 NE</button>
+        </div>
+
+        <!-- Optional overlays -->
         <div class="row">
           <button class="pill" data-key="perpLine"><span class="dot"></span>Perpendiculars</button>
-          <button class="pill" data-key="perpName"><span class="dot"></span>Perp Name</button>
-        </div>
-
-        <div class="row">
           <button class="pill" data-key="continents"><span class="dot"></span>Continents</button>
-          <button class="pill" data-key="corridors"><span class="dot"></span>Corridors</button>
         </div>
 
         <div class="row">
           <button class="pill on" data-key="stations"><span class="dot"></span>Stations</button>
-          <button class="pill" data-key="magField"><span class="dot"></span>Magnetic Field</button>
+          <button class="pill" data-key="corridors"><span class="dot"></span>Corridors</button>
         </div>
 
         <div class="row">
+          <button class="pill" data-key="magField"><span class="dot"></span>Magnetic Field</button>
           <button class="pill" data-key="aurora"><span class="dot"></span>Aurora</button>
-          <button class="pill" data-key="nightLights"><span class="dot"></span>Night Lights</button>
+        </div>
+
+        <div class="row">
+          <button class="pill on" data-key="nightLights"><span class="dot"></span>Night Lights</button>
+          <button class="pill" data-key="perpName"><span class="dot"></span>Perp Name</button>
         </div>
 
         <div id="statusLine">
@@ -414,7 +427,7 @@
         return spr;
       }
 
-      /* --------- Fallback textures (always renders) ---------- */
+      /* --------- Fallback textures ---------- */
       function solidTexture(hex="#222"){
         const c=document.createElement("canvas");
         c.width=2; c.height=2;
@@ -447,11 +460,9 @@
         c.width=1024; c.height=512;
         const ctx=c.getContext("2d");
 
-        // ✅ Brighter, bluer ocean base (no outlines)
         ctx.fillStyle="#0b2b66";
         ctx.fillRect(0,0,c.width,c.height);
 
-        // simple land blobs (no strokes)
         ctx.globalAlpha=0.92;
         ctx.fillStyle="#2f7d4a";
         for(let i=0;i<40;i++){
@@ -462,7 +473,6 @@
           ctx.fill();
         }
 
-        // fresh clouds
         ctx.globalAlpha=0.14;
         ctx.fillStyle="#ffffff";
         for(let i=0;i<90;i++){
@@ -522,7 +532,7 @@
             const tex = await tryOne(u);
             tex.colorSpace = THREE.SRGBColorSpace;
             return tex;
-          } catch { /* keep trying */ }
+          } catch { /* try next */ }
         }
 
         showError(`Texture fallback used for: ${label}\n(Your CDNs blocked/failed on this device/network)`);
@@ -543,10 +553,7 @@
           renderer.setSize(innerWidth, innerHeight);
           renderer.outputColorSpace = THREE.SRGBColorSpace;
           renderer.toneMapping = THREE.ACESFilmicToneMapping;
-
-          /* ✅ Brighter globe overall */
-          renderer.toneMappingExposure = 1.22;
-
+          renderer.toneMappingExposure = 1.22; // brighter
           document.body.appendChild(renderer.domElement);
 
           scene.add(new THREE.AmbientLight(0xffffff, 0.20));
@@ -587,18 +594,19 @@
           const earthRadius = 1.0;
           const SEG = 96;
 
-          /* ✅ Station 1 locked to DMS:
-             38°9′39″ N  = 38.1608333333
-             79°4′24″ W  = -79.0733333333
-          */
+          // Station 1 locked to DMS:
+          // 38°9′39″ N  = 38.1608333333
+          // 79°4′24″ W  = -79.0733333333
           const STATION_1 = {
             name: "Exit 222 • Station 1",
             lat: 38.1608333333,
             lon: -79.0733333333
           };
-          const BEARING = 222;
 
-          // Earth shader (brighter + bluer oceans + higher clarity)
+          const BEARING_SW = 222; // SW
+          const BEARING_NE = 42;  // NE
+
+          // Earth shader
           const earthUniforms = {
             dayMap:    { value: dayMap },
             specMap:   { value: specMap },
@@ -640,12 +648,10 @@
 
                 vec3 dayCol = srgbToLinear(texture2D(dayMap, vUv).rgb);
 
-                // ✅ vibrance + brightness
                 float lum = dot(dayCol, vec3(0.2126,0.7152,0.0722));
                 vec3 sat = mix(vec3(lum), dayCol, 1.18);
                 vec3 c = pow(max(sat, 0.0), vec3(0.88));
 
-                // ✅ ocean tint (heuristic: darker areas tend to be ocean)
                 float oceanMask = smoothstep(0.0, 0.25, 0.25 - lum);
                 c = mix(c, c * vec3(0.86, 0.95, 1.28), oceanMask * 0.65);
 
@@ -670,7 +676,7 @@
 
           const earth = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, SEG, SEG), earthMat);
 
-          // Night lights (additive) — now toggleable
+          // Night lights mesh (toggleable overlay group)
           const lightsUniforms = {
             nightMap: { value: nightMap },
             sunDir:   { value: new THREE.Vector3(1,0,0) },
@@ -723,7 +729,7 @@
             })
           );
 
-          // Clouds (fresh + brighter)
+          // Clouds
           const cloudShadow = new THREE.Mesh(
             new THREE.SphereGeometry(earthRadius * 1.0015, SEG, SEG),
             new THREE.MeshBasicMaterial({
@@ -797,16 +803,20 @@
 
           // Globe group
           const globe = new THREE.Group();
-          globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
+          globe.add(earth, cloudShadow, clouds, atmosphere);
           scene.add(globe);
 
-          // --------- Layers / overlays ----------
+          // --------- Overlays ----------
           const overlays = {
-            rhumbLine: new THREE.Group(),
-            geoLine: new THREE.Group(),
+            rhumbSW: new THREE.Group(),
+            geoSW: new THREE.Group(),
+            namesSW: new THREE.Group(),
+
+            rhumbNE: new THREE.Group(),
+            geoNE: new THREE.Group(),
+            namesNE: new THREE.Group(),
+
             perpLine: new THREE.Group(),
-            rhumbName: new THREE.Group(),
-            geoName: new THREE.Group(),
             perpName: new THREE.Group(),
             continents: new THREE.Group(),
             stations: new THREE.Group(),
@@ -817,20 +827,43 @@
           };
           Object.values(overlays).forEach(g => globe.add(g));
 
-          // Place nightLights mesh into an overlay group so we can toggle it cleanly
           overlays.nightLights.add(nightLights);
 
-          // Geodesic (great circle)
-          const gc = greatCirclePoints(STATION_1.lat, STATION_1.lon, BEARING, 1.0)
+          // Build axis lines
+          const gcSW = greatCirclePoints(STATION_1.lat, STATION_1.lon, BEARING_SW, 1.0)
             .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
-          overlays.geoLine.add(makeGlowTube(gc, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.30));
-
-          // Rhumb
-          const rh = rhumbPoints(STATION_1.lat, STATION_1.lon, BEARING, 240)
+          const rhSW = rhumbPoints(STATION_1.lat, STATION_1.lon, BEARING_SW, 240)
             .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
-          overlays.rhumbLine.add(makeGlowTube(rh, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.28));
 
-          // Perpendiculars (132 / 312)
+          const gcNE = greatCirclePoints(STATION_1.lat, STATION_1.lon, BEARING_NE, 1.0)
+            .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+          const rhNE = rhumbPoints(STATION_1.lat, STATION_1.lon, BEARING_NE, 240)
+            .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+
+          // 222 SW
+          overlays.geoSW.add(makeGlowTube(gcSW, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.30));
+          overlays.rhumbSW.add(makeGlowTube(rhSW, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.28));
+
+          // 42 NE
+          overlays.geoNE.add(makeGlowTube(gcNE, 0.0032, 0x7fffd4, 0x7fffd4, 1.0, 0.28));
+          overlays.rhumbNE.add(makeGlowTube(rhNE, 0.0032, 0xa078ff, 0xa078ff, 1.0, 0.26));
+
+          // Axis name labels (grouped per bearing)
+          {
+            const sw1 = makeLabelSprite("Rhumb 222 SW", { bg:"rgba(246,194,74,0.12)", opacity: 0.70 });
+            sw1.position.copy(latLonToVec3(22, -35, earthRadius*1.10));
+            const sw2 = makeLabelSprite("Great Circle 222 SW", { bg:"rgba(91,188,255,0.12)", opacity: 0.70 });
+            sw2.position.copy(latLonToVec3(-8, 60, earthRadius*1.10));
+            overlays.namesSW.add(sw1, sw2);
+
+            const ne1 = makeLabelSprite("Rhumb 42 NE", { bg:"rgba(160,120,255,0.12)", opacity: 0.70 });
+            ne1.position.copy(latLonToVec3(35, 105, earthRadius*1.10));
+            const ne2 = makeLabelSprite("Great Circle 42 NE", { bg:"rgba(127,255,212,0.12)", opacity: 0.70 });
+            ne2.position.copy(latLonToVec3(-20, -120, earthRadius*1.10));
+            overlays.namesNE.add(ne1, ne2);
+          }
+
+          // Perpendiculars (132 / 312) relative to SW axis anchor
           function arcFromBearing(bearingDeg){
             const pts = greatCirclePoints(STATION_1.lat, STATION_1.lon, bearingDeg, 1.2)
               .filter((_, i) => i > 40 && i < 260)
@@ -839,22 +872,13 @@
           }
           overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
-          // Names
           {
-            const rLabel = makeLabelSprite("Rhumb 222°", { bg:"rgba(246,194,74,0.12)" });
-            rLabel.position.copy(latLonToVec3(25, -20, earthRadius*1.10));
-            overlays.rhumbName.add(rLabel);
-
-            const gLabel = makeLabelSprite("Geodesic 222°", { bg:"rgba(91,188,255,0.12)" });
-            gLabel.position.copy(latLonToVec3(-10, 70, earthRadius*1.10));
-            overlays.geoName.add(gLabel);
-
-            const pLabel = makeLabelSprite("132° / 312°", { bg:"rgba(91,188,255,0.10)" });
+            const pLabel = makeLabelSprite("132° / 312°", { bg:"rgba(91,188,255,0.10)", opacity: 0.70 });
             pLabel.position.copy(latLonToVec3(55, 110, earthRadius*1.11));
             overlays.perpName.add(pLabel);
           }
 
-          // Continents (labels only — no outlines)
+          // Continents (labels only)
           const CONT = [
             { name:"North America", lat: 45,  lon:-102 },
             { name:"South America", lat:-16,  lon:-60 },
@@ -865,24 +889,27 @@
             { name:"Antarctica",    lat:-80,  lon:  0 }
           ];
           for (const c of CONT){
-            const s = makeLabelSprite(c.name, { bg:"rgba(0,0,0,0.22)" });
+            const s = makeLabelSprite(c.name, { bg:"rgba(0,0,0,0.22)", opacity: 0.64 });
             s.position.copy(latLonToVec3(c.lat, c.lon, earthRadius*1.10));
             overlays.continents.add(s);
           }
 
-          // Corridors (±1/±5/±10 km)
+          // Corridors (±1/±5/±10 km) around BOTH axes
           const kmToUnit = (km)=> (km/6371)*earthRadius;
           const corridorRadii = [
-            { km: 1,  r: kmToUnit(1),  o: 0.18 },
-            { km: 5,  r: kmToUnit(5),  o: 0.10 },
-            { km: 10, r: kmToUnit(10), o: 0.07 }
+            { km: 1,  r: kmToUnit(1),  o: 0.16 },
+            { km: 5,  r: kmToUnit(5),  o: 0.09 },
+            { km: 10, r: kmToUnit(10), o: 0.06 }
           ];
           for (const c of corridorRadii){
-            overlays.corridors.add(makeGlowTube(gc, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
-            overlays.corridors.add(makeGlowTube(rh, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
+            overlays.corridors.add(makeGlowTube(gcSW, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
+            overlays.corridors.add(makeGlowTube(rhSW, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
+
+            overlays.corridors.add(makeGlowTube(gcNE, c.r, 0x7fffd4, 0x7fffd4, 0.0, c.o*0.9));
+            overlays.corridors.add(makeGlowTube(rhNE, c.r, 0xa078ff, 0xa078ff, 0.0, c.o*0.85));
           }
 
-          // ✅ Stations (ONLY ONE)
+          // Station (only one)
           function makeStationMarker(label, lat, lon, color=0x7fffd4){
             const g = new THREE.Group();
             const p = latLonToVec3(lat, lon, earthRadius*1.02);
@@ -897,7 +924,7 @@
             );
             glow.position.copy(p);
 
-            const tag = makeLabelSprite(label, { fontSize: 28, bg:"rgba(0,0,0,0.26)", opacity: 0.70 });
+            const tag = makeLabelSprite(label, { fontSize: 28, bg:"rgba(0,0,0,0.26)", opacity: 0.72 });
             tag.position.copy(latLonToVec3(lat, lon, earthRadius*1.12));
 
             g.add(glow, pin, tag);
@@ -905,7 +932,7 @@
           }
           overlays.stations.add(makeStationMarker(STATION_1.name, STATION_1.lat, STATION_1.lon, 0x7fffd4));
 
-          // Magnetic field (simple dipole preview)
+          // Magnetic field (dipole preview)
           function makeDipoleFieldLines(){
             const g = new THREE.Group();
             const col = 0x5bbcff;
@@ -940,7 +967,7 @@
           }
           overlays.magField.add(makeDipoleFieldLines());
 
-          // Aurora (belt preview)
+          // Aurora belt
           function makeAuroraBelt(latDeg=67, color=0xa078ff){
             const g = new THREE.Group();
             for (const lat of [latDeg, -latDeg]){
@@ -956,10 +983,9 @@
           const BLOOM_LAYER = 1;
           const bloomLayer = new THREE.Layers(); bloomLayer.set(BLOOM_LAYER);
 
-          // bloom-worthy
           atmosphere.layers.enable(BLOOM_LAYER);
           overlays.nightLights.traverse(o => o.layers && o.layers.enable(BLOOM_LAYER));
-          [overlays.rhumbLine, overlays.geoLine, overlays.perpLine, overlays.corridors, overlays.aurora].forEach(g=>{
+          [overlays.rhumbSW, overlays.geoSW, overlays.rhumbNE, overlays.geoNE, overlays.perpLine, overlays.corridors, overlays.aurora].forEach(g=>{
             g.traverse(o => o.layers && o.layers.enable(BLOOM_LAYER));
           });
 
@@ -980,7 +1006,6 @@
           }
 
           const renderScene = new RenderPass(scene, camera);
-
           const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.25, 0.85, 0.10);
 
           const bloomComposer = new EffectComposer(renderer);
@@ -1076,10 +1101,14 @@
 
           // --------- Toggles ----------
           const state = {
-            rhumbLine: true,
-            rhumbName: false,
-            geoLine: true,
-            geoName: false,
+            rhumbSW: true,
+            geoSW: true,
+            namesSW: false,
+
+            rhumbNE: false,
+            geoNE: false,
+            namesNE: false,
+
             perpLine: false,
             perpName: false,
             continents: false,
@@ -1091,17 +1120,21 @@
           };
 
           function applyVisibility(){
-            overlays.rhumbLine.visible = state.rhumbLine;
-            overlays.rhumbName.visible = state.rhumbName;
-            overlays.geoLine.visible   = state.geoLine;
-            overlays.geoName.visible   = state.geoName;
-            overlays.perpLine.visible  = state.perpLine;
-            overlays.perpName.visible  = state.perpName;
-            overlays.continents.visible= state.continents;
-            overlays.stations.visible  = state.stations;
+            overlays.rhumbSW.visible = state.rhumbSW;
+            overlays.geoSW.visible   = state.geoSW;
+            overlays.namesSW.visible = state.namesSW;
+
+            overlays.rhumbNE.visible = state.rhumbNE;
+            overlays.geoNE.visible   = state.geoNE;
+            overlays.namesNE.visible = state.namesNE;
+
+            overlays.perpLine.visible = state.perpLine;
+            overlays.perpName.visible = state.perpName;
+            overlays.continents.visible = state.continents;
+            overlays.stations.visible = state.stations;
             overlays.corridors.visible = state.corridors;
-            overlays.magField.visible  = state.magField;
-            overlays.aurora.visible    = state.aurora;
+            overlays.magField.visible = state.magField;
+            overlays.aurora.visible = state.aurora;
             overlays.nightLights.visible = state.nightLights;
           }
           applyVisibility();
@@ -1126,7 +1159,6 @@
           const sunDrift = 0.00005;
           const cloudSpin = 0.00185;
 
-          // status shows exact locked coordinate
           statusEl.textContent =
             `Exit 222 • Station 1 @ ${STATION_1.lat.toFixed(6)}, ${STATION_1.lon.toFixed(6)}`;
 
