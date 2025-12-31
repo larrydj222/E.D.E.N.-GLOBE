@@ -500,7 +500,7 @@
         welcomeFrame.style.display = "block";
 
         // Drop-in HTML file (put this file next to this globe HTML in your repo)
-        const WELCOME_FILE = "MAP E.D.E.N. ( Welcome Page ) .html";
+        const WELCOME_FILE = "welcome.html";
         welcomeFrame.src = encodeURI(WELCOME_FILE);
       } else {
         modalTitle.textContent = "MISSION";
@@ -1266,7 +1266,7 @@
         }
 
         function setPill(key, on){
-          const b = document.querySelector(`.pill[data-key="${key}"]`);
+          const b = document.querySelector(\`.pill[data-key="\${key}"]\`);
           if (b) b.classList.toggle("on", !!on);
         }
         Object.keys(state).forEach(k => setPill(k, state[k]));
