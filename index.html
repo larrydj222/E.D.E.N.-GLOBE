@@ -15,8 +15,8 @@
         --muted2: rgba(255,255,255,0.45);
 
         --gold: #f6c24a;   /* 222 SW Rhumb */
-        --blue: #5bbcff;   /* 222 SW Geodesic */
-        --aqua: #7fffd4;   /* 42 NE Geodesic */
+        --blue: #5bbcff;   /* 222 SW Great Circle */
+        --aqua: #7fffd4;   /* 42 NE Great Circle */
         --violet: #a078ff; /* 42 NE Rhumb */
       }
 
@@ -135,6 +135,9 @@
         grid-template-columns: 1fr 1fr;
         gap:10px;
       }
+      .row.single{
+        grid-template-columns: 1fr;
+      }
 
       .pill{
         width: 100%;
@@ -154,6 +157,17 @@
       }
       .pill:active { transform: translateY(1px); }
 
+      .pill.parent{
+        justify-content:space-between;
+        background: rgba(255,255,255,0.07);
+        border-color: rgba(255,255,255,0.18);
+      }
+      .pill.parent .rightHint{
+        font: 800 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+        color: rgba(255,255,255,0.68);
+        letter-spacing: 0.2px;
+      }
+
       .dot {
         width: 10px; height: 10px;
         border-radius: 50%;
@@ -170,8 +184,9 @@
       .pill.on[data-key="rhumbNE"] .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 18px rgba(160,120,255,0.26); }
       .pill.on[data-key="geoNE"]   .dot{ background: rgba(127,255,212,0.90); box-shadow:0 0 18px rgba(127,255,212,0.24); }
 
-      .pill.on[data-key="stations"] .dot{ background: rgba(127,255,212,0.86); box-shadow:0 0 18px rgba(127,255,212,0.24); }
+      .pill.on[data-key="stations"] .dot{ background: rgba(127,255,212,0.86); box-shadow: 0 0 18px rgba(127,255,212,0.24); }
       .pill.on[data-key="aurora"]   .dot{ background: rgba(160,120,255,0.90); box-shadow:0 0 18px rgba(160,120,255,0.26); }
+      .pill.on[data-key="nightLights"] .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 18px rgba(120,255,200,0.30); }
 
       #statusLine{
         margin-top:10px;
@@ -197,7 +212,12 @@
         white-space: pre-wrap;
       }
 
-      /* collapsed state */
+      /* ---------- Parent button behavior ---------- */
+      /* Compact = ONLY the parent button shows; status line still shows */
+      #rowWrap.compact .row:not(.parentRow){ display:none; }
+      #rowWrap.compact #errors{ display:none !important; }
+
+      /* Existing drawer collapse (drag handle) stays available */
       #drawer.collapsed #rowWrap,
       #drawer.collapsed #statusLine,
       #drawer.collapsed #errors { display:none; }
@@ -237,7 +257,18 @@
         <button id="closeBtn" aria-label="Close drawer" title="Close">✕</button>
       </div>
 
-      <div id="rowWrap">
+      <div id="rowWrap" class="compact">
+        <!-- ✅ Parent button (clever theme name) -->
+        <div class="row single parentRow">
+          <button class="pill parent" id="parentBtn">
+            <span style="display:inline-flex;align-items:center;gap:10px;">
+              <span class="dot" style="background:rgba(255,255,255,0.22)"></span>
+              Switchboard
+            </span>
+            <span class="rightHint" id="parentHint">Tap to open</span>
+          </button>
+        </div>
+
         <!-- ✅ 222 SW + 42 NE (Rhumb) -->
         <div class="row">
           <button class="pill on" data-key="rhumbSW"><span class="dot"></span>Rhumb 222 SW</button>
@@ -290,6 +321,9 @@
       const statusEl = document.getElementById("status");
       const errorsEl = document.getElementById("errors");
       const drawerEl = document.getElementById("drawer");
+      const rowWrapEl = document.getElementById("rowWrap");
+      const parentBtn = document.getElementById("parentBtn");
+      const parentHint = document.getElementById("parentHint");
       const openBtn = document.getElementById("openBtn");
       const closeBtn = document.getElementById("closeBtn");
       const handle = document.getElementById("handle");
@@ -298,6 +332,10 @@
         errorsEl.style.display = "block";
         errorsEl.textContent += (errorsEl.textContent ? "\n\n" : "") + msg;
         statusEl.textContent = "Error (see panel)";
+      }
+      function notice(msg){
+        // non-error info: keep UI clean (no red error box)
+        statusEl.textContent = msg;
       }
       window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
       window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
@@ -310,6 +348,18 @@
       openBtn.addEventListener("click", () => setDrawerClosed(false));
       closeBtn.addEventListener("click", () => setDrawerClosed(true));
       handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
+
+      // ✅ Parent button toggles ALL layer buttons visibility
+      function setPanelOpen(isOpen){
+        rowWrapEl.classList.toggle("compact", !isOpen);
+        parentHint.textContent = isOpen ? "Tap to close" : "Tap to open";
+      }
+      // Start compact (parent only)
+      setPanelOpen(false);
+      parentBtn.addEventListener("click", () => {
+        const isOpen = rowWrapEl.classList.contains("compact");
+        setPanelOpen(isOpen);
+      });
 
       import * as THREE from "three";
       import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
@@ -399,7 +449,7 @@
         return g;
       }
 
-      function makeLabelSprite(text, {fontSize=30, padding=16, color="#fff", bg="rgba(0,0,0,0.22)", opacity=0.62, scale=0.0052} = {}){
+      function makeLabelSprite(text, {fontSize=30, padding=16, color="#fff", bg="rgba(0,0,0,0.22)", opacity=0.64, scale=0.0052} = {}){
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
         ctx.font = `800 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
@@ -425,6 +475,11 @@
         const spr = new THREE.Sprite(mat);
         spr.scale.set(w*scale, h*scale, 1);
         return spr;
+      }
+
+      /* ✅ Names should look EXACTLY like Continents: same style */
+      function makeNameSprite(text){
+        return makeLabelSprite(text, { bg:"rgba(0,0,0,0.22)", opacity:0.64, color:"#fff" });
       }
 
       /* --------- Fallback textures ---------- */
@@ -535,7 +590,8 @@
           } catch { /* try next */ }
         }
 
-        showError(`Texture fallback used for: ${label}\n(Your CDNs blocked/failed on this device/network)`);
+        // ✅ No red error box for CDN issues; keep it clean.
+        notice(`Using fallback texture: ${label}`);
         return fallbackTex;
       }
 
@@ -553,11 +609,12 @@
           renderer.setSize(innerWidth, innerHeight);
           renderer.outputColorSpace = THREE.SRGBColorSpace;
           renderer.toneMapping = THREE.ACESFilmicToneMapping;
-          renderer.toneMappingExposure = 1.22; // brighter
+          renderer.toneMappingExposure = 1.18;
           document.body.appendChild(renderer.domElement);
 
           scene.add(new THREE.AmbientLight(0xffffff, 0.20));
           const sunLight = new THREE.DirectionalLight(0xffffff, 1.45);
+          // Keep as-is but slightly less "all day" washout
           sunLight.position.set(5, 1.5, 2.5);
           scene.add(sunLight);
 
@@ -657,7 +714,7 @@
 
                 float specMask = texture2D(specMap, vUv).r;
                 float ndl = dot(N, L);
-                float dayAmt = smoothstep(-0.05, 0.15, ndl);
+                float dayAmt = smoothstep(-0.06, 0.18, ndl);
 
                 vec3 nightBase = c * 0.10;
                 vec3 col = mix(nightBase, c, dayAmt);
@@ -676,15 +733,15 @@
 
           const earth = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, SEG, SEG), earthMat);
 
-          // Night lights mesh (toggleable overlay group)
+          // ✅ Night lights mesh (stronger + slightly above surface so it shows)
           const lightsUniforms = {
             nightMap: { value: nightMap },
             sunDir:   { value: new THREE.Vector3(1,0,0) },
-            gain:     { value: 2.7 }
+            gain:     { value: 4.6 } // stronger than before so it’s obvious when ON
           };
 
           const nightLights = new THREE.Mesh(
-            new THREE.SphereGeometry(earthRadius * 1.001, SEG, SEG),
+            new THREE.SphereGeometry(earthRadius * 1.004, SEG, SEG),
             new THREE.ShaderMaterial({
               uniforms: lightsUniforms,
               transparent: true,
@@ -714,12 +771,15 @@
                   vec3 N = normalize(vNormalW);
                   vec3 L = normalize(sunDir);
 
+                  // wider twilight band so lights show sooner near the terminator
                   float ndl = dot(N, L);
-                  float dayAmt = smoothstep(-0.05, 0.15, ndl);
+                  float dayAmt = smoothstep(-0.18, 0.28, ndl);
                   float nightAmt = 1.0 - dayAmt;
 
                   vec3 lights = srgbToLinear(texture2D(nightMap, vUv).rgb) * gain;
-                  float mask = smoothstep(0.05, 0.35, nightAmt);
+
+                  // make sure the ON effect is visible (even slightly into twilight)
+                  float mask = smoothstep(0.06, 0.55, nightAmt);
 
                   vec3 col = lights * mask;
                   float a = clamp(max(max(col.r, col.g), col.b), 0.0, 1.0);
@@ -806,6 +866,10 @@
           globe.add(earth, cloudShadow, clouds, atmosphere);
           scene.add(globe);
 
+          // Start the globe facing the station (so Night Lights is immediately “findable”)
+          // Approx rotate so lon -79 comes forward
+          globe.rotation.y = (90 - STATION_1.lon) * DEG;
+
           // --------- Overlays ----------
           const overlays = {
             rhumbSW: new THREE.Group(),
@@ -848,22 +912,23 @@
           overlays.geoNE.add(makeGlowTube(gcNE, 0.0032, 0x7fffd4, 0x7fffd4, 1.0, 0.28));
           overlays.rhumbNE.add(makeGlowTube(rhNE, 0.0032, 0xa078ff, 0xa078ff, 1.0, 0.26));
 
-          // Axis name labels (grouped per bearing)
+          // ✅ Axis NAME labels now match Continents exactly (same style)
           {
-            const sw1 = makeLabelSprite("Rhumb 222 SW", { bg:"rgba(246,194,74,0.12)", opacity: 0.70 });
+            // Keep them “just names” (clean)
+            const sw1 = makeNameSprite("Rhumb 222 SW");
             sw1.position.copy(latLonToVec3(22, -35, earthRadius*1.10));
-            const sw2 = makeLabelSprite("Great Circle 222 SW", { bg:"rgba(91,188,255,0.12)", opacity: 0.70 });
+            const sw2 = makeNameSprite("Great Circle 222 SW");
             sw2.position.copy(latLonToVec3(-8, 60, earthRadius*1.10));
             overlays.namesSW.add(sw1, sw2);
 
-            const ne1 = makeLabelSprite("Rhumb 42 NE", { bg:"rgba(160,120,255,0.12)", opacity: 0.70 });
+            const ne1 = makeNameSprite("Rhumb 42 NE");
             ne1.position.copy(latLonToVec3(35, 105, earthRadius*1.10));
-            const ne2 = makeLabelSprite("Great Circle 42 NE", { bg:"rgba(127,255,212,0.12)", opacity: 0.70 });
+            const ne2 = makeNameSprite("Great Circle 42 NE");
             ne2.position.copy(latLonToVec3(-20, -120, earthRadius*1.10));
             overlays.namesNE.add(ne1, ne2);
           }
 
-          // Perpendiculars (132 / 312) relative to SW axis anchor
+          // Perpendiculars (132 / 312)
           function arcFromBearing(bearingDeg){
             const pts = greatCirclePoints(STATION_1.lat, STATION_1.lon, bearingDeg, 1.2)
               .filter((_, i) => i > 40 && i < 260)
@@ -873,7 +938,7 @@
           overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
           {
-            const pLabel = makeLabelSprite("132° / 312°", { bg:"rgba(91,188,255,0.10)", opacity: 0.70 });
+            const pLabel = makeNameSprite("132° / 312°");
             pLabel.position.copy(latLonToVec3(55, 110, earthRadius*1.11));
             overlays.perpName.add(pLabel);
           }
@@ -889,12 +954,12 @@
             { name:"Antarctica",    lat:-80,  lon:  0 }
           ];
           for (const c of CONT){
-            const s = makeLabelSprite(c.name, { bg:"rgba(0,0,0,0.22)", opacity: 0.64 });
+            const s = makeNameSprite(c.name);
             s.position.copy(latLonToVec3(c.lat, c.lon, earthRadius*1.10));
             overlays.continents.add(s);
           }
 
-          // Corridors (±1/±5/±10 km) around BOTH axes
+          // Corridors
           const kmToUnit = (km)=> (km/6371)*earthRadius;
           const corridorRadii = [
             { km: 1,  r: kmToUnit(1),  o: 0.16 },
@@ -909,7 +974,7 @@
             overlays.corridors.add(makeGlowTube(rhNE, c.r, 0xa078ff, 0xa078ff, 0.0, c.o*0.85));
           }
 
-          // Station (only one)
+          // Station marker
           function makeStationMarker(label, lat, lon, color=0x7fffd4){
             const g = new THREE.Group();
             const p = latLonToVec3(lat, lon, earthRadius*1.02);
@@ -924,7 +989,7 @@
             );
             glow.position.copy(p);
 
-            const tag = makeLabelSprite(label, { fontSize: 28, bg:"rgba(0,0,0,0.26)", opacity: 0.72 });
+            const tag = makeNameSprite(label);
             tag.position.copy(latLonToVec3(lat, lon, earthRadius*1.12));
 
             g.add(glow, pin, tag);
@@ -1135,7 +1200,10 @@
             overlays.corridors.visible = state.corridors;
             overlays.magField.visible = state.magField;
             overlays.aurora.visible = state.aurora;
+
+            // ✅ Ensure night lights truly show when ON
             overlays.nightLights.visible = state.nightLights;
+            nightLights.visible = state.nightLights;
           }
           applyVisibility();
 
@@ -1145,13 +1213,17 @@
           }
           Object.keys(state).forEach(k => setPill(k, state[k]));
 
-          document.querySelectorAll(".pill").forEach(btn=>{
+          document.querySelectorAll(".pill[data-key]").forEach(btn=>{
             btn.addEventListener("click", ()=>{
               const key = btn.dataset.key;
               if (!(key in state)) return;
               state[key] = !state[key];
               setPill(key, state[key]);
               applyVisibility();
+
+              if (key === "nightLights"){
+                statusEl.textContent = state.nightLights ? "Night Lights: ON" : "Night Lights: OFF";
+              }
             });
           });
 
