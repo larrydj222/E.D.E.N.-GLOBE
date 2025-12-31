@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
   <head>
@@ -30,7 +29,7 @@
         left: 18px;
         bottom: 18px;
         z-index: 10000;
-        display: none; /* shown only when drawer closed */
+        display: none;
         align-items: center;
         gap: 10px;
         padding: 12px 14px;
@@ -93,11 +92,7 @@
         gap:12px;
       }
 
-      #titleBlock{
-        display:flex;
-        flex-direction:column;
-        gap:4px;
-      }
+      #titleBlock{ display:flex; flex-direction:column; gap:4px; }
 
       #title {
         font: 800 18px/1.1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
@@ -131,15 +126,15 @@
         margin-top: 10px;
       }
 
-      .row {
-        display:flex;
-        flex-wrap:wrap;
+      /* ✅ Make every row a clean 2-up grid so spacing is always equal */
+      .row{
+        display:grid;
+        grid-template-columns: 1fr 1fr;
         gap:10px;
       }
 
-      .pill {
-        flex: 1 1 0;
-        min-width: 160px;
+      .pill{
+        width:100%;
         display:inline-flex;
         align-items:center;
         gap:10px;
@@ -152,17 +147,26 @@
         letter-spacing: 0.15px;
         cursor:pointer;
         -webkit-tap-highlight-color: transparent;
+        min-width:0;
       }
       .pill:active { transform: translateY(1px); }
+
+      /* ✅ Invisible placeholder so single-button rows still align */
+      .pill.spacer{
+        pointer-events:none;
+        opacity:0;
+        border-color:transparent;
+        background:transparent;
+      }
 
       .dot {
         width: 10px; height: 10px;
         border-radius: 50%;
         background: rgba(255,255,255,0.16);
         box-shadow: 0 0 0 rgba(0,0,0,0);
+        flex: 0 0 auto;
       }
 
-      /* ON colors per your screenshot */
       .pill.on .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 18px rgba(120,255,200,0.30); }
       .pill.on[data-key="rhumbLine"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 18px rgba(246,194,74,0.30); }
       .pill.on[data-key="geoLine"]   .dot{ background: rgba(91,188,255,0.90); box-shadow:0 0 18px rgba(91,188,255,0.26); }
@@ -193,18 +197,16 @@
         white-space: pre-wrap;
       }
 
-      /* collapsed state */
       #drawer.collapsed #rowWrap,
       #drawer.collapsed #statusLine,
       #drawer.collapsed #errors { display:none; }
       #drawer.collapsed { padding-bottom: 12px; }
 
       @media (max-width: 420px){
-        .pill { min-width: 140px; padding: 12px 12px; border-radius: 16px; font-size: 13px; }
+        .pill { padding: 12px 12px; border-radius: 16px; font-size: 13px; }
       }
     </style>
 
-    <!-- Import Map -->
     <script type="importmap">
       {
         "imports": {
@@ -250,8 +252,10 @@
           <button class="pill" data-key="perpName"><span class="dot"></span>Perp Name</button>
         </div>
 
+        <!-- ✅ Continents row now matches all others -->
         <div class="row">
           <button class="pill" data-key="continents"><span class="dot"></span>Continents</button>
+          <button class="pill spacer" type="button" aria-hidden="true" tabindex="-1"></button>
         </div>
 
         <div class="row">
@@ -321,11 +325,6 @@
           radius * Math.sin(lat),
           radius * Math.cos(lat) * Math.sin(lon)
         );
-      }
-
-      function vec3ToLatLon(v){
-        const r = v.length();
-        return { lat: Math.asin(v.y/r)*RAD, lon: Math.atan2(v.z,v.x)*RAD };
       }
 
       function greatCirclePoints(lat0Deg, lon0Deg, bearingDeg, stepDeg=1.0){
@@ -419,7 +418,7 @@
         return spr;
       }
 
-      // --------- Fallback textures (so globe always renders) ----------
+      // --------- Fallback textures ----------
       function solidTexture(hex="#222"){
         const c=document.createElement("canvas");
         c.width=2; c.height=2;
@@ -429,7 +428,6 @@
         t.colorSpace=THREE.SRGBColorSpace;
         return t;
       }
-
       function makeFallbackStars(){
         const c=document.createElement("canvas");
         c.width=1024; c.height=1024;
@@ -446,7 +444,6 @@
         t.colorSpace=THREE.SRGBColorSpace;
         return t;
       }
-
       function makeFallbackEarthDay(){
         const c=document.createElement("canvas");
         c.width=1024; c.height=512;
@@ -468,7 +465,6 @@
         t.colorSpace=THREE.SRGBColorSpace;
         return t;
       }
-
       function makeFallbackNight(){
         const c=document.createElement("canvas");
         c.width=1024; c.height=512;
@@ -484,7 +480,6 @@
         t.colorSpace=THREE.SRGBColorSpace;
         return t;
       }
-
       function makeFallbackClouds(){
         const c=document.createElement("canvas");
         c.width=1024; c.height=512;
@@ -513,14 +508,13 @@
             const tex = await tryOne(u);
             tex.colorSpace = THREE.SRGBColorSpace;
             return tex;
-          } catch { /* keep trying */ }
+          } catch {}
         }
 
-        showError(`Texture fallback used for: ${label}\n(Your CDNs blocked/failed on this device/network)`);
+        showError(`Texture fallback used for: ${label}\n(CDN blocked/failed on this device/network)`);
         return fallbackTex;
       }
 
-      // ---------- Main ----------
       (async ()=>{
         try{
           statusEl.textContent = "Starting…";
@@ -543,7 +537,6 @@
           sunLight.position.set(5, 1.5, 2.5);
           scene.add(sunLight);
 
-          // Texture URLs (3 CDNs)
           const BASES = [
             "https://threejs.org/examples/textures/",
             "https://unpkg.com/three@0.161.0/examples/textures/",
@@ -553,11 +546,11 @@
 
           statusEl.textContent = "Loading textures…";
 
-          const dayMap = await loadTextureWithFallback(urls("planets/earth_atmos_2048.jpg"), makeFallbackEarthDay(), "earth day");
+          const dayMap   = await loadTextureWithFallback(urls("planets/earth_atmos_2048.jpg"), makeFallbackEarthDay(), "earth day");
           const nightMap = await loadTextureWithFallback(urls("planets/earth_lights_2048.png"), makeFallbackNight(), "earth night lights");
-          const specMap = await loadTextureWithFallback(urls("planets/earth_specular_2048.jpg"), solidTexture("#000"), "earth specular");
+          const specMap  = await loadTextureWithFallback(urls("planets/earth_specular_2048.jpg"), solidTexture("#000"), "earth specular");
           const cloudMap = await loadTextureWithFallback(urls("planets/earth_clouds_1024.png"), makeFallbackClouds(), "earth clouds");
-          const starMap = await loadTextureWithFallback(urls("galaxy_starfield.png"), makeFallbackStars(), "stars");
+          const starMap  = await loadTextureWithFallback(urls("galaxy_starfield.png"), makeFallbackStars(), "stars");
 
           const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
           [dayMap, nightMap, specMap, cloudMap, starMap].forEach((t)=>{
@@ -577,7 +570,6 @@
           const earthRadius = 1.0;
           const SEG = 96;
 
-          // Earth shader (simple, stable)
           const earthUniforms = {
             dayMap:    { value: dayMap },
             specMap:   { value: specMap },
@@ -643,7 +635,7 @@
 
           const earth = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, SEG, SEG), earthMat);
 
-          // Night lights (additive)
+          // Night lights
           const lightsUniforms = {
             nightMap: { value: nightMap },
             sunDir:   { value: new THREE.Vector3(1,0,0) },
@@ -766,12 +758,10 @@
             })
           );
 
-          // Globe group
           const globe = new THREE.Group();
           globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
           scene.add(globe);
 
-          // --------- Layers / overlays ----------
           const overlays = {
             rhumbLine: new THREE.Group(),
             geoLine: new THREE.Group(),
@@ -787,29 +777,34 @@
           };
           Object.values(overlays).forEach(g => globe.add(g));
 
-          const ANCHOR = { name: "EXIT 222 • 202 Hendren Ave • Staunton, VA", lat: 38.160833, lon: -79.073056 };
+          // ✅ Single station only (no localStorage, no extra Future Stations)
+          // NOTE: This is an approximate geocode for the address (rounded to 6 decimals).
+          // If you want “absolute” accuracy, plug in the exact surveyed coordinate you prefer.
+          const STATION_1 = {
+            name: "Station 1 • EXIT 222 • 202 Hendren Ave • Staunton, VA",
+            lat: 38.160833,
+            lon: -79.073056
+          };
           const BEARING = 222;
 
-          // Geodesic (great circle)
-          const gc = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, BEARING, 1.0)
+          // Lines
+          const gc = greatCirclePoints(STATION_1.lat, STATION_1.lon, BEARING, 1.0)
             .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
           overlays.geoLine.add(makeGlowTube(gc, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.30));
 
-          // Rhumb
-          const rh = rhumbPoints(ANCHOR.lat, ANCHOR.lon, BEARING, 240)
+          const rh = rhumbPoints(STATION_1.lat, STATION_1.lon, BEARING, 240)
             .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
           overlays.rhumbLine.add(makeGlowTube(rh, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.28));
 
-          // Perpendiculars (132 / 312)
           function arcFromBearing(bearingDeg){
-            const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, bearingDeg, 1.2)
+            const pts = greatCirclePoints(STATION_1.lat, STATION_1.lon, bearingDeg, 1.2)
               .filter((_, i) => i > 40 && i < 260)
               .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
             return makeGlowTube(pts, 0.0026, 0x5bbcff, 0x5bbcff, 1.0, 0.22);
           }
           overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
-          // Names (NO Object.assign — iOS safe)
+          // Names
           {
             const rLabel = makeLabelSprite("Rhumb 222°", { bg:"rgba(246,194,74,0.12)" });
             rLabel.position.copy(latLonToVec3(25, -20, earthRadius*1.10));
@@ -824,7 +819,7 @@
             overlays.perpName.add(pLabel);
           }
 
-          // Continents
+          // Continents labels (optional)
           const CONT = [
             { name:"North America", lat: 45,  lon:-102 },
             { name:"South America", lat:-16,  lon:-60 },
@@ -852,17 +847,19 @@
             overlays.corridors.add(makeGlowTube(rh, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
           }
 
-          // Stations + save future stations
+          // ✅ Single station marker only
           function makeStationMarker(label, lat, lon, color=0x7fffd4){
             const g = new THREE.Group();
             const p = latLonToVec3(lat, lon, earthRadius*1.02);
 
-            const pin = new THREE.Mesh(new THREE.SphereGeometry(0.010, 18, 18),
+            const pin = new THREE.Mesh(
+              new THREE.SphereGeometry(0.010, 18, 18),
               new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.95 })
             );
             pin.position.copy(p);
 
-            const glow = new THREE.Mesh(new THREE.SphereGeometry(0.020, 18, 18),
+            const glow = new THREE.Mesh(
+              new THREE.SphereGeometry(0.020, 18, 18),
               new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.18, blending:THREE.AdditiveBlending, depthWrite:false })
             );
             glow.position.copy(p);
@@ -873,21 +870,9 @@
             g.add(glow, pin, tag);
             return g;
           }
+          overlays.stations.add(makeStationMarker(STATION_1.name, STATION_1.lat, STATION_1.lon, 0x7fffd4));
 
-          overlays.stations.add(makeStationMarker(ANCHOR.name, ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
-
-          const STORAGE_KEY = "eden_future_stations_v1";
-          const loadStations = ()=>{ try { return JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]"); } catch { return []; } };
-          const saveStations = (arr)=> localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-
-          function rebuildFutureStations(){
-            while (overlays.stations.children.length > 1) overlays.stations.remove(overlays.stations.children[1]);
-            const list = loadStations();
-            list.forEach((s, idx)=> overlays.stations.add(makeStationMarker(`Future Station ${idx+1}`, s.lat, s.lon, 0xffffff)));
-          }
-          rebuildFutureStations();
-
-          // Magnetic field (simple dipole preview)
+          // Magnetic field
           function makeDipoleFieldLines(){
             const g = new THREE.Group();
             const col = 0x5bbcff;
@@ -922,7 +907,7 @@
           }
           overlays.magField.add(makeDipoleFieldLines());
 
-          // Aurora (belt preview)
+          // Aurora
           function makeAuroraBelt(latDeg=67, color=0xa078ff){
             const g = new THREE.Group();
             for (const lat of [latDeg, -latDeg]){
@@ -934,7 +919,7 @@
           }
           overlays.aurora.add(makeAuroraBelt(67));
 
-          // --------- Bloom (selective) ----------
+          // --------- Bloom ----------
           const BLOOM_LAYER = 1;
           const bloomLayer = new THREE.Layers(); bloomLayer.set(BLOOM_LAYER);
 
@@ -1006,7 +991,6 @@
 
           function down(e){
             if (isUIEventTarget(e.target)) return;
-
             if (e.touches && e.touches.length === 2){
               pinching=true;
               pinchStartDist = dist2(e.touches[0], e.touches[1]);
@@ -1055,57 +1039,7 @@
             camera.position.z = clamp(camera.position.z + (e.deltaY * 0.0025), Z_MIN, Z_MAX);
           }, { passive:true });
 
-          // Tap-to-add station when Stations ON
-          const raycaster = new THREE.Raycaster();
-          const ndc = new THREE.Vector2();
-          let tapCandidate=null;
-
-          function pointerToNDC(x,y){
-            ndc.x = (x/innerWidth)*2 - 1;
-            ndc.y = -(y/innerHeight)*2 + 1;
-          }
-
-          function addFutureStationFromTap(x,y){
-            pointerToNDC(x,y);
-            raycaster.setFromCamera(ndc, camera);
-            const hits = raycaster.intersectObject(earth, true);
-            if(!hits.length) return;
-
-            const pWorld = hits[0].point.clone();
-            const pLocal = globe.worldToLocal(pWorld.clone());
-            const v = pLocal.clone().normalize();
-
-            const ll = vec3ToLatLon(v);
-            const list = loadStations();
-            list.push({ lat: ll.lat, lon: ll.lon, t: Date.now() });
-            saveStations(list);
-            rebuildFutureStations();
-            statusEl.textContent = `Saved Future Station ${list.length} @ ${ll.lat.toFixed(4)}, ${ll.lon.toFixed(4)}`;
-          }
-
-          el.addEventListener("touchstart", (e)=>{
-            if (isUIEventTarget(e.target)) { tapCandidate=null; return; }
-            if (e.touches?.length===1) tapCandidate = { x:e.touches[0].clientX, y:e.touches[0].clientY, t: performance.now(), moved:false };
-            else tapCandidate=null;
-          }, { passive:true });
-
-          el.addEventListener("touchmove", (e)=>{
-            if(!tapCandidate || !e.touches?.length) return;
-            const dx = Math.abs(e.touches[0].clientX - tapCandidate.x);
-            const dy = Math.abs(e.touches[0].clientY - tapCandidate.y);
-            if (dx+dy > 8) tapCandidate.moved = true;
-          }, { passive:true });
-
-          el.addEventListener("touchend", ()=>{
-            if(!tapCandidate) return;
-            const dt = performance.now() - tapCandidate.t;
-            if(dt < 320 && !tapCandidate.moved && state.stations){
-              addFutureStationFromTap(tapCandidate.x, tapCandidate.y);
-            }
-            tapCandidate=null;
-          }, { passive:true });
-
-          // --------- Toggles (match screenshot) ----------
+          // --------- Toggles ----------
           const state = {
             rhumbLine: true,
             rhumbName: false,
@@ -1142,6 +1076,7 @@
           Object.keys(state).forEach(k => setPill(k, state[k]));
 
           document.querySelectorAll(".pill").forEach(btn=>{
+            if (btn.classList.contains("spacer")) return;
             btn.addEventListener("click", ()=>{
               const key = btn.dataset.key;
               if (!(key in state)) return;
