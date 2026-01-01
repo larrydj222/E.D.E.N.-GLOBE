@@ -6,19 +6,11 @@
   <title>Welcome • MAP E.D.E.N.</title>
   <meta name="color-scheme" content="dark" />
   <style>
-    :root{
-      --text: rgba(255,255,255,0.92);
-      --muted: rgba(255,255,255,0.72);
-      --panel: rgba(12,14,18,0.65);
-      --stroke: rgba(255,255,255,0.12);
-    }
     html, body{
       height:100%;
       margin:0;
-      background: radial-gradient(1200px 600px at 50% 10%, rgba(255,255,255,0.08), transparent 55%),
-                  radial-gradient(900px 500px at 20% 90%, rgba(91,188,255,0.10), transparent 55%),
-                  #000;
-      color: var(--text);
+      background:#000;
+      color: rgba(255,255,255,0.92);
       font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial;
     }
     .wrap{
@@ -27,104 +19,24 @@
       padding: 18px 18px 28px;
     }
     .card{
-      background: var(--panel);
-      border: 1px solid var(--stroke);
+      background: rgba(12,14,18,0.65);
+      border: 1px solid rgba(255,255,255,0.12);
       border-radius: 18px;
       padding: 16px 16px 18px;
       box-shadow: 0 18px 70px rgba(0,0,0,0.55);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
     }
-    h1{
-      margin: 0 0 8px;
-      font-size: 22px;
-      letter-spacing: 0.2px;
-    }
-    .sub{
-      margin: 0 0 14px;
-      color: var(--muted);
-      font-weight: 650;
-      font-size: 13px;
-      line-height: 1.35;
-    }
-    h2{
-      margin: 14px 0 8px;
-      font-size: 15px;
-      letter-spacing: 0.2px;
-    }
-    p{
-      margin: 0 0 10px;
-      color: rgba(255,255,255,0.82);
-      font-size: 14px;
-      line-height: 1.55;
-    }
-    ul{
-      margin: 8px 0 0 18px;
-      color: rgba(255,255,255,0.82);
-      font-size: 14px;
-      line-height: 1.55;
-    }
-    .pillrow{
-      display:flex;
-      flex-wrap: wrap;
-      gap:8px;
-      margin-top: 12px;
-    }
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 9px 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: rgba(255,255,255,0.86);
-      font-weight: 800;
-      font-size: 12px;
-      letter-spacing: 0.15px;
-      user-select:none;
-    }
-    .dot{
-      width:10px;height:10px;border-radius:50%;
-      background: rgba(120,255,200,0.90);
-      box-shadow: 0 0 16px rgba(120,255,200,0.20);
-    }
-    .footer{
-      margin-top: 14px;
-      color: rgba(255,255,255,0.55);
-      font-size: 12px;
-      line-height: 1.4;
-    }
+    h1{ margin: 0 0 8px; font-size: 22px; }
+    p{ margin: 0 0 10px; color: rgba(255,255,255,0.82); font-size: 14px; line-height: 1.55; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
       <h1>MAP E.D.E.N.</h1>
-      <p class="sub">Earth Diametric Energy Network • Operational field platform for Project E.D.E.N.</p>
-
-      <h2>WELCOME</h2>
-      <p>
-        This globe is your operational map for running repeatable field sessions along defined Earth corridors,
-        starting with the <strong>42° / 222° diametric axis</strong> (opposite bearings on the same straight line).
-      </p>
-
-      <h2>WHAT YOU CAN DO HERE</h2>
-      <ul>
-        <li>Toggle line sets (Rhumb vs Great Circle) for 222° SW and 42° NE.</li>
-        <li>Show Station markers (starting with Exit 222 / Station 1).</li>
-        <li>Use Switchboard to open/close layers while keeping the interface clean.</li>
-      </ul>
-
-      <div class="pillrow">
-        <span class="pill"><span class="dot"></span> Welcome</span>
-        <span class="pill"><span class="dot"></span> Mission</span>
-        <span class="pill"><span class="dot"></span> Switchboard</span>
-      </div>
-
-      <p class="footer">
-        Tip: If you ever update this page, keep the filename exactly <strong>welcome.html</strong> and keep it in the repo root next to <strong>index.html</strong>.
-      </p>
+      <p>Welcome to MAP E.D.E.N. — Earth Diametric Energy Network.</p>
+      <p>This is the operational globe for Project E.D.E.N., beginning with the 42° / 222° diametric axis.</p>
     </div>
   </div>
 </body>
