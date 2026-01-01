@@ -19,6 +19,10 @@
       --aqua: #7fffd4;
       --violet:#a078ff;
       --white:#ffffff;
+
+      --greenDot: rgba(120,255,200,0.88);
+      --greenGlow: rgba(120,255,200,0.24);
+      --greenStroke: rgba(120,255,200,0.22);
     }
 
     html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
@@ -133,6 +137,7 @@
       -webkit-overflow-scrolling: touch;
       max-height: calc(100vh - 190px);
       padding-bottom: 6px;
+      touch-action: pan-y; /* iOS scroll fix */
     }
 
     .gridTop{
@@ -193,8 +198,10 @@
       flex: 0 0 auto;
     }
 
-    /* ON colors */
-    .pill.on .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 16px rgba(120,255,200,0.24); }
+    /* ON colors (default green) */
+    .pill.on .dot{ background: var(--greenDot); box-shadow: 0 0 16px var(--greenGlow); }
+
+    /* Layer-specific dot colors */
     .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
     .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 16px rgba(91,188,255,0.22); }
 
@@ -205,14 +212,14 @@
     .pill.on[data-key="aurora"]     .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 16px rgba(160,120,255,0.18); }
     .pill.on[data-key="nightLights"].dot{ background: rgba(140,255,200,0.92); box-shadow:0 0 16px rgba(140,255,200,0.18); }
 
-    /* Switchboard glow (white) */
+    /* Switchboard button = GREEN when ON (per your requirement) */
     .pill.switch.on{
-      border-color: rgba(255,255,255,0.22);
-      box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset, 0 0 28px rgba(255,255,255,0.10);
+      border-color: var(--greenStroke);
+      box-shadow: 0 0 0 1px rgba(120,255,200,0.10) inset, 0 0 28px rgba(120,255,200,0.12);
     }
     .pill.switch.on .dot{
-      background: rgba(255,255,255,0.92);
-      box-shadow: 0 0 20px rgba(255,255,255,0.24);
+      background: var(--greenDot);
+      box-shadow: 0 0 20px rgba(120,255,200,0.24);
     }
 
     #statusBar{
@@ -262,6 +269,7 @@
       align-items: center;
       justify-content: center;
       padding: 18px;
+      touch-action: none;
     }
     #modalMask.on{ display:flex; }
 
@@ -305,6 +313,7 @@
       overflow: auto;
       -webkit-overflow-scrolling: touch;
       background: rgba(0,0,0,0.15);
+      touch-action: pan-y; /* iOS scroll fix */
     }
 
     #welcomeFrame{
@@ -427,18 +436,26 @@
         <button id="modalClose" aria-label="Close modal">✕</button>
       </div>
       <div id="modalBody">
-        <!-- Welcome iframe (loads your drop-in HTML file) -->
+        <!-- Welcome iframe -->
         <iframe id="welcomeFrame" title="MAP E.D.E.N. Welcome" loading="lazy"></iframe>
 
-        <!-- Mission content (simple placeholder you can edit) -->
+        <!-- Mission content -->
         <div id="missionContent" style="display:none;">
-          <h2>MAP E.D.E.N. Mission</h2>
+          <h2>MISSION</h2>
           <p>
-            Turn the 42° / 222° axis hypothesis into a coordinated, evidence-first experiment by producing sensor datasets
-            that are repeatable, controlled, and comparable across stations and time.
+            MAP E.D.E.N. is the operational field platform for Project E.D.E.N. (Earth Diametric &amp; Energy Network)—a secure,
+            repeatable way to run real-world tests along defined Earth corridors, beginning with the 42/222 diametric axis
+            (42° and 222° are opposite bearings on the same straight line). Based on a 20+ year personal observation record,
+            the Founder identified “222” as a persistent recurring numeric event marker across routine environments (time displays,
+            identifiers, signage). This long-duration recurrence served as the initial trigger for structuring Project E.D.E.N.
+            as a measurement-first field program.
           </p>
           <p>
-            This globe is a visual switchboard for the core overlays (Rhumb, Great Circle, Corridors, Field previews) while keeping the Earth render clean.
+            Over time, and in multiple documented sessions, the “222” event marker also coincided with a compass bearing of 222° (SW)—
+            reinforcing the 42/222 line as a repeatable corridor for formal testing. MAP E.D.E.N. equips trusted operators with clear
+            protocols to collect environmental field measurements and navigation-behavior observations, including human biological
+            magnetoreception and magnetically influenced orientation, homing, and migratory navigation in animals and insects,
+            so results can be compared across stations and time.
           </p>
         </div>
       </div>
@@ -491,26 +508,39 @@
     closeBtn.addEventListener("click", () => setDrawerClosed(true));
     handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
 
+    // ---- Top buttons: GREEN when pressed ----
+    function setTopActive(which){
+      welcomeBtn.classList.toggle("on", which === "welcome");
+      missionBtn.classList.toggle("on", which === "mission");
+      // switchBtn handled separately by switchboard state (also green)
+    }
+    function clearTopActive(){
+      welcomeBtn.classList.remove("on");
+      missionBtn.classList.remove("on");
+    }
+
     // Modal controls
+    const WELCOME_FILE = "welcome.html"; // ✅ your repo file
     function openModal(kind){
       modalMask.classList.add("on");
+
       if (kind === "welcome"){
         modalTitle.textContent = "WELCOME";
+        setTopActive("welcome");
         missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
-
-        // Drop-in HTML file (put this file next to this globe HTML in your repo)
-        const WELCOME_FILE = "MAP E.D.E.N. ( Welcome Page ) .html";
-        welcomeFrame.src = encodeURI(WELCOME_FILE);
+        welcomeFrame.src = WELCOME_FILE; // ✅ direct load
       } else {
         modalTitle.textContent = "MISSION";
+        setTopActive("mission");
         welcomeFrame.style.display = "none";
         missionContent.style.display = "block";
       }
     }
     function closeModal(){
       modalMask.classList.remove("on");
-      // avoid iOS memory spikes by unloading iframe when closed
+      clearTopActive();
+      // unload iframe to reduce iOS memory spikes
       if (welcomeFrame.style.display !== "none") welcomeFrame.src = "about:blank";
     }
     modalClose.addEventListener("click", closeModal);
@@ -522,7 +552,7 @@
     let switchboardOn = false;
     function setSwitchboard(on){
       switchboardOn = !!on;
-      switchBtn.classList.toggle("on", switchboardOn);
+      switchBtn.classList.toggle("on", switchboardOn);  // ✅ green when pressed
       switchGrp.classList.toggle("on", switchboardOn);
       switchHint.textContent = switchboardOn ? "Tap to close" : "Tap to open";
     }
@@ -611,7 +641,7 @@
       return g;
     }
 
-    // Text-only sprite (NO border box, professional glow)
+    // Text-only sprite (NO border box)
     function makeTextSprite(text, {
       fontSize=22,
       color="rgba(255,255,255,0.92)",
@@ -630,7 +660,6 @@
 
       canvas.width = w; canvas.height = h;
 
-      // subtle glow
       ctx.font = `900 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
       ctx.textBaseline = "middle";
       ctx.textAlign = "left";
@@ -770,7 +799,7 @@
         renderer.setSize(innerWidth, innerHeight);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.15; // brighter globe
+        renderer.toneMappingExposure = 1.15;
         document.body.appendChild(renderer.domElement);
 
         const ambient = new THREE.AmbientLight(0xffffff, 0.18);
@@ -780,7 +809,6 @@
         sunLight.position.set(5, 1.5, 2.5);
         scene.add(sunLight);
 
-        // Texture URLs (3 CDNs)
         const BASES = [
           "https://threejs.org/examples/textures/",
           "https://unpkg.com/three@0.161.0/examples/textures/",
@@ -814,7 +842,7 @@
         const earthRadius = 1.0;
         const SEG = 96;
 
-        // Earth shader (boost ocean clarity & saturation gently)
+        // Earth shader
         const earthUniforms = {
           dayMap:    { value: dayMap },
           specMap:   { value: specMap },
@@ -856,7 +884,6 @@
 
               vec3 dayCol = srgbToLinear(texture2D(dayMap, vUv).rgb);
 
-              // gentle punch: brighter oceans + crisp clouds in the base map
               float lum = dot(dayCol, vec3(0.2126,0.7152,0.0722));
               vec3 sat = mix(vec3(lum), dayCol, 1.15);
               vec3 c = pow(max(sat, 0.0), vec3(0.90));
@@ -882,7 +909,7 @@
 
         const earth = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, SEG, SEG), earthMat);
 
-        // Night lights (toggleable)
+        // Night lights
         const lightsUniforms = {
           nightMap: { value: nightMap },
           sunDir:   { value: new THREE.Vector3(1,0,0) },
@@ -935,7 +962,7 @@
           })
         );
 
-        // Clouds (fresh, brighter)
+        // Clouds
         const cloudShadow = new THREE.Mesh(
           new THREE.SphereGeometry(earthRadius * 1.0015, SEG, SEG),
           new THREE.MeshBasicMaterial({
@@ -1005,12 +1032,11 @@
           })
         );
 
-        // Globe group
         globe = new THREE.Group();
         globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
         scene.add(globe);
 
-        // --------- Overlays ----------
+        // Overlays
         const overlays = {
           rhumb222: new THREE.Group(),
           rhumb42:  new THREE.Group(),
@@ -1028,7 +1054,6 @@
         };
         Object.values(overlays).forEach(g => globe.add(g));
 
-        // Anchor: 38°9′39″ N, 79°4′24″ W
         const ANCHOR = { name: "Exit 222 • Station 1", lat: 38.1608333333, lon: -79.0733333333 };
         const BEAR_222 = 222;
         const BEAR_42  = 42;
@@ -1049,7 +1074,6 @@
         overlays.gc42.add(makeGlowTube(gc42, 0.0032, 0x5bbcff, 0x5bbcff, 0.55, 0.20));
         overlays.rhumb42.add(makeGlowTube(rh42, 0.0032, 0xf6c24a, 0xf6c24a, 0.55, 0.18));
 
-        // Perpendiculars (same controls for 222 / 42)
         function arcFromBearing(bearingDeg){
           const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, bearingDeg, 1.2)
             .filter((_, i) => i > 40 && i < 260)
@@ -1058,7 +1082,6 @@
         }
         overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
-        // Names (TEXT ONLY — no border boxes on globe)
         {
           const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 7, glow:"rgba(246,194,74,0.18)" });
           n222.position.copy(latLonToVec3(18, -18, earthRadius*1.10));
@@ -1073,7 +1096,6 @@
           overlays.perpName.add(pLabel);
         }
 
-        // Continents (TEXT ONLY)
         const CONT = [
           { name:"North America", lat: 45,  lon:-102 },
           { name:"South America", lat:-16,  lon:-60 },
@@ -1089,7 +1111,6 @@
           overlays.continents.add(s);
         }
 
-        // Corridors (±1/±5/±10 km) around BOTH 222 and 42
         const kmToUnit = (km)=> (km/6371)*earthRadius;
         const corridorRadii = [
           { km: 1,  r: kmToUnit(1),  o: 0.16 },
@@ -1099,12 +1120,10 @@
         for (const c of corridorRadii){
           overlays.corridors.add(makeGlowTube(gc222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
           overlays.corridors.add(makeGlowTube(rh222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
-
           overlays.corridors.add(makeGlowTube(gc42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.8));
           overlays.corridors.add(makeGlowTube(rh42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.75));
         }
 
-        // Station marker (ONLY Station 1)
         function makeStationMarker(label, lat, lon, color=0x7fffd4){
           const g = new THREE.Group();
           const p = latLonToVec3(lat, lon, earthRadius*1.02);
@@ -1127,7 +1146,6 @@
         }
         overlays.stations.add(makeStationMarker("Exit 222 • Station 1", ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
 
-        // Magnetic field (simple dipole preview)
         function makeDipoleFieldLines(){
           const g = new THREE.Group();
           const col = 0x5bbcff;
@@ -1162,7 +1180,6 @@
         }
         overlays.magField.add(makeDipoleFieldLines());
 
-        // Aurora (belt preview)
         function makeAuroraBelt(latDeg=67, color=0xa078ff){
           const g = new THREE.Group();
           for (const lat of [latDeg, -latDeg]){
@@ -1174,11 +1191,10 @@
         }
         overlays.aurora.add(makeAuroraBelt(67));
 
-        // --------- Bloom (selective) ----------
+        // Bloom
         const BLOOM_LAYER = 1;
         const bloomLayer = new THREE.Layers(); bloomLayer.set(BLOOM_LAYER);
 
-        // Only glow on: nightLights + atmosphere + lines/corridors/aurora
         nightLights.layers.enable(BLOOM_LAYER);
         atmosphere.layers.enable(BLOOM_LAYER);
         Object.values(overlays).forEach(g=>{
@@ -1227,7 +1243,7 @@
           scene.traverse(restoreMaterial);
         }
 
-        // --------- Toggles ----------
+        // Toggles
         const state = {
           rhumb222: true,
           rhumb42:  false,
@@ -1262,11 +1278,11 @@
           overlays.magField.visible = state.magField;
           overlays.aurora.visible = state.aurora;
 
-          nightLights.visible = state.nightLights; // ensure it actually appears
+          nightLights.visible = state.nightLights;
         }
 
         function setPill(key, on){
-          const b = document.querySelector(`.pill[data-key="${key}"]`);
+          const b = document.querySelector(\`.pill[data-key="\${key}"]\`);
           if (b) b.classList.toggle("on", !!on);
         }
         Object.keys(state).forEach(k => setPill(k, state[k]));
@@ -1282,7 +1298,7 @@
           });
         });
 
-        // --------- Interaction (drag + pinch) ----------
+        // Interaction
         let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
         const AUTO_SPIN=0.0012, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
 
@@ -1350,7 +1366,7 @@
           camera.position.z = clamp(camera.position.z + (e.deltaY * 0.0025), Z_MIN, Z_MAX);
         }, { passive:true });
 
-        // --------- Resize / Orientation (prevents freeze/crash on iOS rotations) ----------
+        // Resize stability
         let resizeTimer = 0;
         function doResize(){
           if (!renderer || !camera) return;
@@ -1377,13 +1393,11 @@
         window.addEventListener("resize", scheduleResize, { passive:true });
         window.addEventListener("orientationchange", scheduleResize, { passive:true });
 
-        // Pause render when tab hidden (stability)
         document.addEventListener("visibilitychange", ()=>{
           running = !document.hidden;
           if (running && !rafId) animate();
         });
 
-        // --------- Animate ----------
         const sunDrift = 0.00005;
         const cloudSpin = 0.0020;
 
