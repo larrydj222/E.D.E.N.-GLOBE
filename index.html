@@ -443,9 +443,6 @@
     import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
     import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 
-    // ✅ GLOBAL FIX: Welcome file name in your repo
-    const WELCOME_FILE = "welcome.html";
-
     // ---------- UI ----------
     const statusEl   = document.getElementById("status");
     const errorsEl   = document.getElementById("errors");
@@ -492,8 +489,9 @@
         missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
 
-        // ✅ uses global constant above
-        welcomeFrame.src = encodeURI(WELCOME_FILE);
+        // ✅ FINAL: correct file name + cache-bust so GitHub Pages always loads newest
+        const WELCOME_FILE = "welcome.html?v=1";
+        welcomeFrame.src = WELCOME_FILE;
       } else {
         modalTitle.textContent = "MISSION";
         welcomeFrame.style.display = "none";
