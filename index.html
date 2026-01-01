@@ -18,10 +18,7 @@
       --blue: #5bbcff;
       --aqua: #7fffd4;
       --violet:#a078ff;
-
-      --greenDot: rgba(120,255,200,0.88);
-      --greenGlow: rgba(120,255,200,0.24);
-      --greenStroke: rgba(120,255,200,0.22);
+      --white:#ffffff;
     }
 
     html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
@@ -136,7 +133,6 @@
       -webkit-overflow-scrolling: touch;
       max-height: calc(100vh - 190px);
       padding-bottom: 6px;
-      touch-action: pan-y; /* iOS scroll fix */
     }
 
     .gridTop{
@@ -197,10 +193,8 @@
       flex: 0 0 auto;
     }
 
-    /* ON colors (default green) */
-    .pill.on .dot{ background: var(--greenDot); box-shadow: 0 0 16px var(--greenGlow); }
-
-    /* Layer-specific dot colors */
+    /* ON colors */
+    .pill.on .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 16px rgba(120,255,200,0.24); }
     .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
     .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 16px rgba(91,188,255,0.22); }
 
@@ -211,14 +205,14 @@
     .pill.on[data-key="aurora"]     .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 16px rgba(160,120,255,0.18); }
     .pill.on[data-key="nightLights"].dot{ background: rgba(140,255,200,0.92); box-shadow:0 0 16px rgba(140,255,200,0.18); }
 
-    /* Switchboard button = GREEN when ON */
+    /* Switchboard glow (white) */
     .pill.switch.on{
-      border-color: var(--greenStroke);
-      box-shadow: 0 0 0 1px rgba(120,255,200,0.10) inset, 0 0 28px rgba(120,255,200,0.12);
+      border-color: rgba(255,255,255,0.22);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset, 0 0 28px rgba(255,255,255,0.10);
     }
     .pill.switch.on .dot{
-      background: var(--greenDot);
-      box-shadow: 0 0 20px rgba(120,255,200,0.24);
+      background: rgba(255,255,255,0.92);
+      box-shadow: 0 0 20px rgba(255,255,255,0.24);
     }
 
     #statusBar{
@@ -234,7 +228,6 @@
       text-overflow:ellipsis;
     }
 
-    /* ✅ IMPORTANT: errors panel is ALWAYS available (not hidden behind Switchboard) */
     #errors{
       margin-top: 10px;
       display:none;
@@ -269,7 +262,6 @@
       align-items: center;
       justify-content: center;
       padding: 18px;
-      touch-action: none;
     }
     #modalMask.on{ display:flex; }
 
@@ -313,7 +305,6 @@
       overflow: auto;
       -webkit-overflow-scrolling: touch;
       background: rgba(0,0,0,0.15);
-      touch-action: pan-y; /* iOS scroll fix */
     }
 
     #welcomeFrame{
@@ -350,29 +341,14 @@
     }
   </style>
 
-  <!-- ✅ Watchdog: if module never starts, you'll see a real message instead of Booting forever -->
-  <script>
-    window.__EDEN_MODULE_STARTED__ = false;
-    setTimeout(() => {
-      if (!window.__EDEN_MODULE_STARTED__) {
-        const statusEl = document.getElementById("status");
-        const errorsEl = document.getElementById("errors");
-        if (statusEl) statusEl.textContent = "Stuck loading (Three.js blocked). Open in Safari + disable blockers.";
-        if (errorsEl) {
-          errorsEl.style.display = "block";
-          errorsEl.textContent =
-            "Three.js failed to load.\n\n" +
-            "Most common causes on iPhone:\n" +
-            "• Content blocker / tracking protection blocking unpkg/jsdelivr\n" +
-            "• In-app browser (Instagram/Twitter) restrictions\n" +
-            "• Network blocking CDNs\n\n" +
-            "Fix:\n" +
-            "1) Open the site in Safari (not in-app)\n" +
-            "2) Temporarily disable content blockers\n" +
-            "3) Refresh\n";
-        }
+  <!-- Import Map -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
       }
-    }, 6000);
+    }
   </script>
 </head>
 
@@ -432,10 +408,9 @@
           <button class="pill on" data-key="nightLights"><span class="left"><span class="dot"></span><span class="label">Night Lights</span></span></button>
           <button class="pill" data-key="perpName"><span class="left"><span class="dot"></span><span class="label">Perp Name</span></span></button>
         </div>
-      </div>
 
-      <!-- ✅ errors always available -->
-      <div id="errors"></div>
+        <div id="errors"></div>
+      </div>
     </div>
 
     <div id="statusBar">
@@ -452,33 +427,31 @@
         <button id="modalClose" aria-label="Close modal">✕</button>
       </div>
       <div id="modalBody">
+        <!-- Welcome iframe (loads your drop-in HTML file) -->
         <iframe id="welcomeFrame" title="MAP E.D.E.N. Welcome" loading="lazy"></iframe>
 
+        <!-- Mission content (simple placeholder you can edit) -->
         <div id="missionContent" style="display:none;">
-          <h2>MISSION</h2>
+          <h2>MAP E.D.E.N. Mission</h2>
           <p>
-            MAP E.D.E.N. is the operational field platform for Project E.D.E.N. (Earth Diametric &amp; Energy Network)—a secure,
-            repeatable way to run real-world tests along defined Earth corridors, beginning with the 42/222 diametric axis
-            (42° and 222° are opposite bearings on the same straight line). Based on a 20+ year personal observation record,
-            the Founder identified “222” as a persistent recurring numeric event marker across routine environments (time displays,
-            identifiers, signage). This long-duration recurrence served as the initial trigger for structuring Project E.D.E.N.
-            as a measurement-first field program.
+            Turn the 42° / 222° axis hypothesis into a coordinated, evidence-first experiment by producing sensor datasets
+            that are repeatable, controlled, and comparable across stations and time.
           </p>
           <p>
-            Over time, and in multiple documented sessions, the “222” event marker also coincided with a compass bearing of 222° (SW)—
-            reinforcing the 42/222 line as a repeatable corridor for formal testing. MAP E.D.E.N. equips trusted operators with clear
-            protocols to collect environmental field measurements and navigation-behavior observations, including human biological
-            magnetoreception and magnetically influenced orientation, homing, and migratory navigation in animals and insects,
-            so results can be compared across stations and time.
+            This globe is a visual switchboard for the core overlays (Rhumb, Great Circle, Corridors, Field previews) while keeping the Earth render clean.
           </p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ✅ No importmap. We load Three.js with CDN fallbacks inside the module. -->
   <script type="module">
-    window.__EDEN_MODULE_STARTED__ = true;
+    import * as THREE from "three";
+    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+    import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+    import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 
     // ---------- UI ----------
     const statusEl   = document.getElementById("status");
@@ -518,38 +491,26 @@
     closeBtn.addEventListener("click", () => setDrawerClosed(true));
     handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
 
-    // ---- Top buttons: GREEN when pressed ----
-    function setTopActive(which){
-      welcomeBtn.classList.toggle("on", which === "welcome");
-      missionBtn.classList.toggle("on", which === "mission");
-    }
-    function clearTopActive(){
-      welcomeBtn.classList.remove("on");
-      missionBtn.classList.remove("on");
-    }
-
-    // ✅ Robust welcome path on GitHub Pages
-    const WELCOME_FILE = new URL("welcome.html", window.location.href).toString();
-
+    // Modal controls
     function openModal(kind){
       modalMask.classList.add("on");
-
       if (kind === "welcome"){
         modalTitle.textContent = "WELCOME";
-        setTopActive("welcome");
         missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
-        welcomeFrame.src = WELCOME_FILE + "?v=" + Date.now();
+
+        // Drop-in HTML file (put this file next to this globe HTML in your repo)
+        const WELCOME_FILE = "MAP E.D.E.N. ( Welcome Page ) .html";
+        welcomeFrame.src = encodeURI(WELCOME_FILE);
       } else {
         modalTitle.textContent = "MISSION";
-        setTopActive("mission");
         welcomeFrame.style.display = "none";
         missionContent.style.display = "block";
       }
     }
     function closeModal(){
       modalMask.classList.remove("on");
-      clearTopActive();
+      // avoid iOS memory spikes by unloading iframe when closed
       if (welcomeFrame.style.display !== "none") welcomeFrame.src = "about:blank";
     }
     modalClose.addEventListener("click", closeModal);
@@ -568,32 +529,6 @@
     switchBtn.addEventListener("click", ()=> setSwitchboard(!switchboardOn));
     setSwitchboard(false);
 
-    // ---------- ✅ Load Three.js with fallback CDNs ----------
-    async function loadThreeStack(){
-      const STACKS = [
-        { three: "https://unpkg.com/three@0.161.0/build/three.module.js", base: "https://unpkg.com/three@0.161.0/examples/jsm/" },
-        { three: "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js", base: "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/" },
-        { three: "https://threejs.org/build/three.module.js", base: "https://threejs.org/examples/jsm/" }
-      ];
-      let lastErr = null;
-
-      for (const s of STACKS){
-        try{
-          statusEl.textContent = "Loading engine…";
-          const THREE = await import(s.three);
-          const { EffectComposer } = await import(s.base + "postprocessing/EffectComposer.js");
-          const { RenderPass } = await import(s.base + "postprocessing/RenderPass.js");
-          const { ShaderPass } = await import(s.base + "postprocessing/ShaderPass.js");
-          const { OutputPass } = await import(s.base + "postprocessing/OutputPass.js");
-          const { UnrealBloomPass } = await import(s.base + "postprocessing/UnrealBloomPass.js");
-          return { THREE, EffectComposer, RenderPass, ShaderPass, OutputPass, UnrealBloomPass, base: s.base };
-        } catch (e){
-          lastErr = e;
-        }
-      }
-      throw lastErr || new Error("Three.js import failed.");
-    }
-
     // ---------- Math helpers ----------
     const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
     const DEG = Math.PI/180;
@@ -606,11 +541,214 @@
     function latLonToVec3(latDeg, lonDeg, radius=1.0){
       const lat = latDeg * DEG;
       const lon = lonDeg * DEG;
-      return new window.THREE.Vector3(
+      return new THREE.Vector3(
         radius * Math.cos(lat) * Math.cos(lon),
         radius * Math.sin(lat),
         radius * Math.cos(lat) * Math.sin(lon)
       );
+    }
+
+    function greatCirclePoints(lat0Deg, lon0Deg, bearingDeg, stepDeg=1.0){
+      const lat0 = lat0Deg * DEG;
+      const lon0 = lon0Deg * DEG;
+      const brng = bearingDeg * DEG;
+
+      const pts = [];
+      for(let d=-180; d<=180; d+=stepDeg){
+        const δ = d * DEG;
+        const sinLat = Math.sin(lat0)*Math.cos(δ) + Math.cos(lat0)*Math.sin(δ)*Math.cos(brng);
+        const lat = Math.asin(clamp(sinLat, -1, 1));
+        const y = Math.sin(brng)*Math.sin(δ)*Math.cos(lat0);
+        const x = Math.cos(δ) - Math.sin(lat0)*Math.sin(lat);
+        const lon = lon0 + Math.atan2(y, x);
+        pts.push({ lat: lat*RAD, lon: ((lon*RAD + 540) % 360) - 180 });
+      }
+      return pts;
+    }
+
+    function rhumbPoints(lat0Deg, lon0Deg, bearingDeg, stepKm=240){
+      const R=6371;
+      const φ1=lat0Deg*DEG;
+      const λ1=lon0Deg*DEG;
+      const θ=bearingDeg*DEG;
+
+      const pts=[];
+      const maxSteps=120;
+      for (const dir of [-1,+1]){
+        let φ=φ1, λ=λ1;
+        for (let i=0;i<maxSteps;i++){
+          const d = dir*(stepKm/R);
+          const Δφ = d*Math.cos(θ);
+          let φ2 = clamp(φ+Δφ, -Math.PI/2+1e-6, Math.PI/2-1e-6);
+
+          const Δψ = Math.log(Math.tan(Math.PI/4+φ2/2)/Math.tan(Math.PI/4+φ/2));
+          const q = Math.abs(Δψ)>1e-12 ? (Δφ/Δψ) : Math.cos(φ);
+
+          const Δλ = d*Math.sin(θ)/q;
+          let λ2 = ((λ+Δλ+Math.PI)%(2*Math.PI))-Math.PI;
+
+          pts.push({ lat: φ2*RAD, lon: λ2*RAD });
+          φ=φ2; λ=λ2;
+        }
+      }
+      return pts;
+    }
+
+    function makeGlowTube(pointsVec3, radius, coreColor, haloColor, coreOpacity=1.0, haloOpacity=0.28){
+      if (!pointsVec3 || pointsVec3.length < 4) return new THREE.Group();
+      const curve = new THREE.CatmullRomCurve3(pointsVec3, false, "catmullrom", 0.15);
+      const segs = Math.max(320, pointsVec3.length*2);
+
+      const coreGeom = new THREE.TubeGeometry(curve, segs, radius, 10, false);
+      const haloGeom = new THREE.TubeGeometry(curve, segs, radius*2.6, 10, false);
+
+      const coreMat = new THREE.MeshBasicMaterial({ color: coreColor, transparent: coreOpacity<1, opacity: coreOpacity, depthWrite:false });
+      const haloMat = new THREE.MeshBasicMaterial({ color: haloColor, transparent:true, opacity: haloOpacity, blending: THREE.AdditiveBlending, depthWrite:false });
+
+      const g = new THREE.Group();
+      g.add(new THREE.Mesh(haloGeom, haloMat));
+      g.add(new THREE.Mesh(coreGeom, coreMat));
+      return g;
+    }
+
+    // Text-only sprite (NO border box, professional glow)
+    function makeTextSprite(text, {
+      fontSize=22,
+      color="rgba(255,255,255,0.92)",
+      glow="rgba(255,255,255,0.22)",
+      glowBlur=8,
+      padding=8,
+      scale=0.0048
+    } = {}){
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      ctx.font = `900 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
+      const m = ctx.measureText(text);
+      const w = Math.ceil(m.width + padding*2);
+      const h = Math.ceil(fontSize + padding*2);
+
+      canvas.width = w; canvas.height = h;
+
+      // subtle glow
+      ctx.font = `900 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "left";
+      ctx.shadowColor = glow;
+      ctx.shadowBlur = glowBlur;
+      ctx.fillStyle = color;
+      ctx.fillText(text, padding, h/2);
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+
+      const mat = new THREE.SpriteMaterial({ map: tex, transparent:true, depthWrite:false, opacity: 1.0 });
+      const spr = new THREE.Sprite(mat);
+      spr.scale.set(w*scale, h*scale, 1);
+      return spr;
+    }
+
+    // ---------- Fallback textures ----------
+    function solidTexture(hex="#222"){
+      const c=document.createElement("canvas");
+      c.width=2; c.height=2;
+      const ctx=c.getContext("2d");
+      ctx.fillStyle=hex; ctx.fillRect(0,0,2,2);
+      const t=new THREE.CanvasTexture(c);
+      t.colorSpace=THREE.SRGBColorSpace;
+      return t;
+    }
+
+    function makeFallbackStars(){
+      const c=document.createElement("canvas");
+      c.width=1024; c.height=1024;
+      const ctx=c.getContext("2d");
+      ctx.fillStyle="#000"; ctx.fillRect(0,0,c.width,c.height);
+      for(let i=0;i<2400;i++){
+        const x=Math.random()*c.width, y=Math.random()*c.height;
+        const a=0.2+Math.random()*0.8;
+        const s=Math.random()>0.995?2:1;
+        ctx.fillStyle=`rgba(255,255,255,${a})`;
+        ctx.fillRect(x,y,s,s);
+      }
+      const t=new THREE.CanvasTexture(c);
+      t.colorSpace=THREE.SRGBColorSpace;
+      return t;
+    }
+
+    function makeFallbackEarthDay(){
+      const c=document.createElement("canvas");
+      c.width=1024; c.height=512;
+      const ctx=c.getContext("2d");
+      ctx.fillStyle="#0c1c3a"; ctx.fillRect(0,0,c.width,c.height);
+      ctx.globalAlpha=0.85; ctx.fillStyle="#2b7a4b";
+      for(let i=0;i<35;i++){
+        const x=Math.random()*c.width, y=Math.random()*c.height;
+        const r=20+Math.random()*90;
+        ctx.beginPath(); ctx.ellipse(x,y,r,r*0.65,Math.random()*Math.PI,0,Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha=0.14; ctx.fillStyle="#fff";
+      for(let i=0;i<80;i++){
+        const x=Math.random()*c.width, y=Math.random()*c.height;
+        const r=20+Math.random()*100;
+        ctx.beginPath(); ctx.ellipse(x,y,r,r*0.45,0,0,Math.PI*2); ctx.fill();
+      }
+      const t=new THREE.CanvasTexture(c);
+      t.colorSpace=THREE.SRGBColorSpace;
+      return t;
+    }
+
+    function makeFallbackNight(){
+      const c=document.createElement("canvas");
+      c.width=1024; c.height=512;
+      const ctx=c.getContext("2d");
+      ctx.fillStyle="#000"; ctx.fillRect(0,0,c.width,c.height);
+      ctx.fillStyle="rgba(255,210,120,0.9)";
+      for(let i=0;i<2400;i++){
+        const x=Math.random()*c.width, y=Math.random()*c.height;
+        if(Math.random()<0.985) continue;
+        ctx.fillRect(x,y,1,1);
+      }
+      const t=new THREE.CanvasTexture(c);
+      t.colorSpace=THREE.SRGBColorSpace;
+      return t;
+    }
+
+    function makeFallbackClouds(){
+      const c=document.createElement("canvas");
+      c.width=1024; c.height=512;
+      const ctx=c.getContext("2d");
+      ctx.clearRect(0,0,c.width,c.height);
+      ctx.fillStyle="rgba(255,255,255,0.40)";
+      for(let i=0;i<140;i++){
+        const x=Math.random()*c.width, y=Math.random()*c.height;
+        const r=30+Math.random()*120;
+        ctx.beginPath(); ctx.ellipse(x,y,r,r*0.5,0,0,Math.PI*2); ctx.fill();
+      }
+      const t=new THREE.CanvasTexture(c);
+      t.colorSpace=THREE.SRGBColorSpace;
+      return t;
+    }
+
+    async function loadTextureWithFallback(urls, fallbackTex, label){
+      const loader = new THREE.TextureLoader();
+      loader.setCrossOrigin("anonymous");
+      const tryOne = (url) => new Promise((resolve, reject) => {
+        loader.load(url, resolve, undefined, () => reject(new Error("failed: " + url)));
+      });
+
+      for (const u of urls){
+        try{
+          const tex = await tryOne(u);
+          tex.colorSpace = THREE.SRGBColorSpace;
+          return tex;
+        } catch { /* keep trying */ }
+      }
+
+      showError(`Texture fallback used for: ${label}\n(CDN blocked/failed on this device/network)`);
+      return fallbackTex;
     }
 
     // ---------- Main ----------
@@ -621,15 +759,6 @@
 
     (async ()=>{
       try{
-        // Load Three.js stack first
-        const mods = await loadThreeStack();
-        const THREE = mods.THREE;
-
-        // expose for helpers that reference window.THREE
-        window.THREE = THREE;
-
-        const { EffectComposer, RenderPass, ShaderPass, OutputPass, UnrealBloomPass } = mods;
-
         statusEl.textContent = "Starting…";
         scene = new THREE.Scene();
 
@@ -641,7 +770,7 @@
         renderer.setSize(innerWidth, innerHeight);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.15;
+        renderer.toneMappingExposure = 1.15; // brighter globe
         document.body.appendChild(renderer.domElement);
 
         const ambient = new THREE.AmbientLight(0xffffff, 0.18);
@@ -651,103 +780,7 @@
         sunLight.position.set(5, 1.5, 2.5);
         scene.add(sunLight);
 
-        // ---------- Fallback textures ----------
-        function solidTexture(hex="#222"){
-          const c=document.createElement("canvas");
-          c.width=2; c.height=2;
-          const ctx=c.getContext("2d");
-          ctx.fillStyle=hex; ctx.fillRect(0,0,2,2);
-          const t=new THREE.CanvasTexture(c);
-          t.colorSpace=THREE.SRGBColorSpace;
-          return t;
-        }
-        function makeFallbackStars(){
-          const c=document.createElement("canvas");
-          c.width=1024; c.height=1024;
-          const ctx=c.getContext("2d");
-          ctx.fillStyle="#000"; ctx.fillRect(0,0,c.width,c.height);
-          for(let i=0;i<2400;i++){
-            const x=Math.random()*c.width, y=Math.random()*c.height;
-            const a=0.2+Math.random()*0.8;
-            const s=Math.random()>0.995?2:1;
-            ctx.fillStyle=`rgba(255,255,255,${a})`;
-            ctx.fillRect(x,y,s,s);
-          }
-          const t=new THREE.CanvasTexture(c);
-          t.colorSpace=THREE.SRGBColorSpace;
-          return t;
-        }
-        function makeFallbackEarthDay(){
-          const c=document.createElement("canvas");
-          c.width=1024; c.height=512;
-          const ctx=c.getContext("2d");
-          ctx.fillStyle="#0c1c3a"; ctx.fillRect(0,0,c.width,c.height);
-          ctx.globalAlpha=0.85; ctx.fillStyle="#2b7a4b";
-          for(let i=0;i<35;i++){
-            const x=Math.random()*c.width, y=Math.random()*c.height;
-            const r=20+Math.random()*90;
-            ctx.beginPath(); ctx.ellipse(x,y,r,r*0.65,Math.random()*Math.PI,0,Math.PI*2); ctx.fill();
-          }
-          ctx.globalAlpha=0.14; ctx.fillStyle="#fff";
-          for(let i=0;i<80;i++){
-            const x=Math.random()*c.width, y=Math.random()*c.height;
-            const r=20+Math.random()*100;
-            ctx.beginPath(); ctx.ellipse(x,y,r,r*0.45,0,0,Math.PI*2); ctx.fill();
-          }
-          const t=new THREE.CanvasTexture(c);
-          t.colorSpace=THREE.SRGBColorSpace;
-          return t;
-        }
-        function makeFallbackNight(){
-          const c=document.createElement("canvas");
-          c.width=1024; c.height=512;
-          const ctx=c.getContext("2d");
-          ctx.fillStyle="#000"; ctx.fillRect(0,0,c.width,c.height);
-          ctx.fillStyle="rgba(255,210,120,0.9)";
-          for(let i=0;i<2400;i++){
-            const x=Math.random()*c.width, y=Math.random()*c.height;
-            if(Math.random()<0.985) continue;
-            ctx.fillRect(x,y,1,1);
-          }
-          const t=new THREE.CanvasTexture(c);
-          t.colorSpace=THREE.SRGBColorSpace;
-          return t;
-        }
-        function makeFallbackClouds(){
-          const c=document.createElement("canvas");
-          c.width=1024; c.height=512;
-          const ctx=c.getContext("2d");
-          ctx.clearRect(0,0,c.width,c.height);
-          ctx.fillStyle="rgba(255,255,255,0.40)";
-          for(let i=0;i<140;i++){
-            const x=Math.random()*c.width, y=Math.random()*c.height;
-            const r=30+Math.random()*120;
-            ctx.beginPath(); ctx.ellipse(x,y,r,r*0.5,0,0,Math.PI*2); ctx.fill();
-          }
-          const t=new THREE.CanvasTexture(c);
-          t.colorSpace=THREE.SRGBColorSpace;
-          return t;
-        }
-
-        async function loadTextureWithFallback(urls, fallbackTex, label){
-          const loader = new THREE.TextureLoader();
-          loader.setCrossOrigin("anonymous");
-          const tryOne = (url) => new Promise((resolve, reject) => {
-            loader.load(url, resolve, undefined, () => reject(new Error("failed: " + url)));
-          });
-
-          for (const u of urls){
-            try{
-              const tex = await tryOne(u);
-              tex.colorSpace = THREE.SRGBColorSpace;
-              return tex;
-            } catch { /* keep trying */ }
-          }
-
-          showError(`Texture fallback used for: ${label}\n(CDN blocked/failed on this device/network)`);
-          return fallbackTex;
-        }
-
+        // Texture URLs (3 CDNs)
         const BASES = [
           "https://threejs.org/examples/textures/",
           "https://unpkg.com/three@0.161.0/examples/textures/",
@@ -763,13 +796,13 @@
         const cloudMap = await loadTextureWithFallback(urls("planets/earth_clouds_1024.png"), makeFallbackClouds(), "earth clouds");
         const starMap  = await loadTextureWithFallback(urls("galaxy_starfield.png"), makeFallbackStars(), "stars");
 
-        statusEl.textContent = "Running";
-
         const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
         [dayMap, nightMap, specMap, cloudMap, starMap].forEach((t)=>{
           t.anisotropy = maxAniso;
           t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
         });
+
+        statusEl.textContent = "Running";
 
         // Stars
         {
@@ -781,7 +814,7 @@
         const earthRadius = 1.0;
         const SEG = 96;
 
-        // Earth shader
+        // Earth shader (boost ocean clarity & saturation gently)
         const earthUniforms = {
           dayMap:    { value: dayMap },
           specMap:   { value: specMap },
@@ -823,6 +856,7 @@
 
               vec3 dayCol = srgbToLinear(texture2D(dayMap, vUv).rgb);
 
+              // gentle punch: brighter oceans + crisp clouds in the base map
               float lum = dot(dayCol, vec3(0.2126,0.7152,0.0722));
               vec3 sat = mix(vec3(lum), dayCol, 1.15);
               vec3 c = pow(max(sat, 0.0), vec3(0.90));
@@ -848,7 +882,7 @@
 
         const earth = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, SEG, SEG), earthMat);
 
-        // Night lights
+        // Night lights (toggleable)
         const lightsUniforms = {
           nightMap: { value: nightMap },
           sunDir:   { value: new THREE.Vector3(1,0,0) },
@@ -901,7 +935,7 @@
           })
         );
 
-        // Clouds
+        // Clouds (fresh, brighter)
         const cloudShadow = new THREE.Mesh(
           new THREE.SphereGeometry(earthRadius * 1.0015, SEG, SEG),
           new THREE.MeshBasicMaterial({
@@ -971,19 +1005,200 @@
           })
         );
 
+        // Globe group
         globe = new THREE.Group();
         globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
         scene.add(globe);
 
-        // ✅ If you want me to also merge in your full overlay/line system here exactly like the earlier build,
-        // say “merge overlays too” and I’ll paste the complete remaining overlay block.
-        // (This file already fixes the BOOTING-stuck import problem.)
+        // --------- Overlays ----------
+        const overlays = {
+          rhumb222: new THREE.Group(),
+          rhumb42:  new THREE.Group(),
+          gc222:    new THREE.Group(),
+          gc42:     new THREE.Group(),
+          names222: new THREE.Group(),
+          names42:  new THREE.Group(),
+          perpLine: new THREE.Group(),
+          perpName: new THREE.Group(),
+          continents: new THREE.Group(),
+          stations: new THREE.Group(),
+          corridors: new THREE.Group(),
+          magField: new THREE.Group(),
+          aurora: new THREE.Group()
+        };
+        Object.values(overlays).forEach(g => globe.add(g));
 
-        // Bloom
+        // Anchor: 38°9′39″ N, 79°4′24″ W
+        const ANCHOR = { name: "Exit 222 • Station 1", lat: 38.1608333333, lon: -79.0733333333 };
+        const BEAR_222 = 222;
+        const BEAR_42  = 42;
+
+        const gc222 = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, BEAR_222, 1.0)
+          .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+        const rh222 = rhumbPoints(ANCHOR.lat, ANCHOR.lon, BEAR_222, 240)
+          .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+
+        const gc42 = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, BEAR_42, 1.0)
+          .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+        const rh42 = rhumbPoints(ANCHOR.lat, ANCHOR.lon, BEAR_42, 240)
+          .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+
+        overlays.gc222.add(makeGlowTube(gc222, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.28));
+        overlays.rhumb222.add(makeGlowTube(rh222, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.26));
+
+        overlays.gc42.add(makeGlowTube(gc42, 0.0032, 0x5bbcff, 0x5bbcff, 0.55, 0.20));
+        overlays.rhumb42.add(makeGlowTube(rh42, 0.0032, 0xf6c24a, 0xf6c24a, 0.55, 0.18));
+
+        // Perpendiculars (same controls for 222 / 42)
+        function arcFromBearing(bearingDeg){
+          const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, bearingDeg, 1.2)
+            .filter((_, i) => i > 40 && i < 260)
+            .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+          return makeGlowTube(pts, 0.0026, 0x5bbcff, 0x5bbcff, 1.0, 0.18);
+        }
+        overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
+
+        // Names (TEXT ONLY — no border boxes on globe)
+        {
+          const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 7, glow:"rgba(246,194,74,0.18)" });
+          n222.position.copy(latLonToVec3(18, -18, earthRadius*1.10));
+          overlays.names222.add(n222);
+
+          const n42 = makeTextSprite("42 NE", { fontSize: 20, glowBlur: 7, glow:"rgba(91,188,255,0.18)" });
+          n42.position.copy(latLonToVec3(-6, 62, earthRadius*1.10));
+          overlays.names42.add(n42);
+
+          const pLabel = makeTextSprite("132° / 312°", { fontSize: 18, glowBlur: 7, glow:"rgba(91,188,255,0.16)" });
+          pLabel.position.copy(latLonToVec3(52, 105, earthRadius*1.11));
+          overlays.perpName.add(pLabel);
+        }
+
+        // Continents (TEXT ONLY)
+        const CONT = [
+          { name:"North America", lat: 45,  lon:-102 },
+          { name:"South America", lat:-16,  lon:-60 },
+          { name:"Europe",        lat: 52,  lon: 15 },
+          { name:"Africa",        lat:  5,  lon: 20 },
+          { name:"Asia",          lat: 45,  lon: 95 },
+          { name:"Australia",     lat:-25,  lon: 135 },
+          { name:"Antarctica",    lat:-80,  lon:  0 }
+        ];
+        for (const c of CONT){
+          const s = makeTextSprite(c.name, { fontSize: 18, glowBlur: 7, glow:"rgba(255,255,255,0.14)" });
+          s.position.copy(latLonToVec3(c.lat, c.lon, earthRadius*1.10));
+          overlays.continents.add(s);
+        }
+
+        // Corridors (±1/±5/±10 km) around BOTH 222 and 42
+        const kmToUnit = (km)=> (km/6371)*earthRadius;
+        const corridorRadii = [
+          { km: 1,  r: kmToUnit(1),  o: 0.16 },
+          { km: 5,  r: kmToUnit(5),  o: 0.09 },
+          { km: 10, r: kmToUnit(10), o: 0.06 }
+        ];
+        for (const c of corridorRadii){
+          overlays.corridors.add(makeGlowTube(gc222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
+          overlays.corridors.add(makeGlowTube(rh222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
+
+          overlays.corridors.add(makeGlowTube(gc42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.8));
+          overlays.corridors.add(makeGlowTube(rh42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.75));
+        }
+
+        // Station marker (ONLY Station 1)
+        function makeStationMarker(label, lat, lon, color=0x7fffd4){
+          const g = new THREE.Group();
+          const p = latLonToVec3(lat, lon, earthRadius*1.02);
+
+          const pin = new THREE.Mesh(new THREE.SphereGeometry(0.010, 18, 18),
+            new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.95 })
+          );
+          pin.position.copy(p);
+
+          const glow = new THREE.Mesh(new THREE.SphereGeometry(0.020, 18, 18),
+            new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.16, blending:THREE.AdditiveBlending, depthWrite:false })
+          );
+          glow.position.copy(p);
+
+          const tag = makeTextSprite(label, { fontSize: 18, glowBlur: 8, glow:"rgba(255,255,255,0.18)" });
+          tag.position.copy(latLonToVec3(lat, lon, earthRadius*1.12));
+
+          g.add(glow, pin, tag);
+          return g;
+        }
+        overlays.stations.add(makeStationMarker("Exit 222 • Station 1", ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
+
+        // Magnetic field (simple dipole preview)
+        function makeDipoleFieldLines(){
+          const g = new THREE.Group();
+          const col = 0x5bbcff;
+          const axis = new THREE.Vector3(0,1,0);
+          const Ls = [1.6, 2.2, 3.2, 4.6];
+
+          for (const L of Ls){
+            const pts = [];
+            for (let t=-80; t<=80; t+=1.2){
+              const θ = (90 - t) * DEG;
+              const r = L * Math.sin(θ)*Math.sin(θ);
+              const rr = earthRadius * r;
+              if (rr < earthRadius*1.04) continue;
+              const x = rr * Math.sin(θ);
+              const y = rr * Math.cos(θ);
+              pts.push(new THREE.Vector3(x, y, 0));
+            }
+
+            const longitudes = 10;
+            for (let i=0; i<longitudes; i++){
+              const a = (i/longitudes) * Math.PI*2;
+              const ring = pts.map(p=>{
+                const len = p.length();
+                const v = p.clone().applyAxisAngle(axis, a);
+                return v.normalize().multiplyScalar(len);
+              });
+              const ringClamped = ring.filter(v => v.length() < earthRadius*7.5);
+              g.add(makeGlowTube(ringClamped, 0.0014, col, col, 0.0, 0.055));
+            }
+          }
+          return g;
+        }
+        overlays.magField.add(makeDipoleFieldLines());
+
+        // Aurora (belt preview)
+        function makeAuroraBelt(latDeg=67, color=0xa078ff){
+          const g = new THREE.Group();
+          for (const lat of [latDeg, -latDeg]){
+            const pts = [];
+            for (let lon=-180; lon<=180; lon+=2) pts.push(latLonToVec3(lat, lon, earthRadius*1.05));
+            g.add(makeGlowTube(pts, 0.0026, color, color, 0.0, 0.11));
+          }
+          return g;
+        }
+        overlays.aurora.add(makeAuroraBelt(67));
+
+        // --------- Bloom (selective) ----------
         const BLOOM_LAYER = 1;
         const bloomLayer = new THREE.Layers(); bloomLayer.set(BLOOM_LAYER);
+
+        // Only glow on: nightLights + atmosphere + lines/corridors/aurora
         nightLights.layers.enable(BLOOM_LAYER);
         atmosphere.layers.enable(BLOOM_LAYER);
+        Object.values(overlays).forEach(g=>{
+          g.traverse(o => o.layers && o.layers.enable(BLOOM_LAYER));
+        });
+
+        const darkMaterial = new THREE.MeshBasicMaterial({ color:"black" });
+        const materials = new Map();
+        function darkenNonBloom(obj){
+          if (obj.isMesh && !bloomLayer.test(obj.layers)){
+            materials.set(obj.uuid, obj.material);
+            obj.material = darkMaterial;
+          }
+        }
+        function restoreMaterial(obj){
+          if (materials.has(obj.uuid)){
+            obj.material = materials.get(obj.uuid);
+            materials.delete(obj.uuid);
+          }
+        }
 
         const renderScene = new RenderPass(scene, camera);
 
@@ -1005,21 +1220,6 @@
         finalComposer.addPass(finalPass);
         finalComposer.addPass(new OutputPass());
 
-        const darkMaterial = new THREE.MeshBasicMaterial({ color:"black" });
-        const materials = new Map();
-        function darkenNonBloom(obj){
-          if (obj.isMesh && !bloomLayer.test(obj.layers)){
-            materials.set(obj.uuid, obj.material);
-            obj.material = darkMaterial;
-          }
-        }
-        function restoreMaterial(obj){
-          if (materials.has(obj.uuid)){
-            obj.material = materials.get(obj.uuid);
-            materials.delete(obj.uuid);
-          }
-        }
-
         function renderBloom(){
           scene.traverse(darkenNonBloom);
           bloomComposer.render();
@@ -1027,7 +1227,62 @@
           scene.traverse(restoreMaterial);
         }
 
-        // Interaction
+        // --------- Toggles ----------
+        const state = {
+          rhumb222: true,
+          rhumb42:  false,
+          gc222:    true,
+          gc42:     false,
+          names222: false,
+          names42:  false,
+          perpLine: false,
+          perpName: false,
+          continents:false,
+          stations: true,
+          corridors:false,
+          magField: false,
+          aurora:   false,
+          nightLights: true
+        };
+
+        function applyVisibility(){
+          overlays.rhumb222.visible = state.rhumb222;
+          overlays.rhumb42.visible  = state.rhumb42;
+          overlays.gc222.visible    = state.gc222;
+          overlays.gc42.visible     = state.gc42;
+
+          overlays.names222.visible = state.names222;
+          overlays.names42.visible  = state.names42;
+
+          overlays.perpLine.visible = state.perpLine;
+          overlays.perpName.visible = state.perpName;
+          overlays.continents.visible = state.continents;
+          overlays.stations.visible = state.stations;
+          overlays.corridors.visible = state.corridors;
+          overlays.magField.visible = state.magField;
+          overlays.aurora.visible = state.aurora;
+
+          nightLights.visible = state.nightLights; // ensure it actually appears
+        }
+
+        function setPill(key, on){
+          const b = document.querySelector(`.pill[data-key="${key}"]`);
+          if (b) b.classList.toggle("on", !!on);
+        }
+        Object.keys(state).forEach(k => setPill(k, state[k]));
+        applyVisibility();
+
+        document.querySelectorAll(".pill[data-key]").forEach(btn=>{
+          btn.addEventListener("click", ()=>{
+            const key = btn.dataset.key;
+            if (!(key in state)) return;
+            state[key] = !state[key];
+            setPill(key, state[key]);
+            applyVisibility();
+          });
+        });
+
+        // --------- Interaction (drag + pinch) ----------
         let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
         const AUTO_SPIN=0.0012, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
 
@@ -1095,7 +1350,7 @@
           camera.position.z = clamp(camera.position.z + (e.deltaY * 0.0025), Z_MIN, Z_MAX);
         }, { passive:true });
 
-        // Resize stability
+        // --------- Resize / Orientation (prevents freeze/crash on iOS rotations) ----------
         let resizeTimer = 0;
         function doResize(){
           if (!renderer || !camera) return;
@@ -1122,11 +1377,13 @@
         window.addEventListener("resize", scheduleResize, { passive:true });
         window.addEventListener("orientationchange", scheduleResize, { passive:true });
 
+        // Pause render when tab hidden (stability)
         document.addEventListener("visibilitychange", ()=>{
           running = !document.hidden;
           if (running && !rafId) animate();
         });
 
+        // --------- Animate ----------
         const sunDrift = 0.00005;
         const cloudSpin = 0.0020;
 
