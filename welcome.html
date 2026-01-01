@@ -1,197 +1,166 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="en">
-<head> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=yes, maximum-scale=5">
-<title>MAP E.D.E.N. — Welcome</title>
-<style>
-  :root{
-    --bg: #050508;
-    --fg: rgba(255,255,255,0.92);
-    --muted: rgba(255,255,255,0.70);
-    --muted2: rgba(255,255,255,0.46);
-    --glass: rgba(12,14,18,0.60);
-    --stroke: rgba(255,255,255,0.12);
-    --stroke2: rgba(255,255,255,0.14);
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=yes, maximum-scale=5" />
+  <title>MAP E.D.E.N. — Welcome</title>
 
-    --gold: #f6c24a;
-    --blue: #5bbcff;
-    --aqua: #7fffd4;
-    --violet: #a078ff;
-  }
+  <style>
+    :root{
+      --bg:#000;
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.70);
+      --panel: rgba(12,14,18,0.62);
+      --stroke: rgba(255,255,255,0.14);
+    }
 
-  *{ box-sizing:border-box; }
-  html, body{ height:100%; }
-  body{
-    margin:0;
-    background: var(--bg);
-    color: var(--fg);
-    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-    -webkit-font-smoothing:antialiased;
-    text-rendering:optimizeLegibility;
-    -webkit-text-size-adjust:100%;
-  }
+    html, body{
+      height:100%;
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+      overflow:auto;
+    }
 
-  /* page */
-  .wrap{
-    width: min(980px, 92vw);
-    margin: 0 auto;
-    padding: calc(env(safe-area-inset-top) + 18px) 0 calc(env(safe-area-inset-bottom) + 30px);
-  }
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 18px 16px 30px;
+    }
 
-  /* logos */
-  .logo{
-    display:block;
-    margin: 0 auto;
-    height:auto;
-    background: transparent;
-    border:0;
-    outline:0;
-    box-shadow:none;
-    filter: drop-shadow(0 16px 34px rgba(255,255,255,.06));
-  }
-  .logo.map{ width: min(640px, 86vw); margin-top: 6px; }
-  .logo.project{ width: min(720px, 92vw); margin-top: 22px; }
-  .logo.mandorla{ width: min(420px, 74vw); margin-top: 22px; }
+    .hero{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap: 14px;
+      padding: 22px 14px;
+      border-radius: 22px;
+      background: var(--panel);
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 14px 44px rgba(0,0,0,0.42);
+    }
 
-  /* headings */
-  .kicker{
-    text-align:center;
-    font-size: 13px;
-    letter-spacing: .26em;
-    text-transform: uppercase;
-    margin: 26px 0 10px;
-    color: rgba(255,255,255,0.92);
-  }
+    .logo{
+      width: min(680px, 92vw);
+      height:auto;
+      display:block;
+      filter: drop-shadow(0 0 18px rgba(255,255,255,0.12));
+    }
 
-  .panel{
-    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
-    border: 1px solid var(--stroke);
-    border-radius: 18px;
-    padding: 16px 16px;
-    margin: 10px auto 0;
-    width: min(860px, 94vw);
-    position: relative;
-    overflow:hidden;
-  }
-  .panel::before{
-    content:"";
-    position:absolute;
-    inset:-30%;
-    background: radial-gradient(circle at 50% 45%, rgba(255,255,255,.07) 0%, rgba(255,255,255,.03) 22%, rgba(0,0,0,0) 60%);
-    pointer-events:none;
-  }
-  .panel > *{ position: relative; }
+    h1{
+      margin: 6px 0 0;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.3px;
+      text-align:center;
+    }
 
-  .text{
-    color: var(--muted);
-    font-size: 15px;
-    line-height: 1.9;
-  }
-  .text p{ margin: 0 0 14px; }
-  .text p:last-child{ margin-bottom:0; }
+    .sub{
+      margin: 0;
+      max-width: 820px;
+      text-align:center;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 650;
+    }
 
-  /* section dividers */
-  .hr{
-    width: min(860px, 94vw);
-    margin: 18px auto 0;
-    height: 1px;
-    background: rgba(255,255,255,0.10);
-    border-radius: 999px;
-    opacity: 0.8;
-  }
+    .section{
+      margin-top: 16px;
+      padding: 18px 16px;
+      border-radius: 22px;
+      background: rgba(12,14,18,0.50);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
 
-  /* list styling */
-  ul{
-    margin: 10px 0 0 20px;
-    padding: 0;
-  }
-  li{ margin: 8px 0; }
+    .section h2{
+      margin: 0 0 10px;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 0.2px;
+    }
 
-  /* small footer note */
-  .note{
-    width: min(860px, 94vw);
-    margin: 18px auto 0;
-    text-align:center;
-    font-size: 12px;
-    line-height: 1.6;
-    color: rgba(255,255,255,0.52);
-  }
-</style>
+    .section p{
+      margin: 0 0 12px;
+      color: rgba(255,255,255,0.82);
+      font-size: 14px;
+      line-height: 1.55;
+      font-weight: 650;
+    }
+
+    .footerLogos{
+      margin-top: 18px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      justify-items:center;
+      opacity: 0.95;
+    }
+
+    .smallLogo{
+      width: min(520px, 86vw);
+      height:auto;
+      display:block;
+      filter: drop-shadow(0 0 16px rgba(255,255,255,0.10));
+    }
+
+    .note{
+      margin-top: 14px;
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      line-height: 1.35;
+      font-weight: 650;
+      text-align:center;
+    }
+  </style>
 </head>
 
 <body>
   <div class="wrap">
+    <div class="hero">
+      <!-- IMPORTANT: these match your current GitHub filenames (with colon) -->
+      <img class="logo" src="assets:asset_1.png" alt="MAP E.D.E.N." />
 
-    <!-- MAP E.D.E.N. -->
-    <img class="logo map" src="assets:asset_1.png" alt="MAP E.D.E.N.">
-
-    <div class="kicker">WELCOME</div>
-
-    <div class="panel">
-      <div class="text">
-        <p>
-          Welcome to <strong>MAP E.D.E.N.</strong> — the operational field platform for <strong>Project E.D.E.N.</strong>
-          (Earth Diametric &amp; Energy Network). This system exists to run repeatable, evidence-first field tests along defined
-          Earth corridors, beginning with the <strong>42° / 222° diametric axis</strong> (two opposite bearings on the same straight line).
-        </p>
-        <p>
-          MAP E.D.E.N. equips trusted operators with clear protocols to collect environmental field measurements and navigation-behavior observations,
-          including human biological magnetoreception and magnetically influenced orientation, homing, and migratory navigation in animals and insects,
-          so results can be compared across stations and time.
-        </p>
-      </div>
+      <h1>Welcome to MAP E.D.E.N.</h1>
+      <p class="sub">
+        Earth Diametric Energy Network — a visual switchboard for Project E.D.E.N. field corridors,
+        overlays, and station navigation.
+      </p>
     </div>
 
-    <div class="hr"></div>
-
-    <div class="kicker">MISSION</div>
-
-    <div class="panel">
-      <div class="text">
-        <p>
-          MAP E.D.E.N. is the operational field platform for Project E.D.E.N. (Earth Diametric &amp; Energy Network)—a secure, repeatable way
-          to run real-world tests along defined Earth corridors, beginning with the 42/222 diametric axis (42° and 222° are opposite bearings on the same straight line).
-          Based on a 20+ year personal observation record, the Founder identified “222” as a persistent recurring numeric event marker across routine environments
-          (time displays, identifiers, signage). This long-duration recurrence served as the initial trigger for structuring Project E.D.E.N. as a measurement-first field program.
-        </p>
-        <p>
-          Over time, and in multiple documented sessions, the “222” event marker also coincided with a compass bearing of 222° (SW)—reinforcing the 42/222 line
-          as a repeatable corridor for formal testing.
-        </p>
-        <p>
-          MAP E.D.E.N. equips trusted operators with clear protocols to collect environmental field measurements and navigation-behavior observations, including
-          human biological magnetoreception and magnetically influenced orientation, homing, and migratory navigation in animals and insects, so results can be compared across time.
-        </p>
-      </div>
+    <div class="section">
+      <h2>MISSION</h2>
+      <p>
+        MAP E.D.E.N. is the operational field platform for Project E.D.E.N. (Earth Diametric &amp; Energy Network) —
+        a secure, repeatable way to run real-world tests along defined Earth corridors, beginning with the 42°/222°
+        diametric axis (42° and 222° are opposite bearings on the same straight line).
+      </p>
+      <p>
+        Based on a 20+ year personal observation record, the Founder identified “222” as a persistent recurring numeric
+        event marker across routine environments (time displays, identifiers, signage). This long-duration recurrence
+        served as the initial trigger for structuring Project E.D.E.N. as a measurement-first field program.
+      </p>
+      <p>
+        Over time, and in multiple documented sessions, the “222” event marker also coincided with a compass bearing
+        of 222° (SW) — reinforcing the 42°/222° line as a repeatable corridor for formal testing. MAP E.D.E.N. equips
+        trusted operators with clear protocols to collect environmental field measurements and navigation-behavior
+        observations, including human biological magnetoreception and magnetically influenced orientation, homing, and
+        migratory navigation in animals and insects, so results can be compared across time.
+      </p>
     </div>
 
-    <div class="hr"></div>
-
-    <!-- PROJECT E.D.E.N. -->
-    <img class="logo project" src="assets:asset_3.png" alt="PROJECT E.D.E.N.">
-
-    <div class="kicker">CORE PRINCIPLES</div>
-
-    <div class="panel">
-      <div class="text">
-        <ul>
-          <li><strong>Measurement-first:</strong> raw exports + controls so results survive skepticism.</li>
-          <li><strong>Device vs environment separation:</strong> independent channels reduce false positives.</li>
-          <li><strong>Replication:</strong> standardized protocol + UTC tagging enables repeatable comparisons.</li>
-          <li><strong>Null results matter:</strong> if nothing persists above sensitivity limits, the program learns what is <em>not</em> happening.</li>
-        </ul>
-      </div>
+    <div class="footerLogos">
+      <img class="smallLogo" src="assets:asset_3.png" alt="Project E.D.E.N." />
+      <img class="smallLogo" src="assets:asset_4.png" alt="Mandorla" />
     </div>
-
-    <div class="hr"></div>
-
-    <!-- MANDORLA -->
-    <img class="logo mandorla" src="assets:asset_4.png" alt="MANDORLA">
 
     <div class="note">
-      © 2025–2026 Mandorla. All Rights Reserved. MAP E.D.E.N.™, Project E.D.E.N.™, and Mandorla™ are proprietary marks.
+      If you later move these into a real folder like <b>assets/asset_1.png</b>, update the image src paths to use
+      <b>assets/...</b> instead of <b>assets:...</b>.
     </div>
-
   </div>
 </body>
 </html>
