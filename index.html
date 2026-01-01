@@ -443,6 +443,9 @@
     import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
     import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 
+    // ✅ GLOBAL FIX: Welcome file name in your repo
+    const WELCOME_FILE = "welcome.html";
+
     // ---------- UI ----------
     const statusEl   = document.getElementById("status");
     const errorsEl   = document.getElementById("errors");
@@ -489,8 +492,7 @@
         missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
 
-        // ✅ Correct file name in your repo:
-        const WELCOME_FILE = "welcome.html";
+        // ✅ uses global constant above
         welcomeFrame.src = encodeURI(WELCOME_FILE);
       } else {
         modalTitle.textContent = "MISSION";
