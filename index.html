@@ -199,14 +199,7 @@
     }
 
     /* ON colors (default green) */
-    .pill.on:not([data-key]){
-      border-color: var(--greenStroke);
-      box-shadow: 0 0 0 1px rgba(120,255,200,0.10) inset, 0 0 28px rgba(120,255,200,0.10);
-    }
-    .pill.on .dot{
-      background: var(--greenDot);
-      box-shadow: 0 0 16px var(--greenGlow);
-    }
+    .pill.on .dot{ background: var(--greenDot); box-shadow: 0 0 16px var(--greenGlow); }
 
     /* Layer-specific dot colors */
     .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
@@ -219,7 +212,7 @@
     .pill.on[data-key="aurora"]     .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 16px rgba(160,120,255,0.18); }
     .pill.on[data-key="nightLights"].dot{ background: rgba(140,255,200,0.92); box-shadow:0 0 16px rgba(140,255,200,0.18); }
 
-    /* Switchboard button = GREEN when ON (per your requirement) */
+    /* Switchboard button = GREEN when ON */
     .pill.switch.on{
       border-color: var(--greenStroke);
       box-shadow: 0 0 0 1px rgba(120,255,200,0.10) inset, 0 0 28px rgba(120,255,200,0.12);
@@ -515,6 +508,47 @@
     closeBtn.addEventListener("click", () => setDrawerClosed(true));
     handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
 
+    // ---- Top buttons: GREEN when pressed ----
+    function setTopActive(which){
+      welcomeBtn.classList.toggle("on", which === "welcome");
+      missionBtn.classList.toggle("on", which === "mission");
+      // switchBtn handled separately by switchboard state (also green)
+    }
+    function clearTopActive(){
+      welcomeBtn.classList.remove("on");
+      missionBtn.classList.remove("on");
+    }
+
+    // ✅ Robust welcome path on GitHub Pages (works for /E.D.E.N.-GLOBE/ and index.html)
+    const WELCOME_FILE = new URL("welcome.html", window.location.href).toString();
+
+    function openModal(kind){
+      modalMask.classList.add("on");
+
+      if (kind === "welcome"){
+        modalTitle.textContent = "WELCOME";
+        setTopActive("welcome");
+        missionContent.style.display = "none";
+        welcomeFrame.style.display = "block";
+        // ✅ cache-bust so mobile/iOS doesn't show an old blank version
+        welcomeFrame.src = WELCOME_FILE + "?v=" + Date.now();
+      } else {
+        modalTitle.textContent = "MISSION";
+        setTopActive("mission");
+        welcomeFrame.style.display = "none";
+        missionContent.style.display = "block";
+      }
+    }
+    function closeModal(){
+      modalMask.classList.remove("on");
+      clearTopActive();
+      if (welcomeFrame.style.display !== "none") welcomeFrame.src = "about:blank";
+    }
+    modalClose.addEventListener("click", closeModal);
+    modalMask.addEventListener("click", (e)=>{ if(e.target === modalMask) closeModal(); });
+    welcomeBtn.addEventListener("click", ()=>openModal("welcome"));
+    missionBtn.addEventListener("click", ()=>openModal("mission"));
+
     // Switchboard (only show layer toggles when ON)
     let switchboardOn = false;
     function setSwitchboard(on){
@@ -525,68 +559,6 @@
     }
     switchBtn.addEventListener("click", ()=> setSwitchboard(!switchboardOn));
     setSwitchboard(false);
-
-    // ---- Top buttons: GREEN when pressed ----
-    function setTopActive(which){
-      // Only one of Welcome/Mission should be green at a time
-      welcomeBtn.classList.toggle("on", which === "welcome");
-      missionBtn.classList.toggle("on", which === "mission");
-
-      // Cleanliness: close switchboard when opening a modal page
-      if (which === "welcome" || which === "mission") {
-        setSwitchboard(false);
-      }
-    }
-    function clearTopActive(){
-      welcomeBtn.classList.remove("on");
-      missionBtn.classList.remove("on");
-    }
-
-    // Modal controls
-    const WELCOME_FILE = "welcome.html"; // ✅ your repo file
-    function openModal(kind){
-      modalMask.classList.add("on");
-
-      if (kind === "welcome"){
-        modalTitle.textContent = "WELCOME";
-        setTopActive("welcome");
-
-        missionContent.style.display = "none";
-        welcomeFrame.style.display = "block";
-
-        // iOS-safe reload: blank first, then load welcome.html
-        welcomeFrame.src = "about:blank";
-        requestAnimationFrame(() => {
-          welcomeFrame.src = WELCOME_FILE + "?v=" + Date.now();
-        });
-
-      } else {
-        modalTitle.textContent = "MISSION";
-        setTopActive("mission");
-
-        welcomeFrame.style.display = "none";
-        missionContent.style.display = "block";
-
-        // Make sure iframe is not running in background
-        welcomeFrame.src = "about:blank";
-      }
-    }
-    function closeModal(){
-      modalMask.classList.remove("on");
-      clearTopActive();
-
-      // Always unload iframe (prevents black screens / memory retention on iOS)
-      welcomeFrame.src = "about:blank";
-    }
-    modalClose.addEventListener("click", closeModal);
-    modalMask.addEventListener("click", (e)=>{ if(e.target === modalMask) closeModal(); });
-    welcomeBtn.addEventListener("click", ()=>openModal("welcome"));
-    missionBtn.addEventListener("click", ()=>openModal("mission"));
-
-    // ESC closes modal (desktop)
-    window.addEventListener("keydown", (e)=>{
-      if (e.key === "Escape" && modalMask.classList.contains("on")) closeModal();
-    });
 
     // ---------- Math helpers ----------
     const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
@@ -1311,7 +1283,7 @@
         }
 
         function setPill(key, on){
-          const b = document.querySelector(`.pill[data-key="${key}"]`);
+          const b = document.querySelector(\`.pill[data-key="\${key}"]\`);
           if (b) b.classList.toggle("on", !!on);
         }
         Object.keys(state).forEach(k => setPill(k, state[k]));
