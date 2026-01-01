@@ -24,7 +24,6 @@
     html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
     canvas { display:block; width:100vw !important; height:100vh !important; }
 
-    /* ---------- Floating OPEN button ---------- */
     #openBtn{
       position: fixed;
       left: 18px;
@@ -48,7 +47,6 @@
     }
     #openBtn:active { transform: translateY(1px); }
 
-    /* ---------- Bottom Drawer ---------- */
     #drawer {
       position: fixed;
       left: 50%;
@@ -126,7 +124,6 @@
     }
     #closeBtn:active { transform: translateY(1px); }
 
-    /* Scrollable content area (fixes landscape usability) */
     #drawerBody{
       margin-top: 12px;
       overflow-y: auto;
@@ -193,7 +190,6 @@
       flex: 0 0 auto;
     }
 
-    /* ON colors */
     .pill.on .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 16px rgba(120,255,200,0.24); }
     .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
     .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 16px rgba(91,188,255,0.22); }
@@ -230,17 +226,14 @@
       white-space: pre-wrap;
     }
 
-    /* collapsed state */
     #drawer.collapsed #drawerBody,
     #drawer.collapsed #statusBar,
     #drawer.collapsed #errors { display:none; }
     #drawer.collapsed { padding-bottom: 12px; }
 
-    /* Switchboard group hidden by default */
     #switchboardGroup{ display:none; }
     #switchboardGroup.on{ display:block; }
 
-    /* ---------- Modal (Welcome / Mission) ---------- */
     #modalMask{
       position: fixed;
       inset: 0;
@@ -331,7 +324,6 @@
     }
   </style>
 
-  <!-- Import Map -->
   <script type="importmap">
     {
       "imports": {
@@ -343,7 +335,6 @@
 </head>
 
 <body>
-  <!-- Floating open button (clean brand: no icon) -->
   <button id="openBtn" aria-label="Open MAP E.D.E.N.">MAP E.D.E.N.</button>
 
   <div id="drawer">
@@ -358,7 +349,6 @@
     </div>
 
     <div id="drawerBody">
-      <!-- Top row: Welcome • Mission • Switchboard -->
       <div class="gridTop">
         <button class="pill" id="welcomeBtn">
           <span class="left"><span class="dot"></span><span class="label">Welcome</span></span>
@@ -374,7 +364,6 @@
         </button>
       </div>
 
-      <!-- Switchboard group (only visible when Switchboard ON) -->
       <div id="switchboardGroup">
         <div class="grid2">
           <button class="pill on" data-key="rhumb222"><span class="left"><span class="dot"></span><span class="label">Rhumb 222 SW</span></span></button>
@@ -409,7 +398,6 @@
     </div>
   </div>
 
-  <!-- Modal for Welcome / Mission -->
   <div id="modalMask" role="dialog" aria-modal="true" aria-label="MAP E.D.E.N. Modal">
     <div id="modal">
       <div id="modalTop">
@@ -417,10 +405,8 @@
         <button id="modalClose" aria-label="Close modal">✕</button>
       </div>
       <div id="modalBody">
-        <!-- Welcome iframe (loads your drop-in HTML file) -->
         <iframe id="welcomeFrame" title="MAP E.D.E.N. Welcome" loading="lazy"></iframe>
 
-        <!-- Mission content -->
         <div id="missionContent" style="display:none;">
           <h2>MAP E.D.E.N. Mission</h2>
           <p>
@@ -443,7 +429,6 @@
     import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
     import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 
-    // ---------- UI ----------
     const statusEl   = document.getElementById("status");
     const errorsEl   = document.getElementById("errors");
     const drawerEl   = document.getElementById("drawer");
@@ -481,7 +466,6 @@
     closeBtn.addEventListener("click", () => setDrawerClosed(true));
     handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
 
-    // Modal controls
     function openModal(kind){
       modalMask.classList.add("on");
       if (kind === "welcome"){
@@ -489,9 +473,9 @@
         missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
 
-        // ✅ FINAL: correct file name + cache-bust so GitHub Pages always loads newest
-        const WELCOME_FILE = "welcome.html?v=1";
-        welcomeFrame.src = WELCOME_FILE;
+        // ✅ Loads the correct file AND bypasses cache on iOS/GitHub Pages
+        const WELCOME_FILE = "welcome.html";
+        welcomeFrame.src = encodeURI(WELCOME_FILE) + "?v=" + Date.now();
       } else {
         modalTitle.textContent = "MISSION";
         welcomeFrame.style.display = "none";
@@ -500,13 +484,11 @@
     }
     function closeModal(){
       modalMask.classList.remove("on");
-      // avoid iOS memory spikes by unloading iframe when closed
       if (welcomeFrame.style.display !== "none") welcomeFrame.src = "about:blank";
     }
     modalClose.addEventListener("click", closeModal);
     modalMask.addEventListener("click", (e)=>{ if(e.target === modalMask) closeModal(); });
 
-    // ✅ Top-row lights go green when pressed
     function setTopOn(btn){ btn.classList.add("on"); }
 
     welcomeBtn.addEventListener("click", ()=>{
@@ -518,18 +500,16 @@
       openModal("mission");
     });
 
-    // Switchboard (only show layer toggles when ON)
     let switchboardOn = false;
     function setSwitchboard(on){
       switchboardOn = !!on;
-      switchBtn.classList.toggle("on", switchboardOn);     // ✅ green on press
+      switchBtn.classList.toggle("on", switchboardOn);
       switchGrp.classList.toggle("on", switchboardOn);
       switchHint.textContent = switchboardOn ? "Tap to close" : "Tap to open";
     }
     switchBtn.addEventListener("click", ()=> setSwitchboard(!switchboardOn));
     setSwitchboard(false);
 
-    // ---------- Math helpers ----------
     const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
     const DEG = Math.PI/180;
     const RAD = 180/Math.PI;
@@ -611,7 +591,6 @@
       return g;
     }
 
-    // Text-only sprite (NO border box)
     function makeTextSprite(text, {
       fontSize=22,
       color="rgba(255,255,255,0.92)",
@@ -649,7 +628,6 @@
       return spr;
     }
 
-    // ---------- Fallback textures ----------
     function solidTexture(hex="#222"){
       const c=document.createElement("canvas");
       c.width=2; c.height=2;
@@ -743,14 +721,13 @@
           const tex = await tryOne(u);
           tex.colorSpace = THREE.SRGBColorSpace;
           return tex;
-        } catch { /* keep trying */ }
+        } catch { }
       }
 
       showError(`Texture fallback used for: ${label}\n(CDN blocked/failed on this device/network)`);
       return fallbackTex;
     }
 
-    // ---------- Main ----------
     let renderer, camera, scene, globe;
     let bloomComposer, finalComposer, bloomPass, finalPass;
     let rafId = 0;
@@ -1001,7 +978,6 @@
         globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
         scene.add(globe);
 
-        // --------- Overlays ----------
         const overlays = {
           rhumb222: new THREE.Group(),
           rhumb42:  new THREE.Group(),
@@ -1019,7 +995,6 @@
         };
         Object.values(overlays).forEach(g => globe.add(g));
 
-        // ✅ EDIT STATION NAME + COORDINATES HERE
         const ANCHOR = { name: "Exit 222 • Station 1", lat: 38.1608333333, lon: -79.0733333333 };
 
         const BEAR_222 = 222;
@@ -1049,7 +1024,6 @@
         }
         overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
-        // ✅ EDIT AXIS LABEL TEXT HERE
         {
           const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 7, glow:"rgba(246,194,74,0.18)" });
           n222.position.copy(latLonToVec3(18, -18, earthRadius*1.10));
@@ -1064,7 +1038,6 @@
           overlays.perpName.add(pLabel);
         }
 
-        // ✅ EDIT CONTINENT LABELS HERE
         const CONT = [
           { name:"North America", lat: 45,  lon:-102 },
           { name:"South America", lat:-16,  lon:-60 },
