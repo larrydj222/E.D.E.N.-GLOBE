@@ -2,16 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=yes" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>MAP E.D.E.N. — Welcome</title>
+
   <style>
     :root{
-      --bg:#000;
-      --glass: rgba(12,14,18,0.70);
-      --stroke: rgba(255,255,255,0.14);
+      --bg0:#06070b;
+      --bg1:#0b0f18;
+      --glass: rgba(10,12,18,0.62);
+      --stroke: rgba(255,255,255,0.12);
+      --stroke2: rgba(255,255,255,0.16);
       --text: rgba(255,255,255,0.92);
-      --muted: rgba(255,255,255,0.70);
-      --muted2: rgba(255,255,255,0.50);
+      --muted: rgba(255,255,255,0.74);
+      --muted2: rgba(255,255,255,0.56);
       --gold:#f6c24a;
       --blue:#5bbcff;
       --aqua:#7fffd4;
@@ -19,26 +22,22 @@
     }
 
     html, body{
-      height: 100%;
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      -webkit-text-size-adjust: 100%;
-      touch-action: pan-x pan-y;
-      overflow: auto;
-    }
-
-    /* Allow scroll inside iframe on iOS smoothly */
-    body{
-      -webkit-overflow-scrolling: touch;
-      font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial, sans-serif;
-      line-height: 1.55;
+      height:100%;
+      margin:0;
+      background: radial-gradient(1200px 900px at 70% 10%, rgba(91,188,255,0.10), transparent 55%),
+                  radial-gradient(900px 700px at 20% 20%, rgba(246,194,74,0.08), transparent 55%),
+                  radial-gradient(900px 700px at 80% 80%, rgba(160,120,255,0.08), transparent 55%),
+                  linear-gradient(180deg, var(--bg0), var(--bg1));
+      color:var(--text);
+      font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      -webkit-font-smoothing: antialiased;
+      overflow:auto;
     }
 
     .wrap{
       max-width: 980px;
       margin: 0 auto;
-      padding: 18px 16px 40px;
+      padding: 28px 18px 44px;
     }
 
     .card{
@@ -46,107 +45,186 @@
       border: 1px solid var(--stroke);
       border-radius: 22px;
       padding: 18px 18px 16px;
-      box-shadow: 0 18px 60px rgba(0,0,0,0.55);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.45);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
     }
 
-    .brandRow{
+    .top{
       display:flex;
+      gap: 14px;
       align-items:center;
       justify-content:space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
-    .logo{
+    .brand{
       display:flex;
+      gap: 12px;
       align-items:center;
-      gap: 10px;
       min-width: 0;
     }
 
-    .logo img{
-      height: 54px;
-      max-width: 100%;
-      object-fit: contain;
-      display:block;
-      filter: drop-shadow(0 10px 28px rgba(0,0,0,0.45));
-    }
-
-    .title{
-      font-weight: 900;
-      font-size: 20px;
-      letter-spacing: 0.2px;
-      margin: 8px 0 6px;
-    }
-
-    .subtitle{
-      color: var(--muted);
-      font-weight: 650;
-      font-size: 13px;
-      margin: 0 0 14px;
-    }
-
-    h2{
-      margin: 16px 0 8px;
-      font-size: 16px;
-      font-weight: 900;
-      letter-spacing: 0.15px;
-    }
-
-    p{ margin: 0 0 12px; color: rgba(255,255,255,0.84); }
-
-    .pillRow{
-      display:flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 8px;
-    }
-
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap: 10px;
-      padding: 10px 12px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.14);
+    .logo{
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      border: 1px solid var(--stroke2);
       background: rgba(255,255,255,0.06);
-      color: var(--text);
-      font-weight: 850;
-      font-size: 12px;
-      letter-spacing: 0.15px;
-    }
-
-    .dot{
-      width: 10px; height: 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.18);
-      box-shadow: 0 0 16px rgba(0,0,0,0);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
       flex: 0 0 auto;
     }
-    .dot.gold{ background: rgba(246,194,74,0.92); box-shadow: 0 0 16px rgba(246,194,74,0.18); }
-    .dot.blue{ background: rgba(91,188,255,0.92); box-shadow: 0 0 16px rgba(91,188,255,0.18); }
-    .dot.aqua{ background: rgba(127,255,212,0.92); box-shadow: 0 0 16px rgba(127,255,212,0.16); }
-    .dot.violet{ background: rgba(160,120,255,0.92); box-shadow: 0 0 16px rgba(160,120,255,0.16); }
-
-    .hr{
-      height: 1px;
-      background: rgba(255,255,255,0.10);
-      margin: 14px 0;
+    .logo img{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.95;
     }
 
-    .fine{
-      color: var(--muted2);
+    .titles{
+      display:flex;
+      flex-direction:column;
+      gap: 4px;
+      min-width:0;
+    }
+
+    h1{
+      font-size: 20px;
+      line-height: 1.15;
+      margin: 0;
+      font-weight: 900;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sub{
       font-size: 12px;
-      font-weight: 650;
+      line-height: 1.2;
+      margin: 0;
+      font-weight: 750;
+      color: var(--muted);
+      letter-spacing: 0.2px;
+    }
+
+    .hero{
+      margin-top: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.05);
+      overflow:hidden;
+    }
+    .hero img{
+      width:100%;
+      height:auto;
+      display:block;
+      opacity: 0.96;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
       margin-top: 14px;
     }
 
-    @media (max-width: 520px){
-      .logo img{ height: 46px; }
-      .title{ font-size: 18px; }
+    .section{
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.05);
+      padding: 14px 14px 12px;
+    }
+
+    .kicker{
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: 0.25px;
+      margin: 0 0 8px;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+    }
+
+    .dot{
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      box-shadow: 0 0 0 rgba(0,0,0,0);
+      flex: 0 0 auto;
+    }
+
+    .gold  { color: rgba(246,194,74,0.95); }
+    .blue  { color: rgba(91,188,255,0.95); }
+    .aqua  { color: rgba(127,255,212,0.95); } /* ✅ FIXED (was .aqa) */
+    .violet{ color: rgba(160,120,255,0.95); }
+
+    .dot.gold  { background: rgba(246,194,74,0.90); box-shadow:0 0 16px rgba(246,194,74,0.18); }
+    .dot.blue  { background: rgba(91,188,255,0.90); box-shadow:0 0 16px rgba(91,188,255,0.18); }
+    .dot.aqua  { background: rgba(127,255,212,0.90); box-shadow:0 0 16px rgba(127,255,212,0.18); }
+    .dot.violet{ background: rgba(160,120,255,0.90); box-shadow:0 0 16px rgba(160,120,255,0.18); }
+
+    p{
+      margin: 0 0 10px;
+      color: rgba(255,255,255,0.80);
+      font-size: 14px;
+      line-height: 1.55;
+      font-weight: 650;
+    }
+
+    .small{
+      color: var(--muted2);
+      font-size: 12px;
+      font-weight: 750;
+      margin-top: 8px;
+    }
+
+    .assetsRow{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .asset{
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.20);
+      overflow:hidden;
+      position:relative;
+      min-height: 88px;
+    }
+    .asset img{
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      display:block;
+      opacity: 0.92;
+    }
+    .cap{
+      position:absolute;
+      left:10px;
+      bottom:10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(12,14,18,0.55);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.2px;
+      color: rgba(255,255,255,0.86);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    @media (max-width: 560px){
+      .assetsRow{ grid-template-columns: 1fr; }
+      .asset{ min-height: 130px; }
+      h1{ font-size: 18px; }
     }
   </style>
 </head>
@@ -154,64 +232,79 @@
 <body>
   <div class="wrap">
     <div class="card">
-
-      <!-- Logos -->
-      <div class="brandRow">
-        <div class="logo">
-          <img src="assets/asset_1.png" alt="MAP E.D.E.N. Logo" />
-        </div>
-        <div class="logo">
-          <img src="assets/asset_3.png" alt="Project / Mark Logo" />
-        </div>
-        <div class="logo">
-          <img src="assets/asset_4.png" alt="Mandorla / Mark Logo" />
+      <div class="top">
+        <div class="brand">
+          <div class="logo" aria-label="MAP E.D.E.N. logo">
+            <img src="assets/asset_1.png" alt="MAP E.D.E.N. Logo" />
+          </div>
+          <div class="titles">
+            <h1>MAP E.D.E.N.</h1>
+            <p class="sub">Earth Diametric Energy Network • Operational Field Platform</p>
+          </div>
         </div>
       </div>
 
-      <div class="title">Welcome to MAP E.D.E.N.</div>
-      <div class="subtitle">Earth Diametric Energy Network • Globe Simulator + Switchboard</div>
-
-      <p>
-        MAP E.D.E.N. is the operational globe interface for Project E.D.E.N. — a measurement-first field program
-        centered on repeatable testing along defined Earth corridors, beginning with the <b>42° / 222°</b> diametric axis.
-      </p>
-
-      <div class="hr"></div>
-
-      <h2>How to use the globe</h2>
-      <p>
-        Open the drawer and tap <b>Switchboard</b> to reveal the layer controls. Each layer toggles a visual overlay on the globe.
-        Use drag to rotate, pinch to zoom, and the drawer can be collapsed/expanded for more screen space.
-      </p>
-
-      <div class="pillRow">
-        <span class="pill"><span class="dot gold"></span>Rhumb 222 / 42</span>
-        <span class="pill"><span class="dot blue"></span>Great Circle 222 / 42</span>
-        <span class="pill"><span class="dot aqa"></span>Stations</span>
-        <span class="pill"><span class="dot violet"></span>Aurora / Field</span>
+      <div class="hero">
+        <img src="assets/asset_3.png" alt="MAP E.D.E.N. Visual" />
       </div>
 
-      <h2>Mission</h2>
-      <p>
-        Turn the 42° / 222° axis hypothesis into a coordinated, evidence-first experiment by producing sensor datasets
-        that are repeatable, controlled, and comparable across stations and time.
-      </p>
-      <p>
-        MAP E.D.E.N. equips trusted operators with clear protocols to collect environmental field measurements and
-        navigation-behavior observations so results can be compared across locations, devices, and sessions.
-      </p>
+      <div class="grid">
+        <div class="section">
+          <div class="kicker">
+            <span class="dot aqua"></span>
+            <span class="aqua">WELCOME</span>
+          </div>
+          <p>
+            MAP E.D.E.N. is the operational field platform for Project E.D.E.N. (Earth Diametric &amp; Energy Network) —
+            a secure, repeatable way to run real-world tests along defined Earth corridors, beginning with the 42° / 222°
+            diametric axis (42° and 222° are opposite bearings on the same straight line).
+          </p>
+          <p>
+            Based on a 20+ year personal observation record, the Founder identified “222” as a persistent recurring numeric
+            event marker across routine environments (time displays, identifiers, signage). This long-duration recurrence
+            served as the initial trigger for structuring Project E.D.E.N. as a measurement-first field program.
+          </p>
+          <p>
+            Over time, and in multiple documented sessions, the “222” event marker also coincided with a compass bearing
+            of 222° (SW) — reinforcing the 42° / 222° line as a repeatable corridor for formal testing.
+          </p>
+          <p>
+            MAP E.D.E.N. equips trusted operators with clear protocols to collect environmental field measurements and
+            navigation-behavior observations (including human biological magnetoreception and magnetically influenced
+            orientation, homing, and migratory navigation in animals and insects), so results can be compared across time.
+          </p>
+          <div class="small">Tip: You can pinch &amp; zoom and scroll this page top-to-bottom.</div>
+        </div>
 
-      <h2>Notes</h2>
-      <p>
-        If you ever update logos or files and they don’t appear immediately, it may be caching. Closing and reopening
-        the Welcome modal (or hard refresh) will pull the latest version.
-      </p>
+        <div class="section">
+          <div class="kicker">
+            <span class="dot gold"></span>
+            <span class="gold">ASSETS CHECK</span>
+          </div>
+          <p class="small" style="margin:0;">
+            This page references only:
+            <br />• assets/asset_1.png
+            <br />• assets/asset_3.png
+            <br />• assets/asset_4.png
+          </p>
 
-      <div class="fine">
-        Assets must remain in <b>/assets</b> and be referenced exactly as:
-        <b>assets/asset_1.png</b>, <b>assets/asset_3.png</b>, <b>assets/asset_4.png</b>.
+          <div class="assetsRow">
+            <div class="asset">
+              <img src="assets/asset_1.png" alt="Asset 1" />
+              <div class="cap">asset_1.png</div>
+            </div>
+            <div class="asset">
+              <img src="assets/asset_3.png" alt="Asset 3" />
+              <div class="cap">asset_3.png</div>
+            </div>
+            <div class="asset">
+              <img src="assets/asset_4.png" alt="Asset 4" />
+              <div class="cap">asset_4.png</div>
+            </div>
+          </div>
+        </div>
+
       </div>
-
     </div>
   </div>
 </body>
