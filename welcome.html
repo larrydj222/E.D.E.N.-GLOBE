@@ -12,16 +12,12 @@
       --bg1:#060a14;
       --glass: rgba(12,14,18,0.62);
       --stroke: rgba(255,255,255,0.14);
-      --stroke2: rgba(255,255,255,0.18);
       --text: rgba(255,255,255,0.92);
       --muted: rgba(255,255,255,0.70);
       --muted2: rgba(255,255,255,0.50);
 
       --green: rgba(120,255,200,0.92);
       --greenGlow: rgba(120,255,200,0.22);
-
-      --gold: #f6c24a;
-      --blue: #5bbcff;
     }
 
     html,body{
@@ -36,7 +32,6 @@
       overflow:hidden;
     }
 
-    /* subtle “space” grain */
     body:before{
       content:"";
       position:fixed; inset:0;
@@ -206,6 +201,7 @@
       cursor:pointer;
       -webkit-tap-highlight-color: transparent;
       user-select:none;
+      text-decoration:none;
     }
     .btn:active{ transform: translateY(1px); }
 
@@ -277,7 +273,6 @@
 <body>
   <div class="wrap">
     <div class="panel" role="main" aria-label="MAP E.D.E.N. Welcome">
-
       <div class="top">
         <div class="brand">
           <div class="title">MAP E.D.E.N.</div>
@@ -342,7 +337,7 @@
               <span class="hint">Light on</span>
             </button>
 
-            <a class="btn" id="btnSwitch" href="./index.html" style="text-decoration:none;">
+            <a class="btn" id="btnSwitch" href="./index.html">
               <span class="left"><span class="dot"></span><span class="label">Switchboard</span></span>
               <span class="hint">Back to globe</span>
             </a>
@@ -358,12 +353,10 @@
         <span>MAP E.D.E.N. • Running</span>
         <span><a class="link" href="./index.html">Open Globe</a></span>
       </div>
-
     </div>
   </div>
 
   <script>
-    // Simple “lights turn green when pressed” behavior (matches your UI ask)
     const setOn = (id, on) => document.getElementById(id)?.classList.toggle("on", !!on);
 
     // Default: Welcome light ON (because you’re on the welcome page)
@@ -380,7 +373,6 @@
     btnMission?.addEventListener("click", () => {
       setOn("btnMission", true);
       setOn("lightMission", true);
-      // Scroll user to Mission section (smooth)
       const headers = [...document.querySelectorAll("h2")];
       const mission = headers.find(h => (h.textContent || "").trim().toUpperCase() === "MISSION");
       if (mission) mission.scrollIntoView({ behavior: "smooth", block: "start" });
