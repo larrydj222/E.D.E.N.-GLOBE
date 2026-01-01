@@ -3,30 +3,27 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>MAP E.D.E.N. Globe</title>
-
+  <title>MAP E.D.E.N.</title>
+  <meta name="color-scheme" content="dark" />
   <style>
     :root{
       --glass: rgba(12,14,18,0.60);
       --stroke: rgba(255,255,255,0.12);
-      --stroke2: rgba(255,255,255,0.14);
+      --stroke2: rgba(255,255,255,0.16);
       --text: rgba(255,255,255,0.92);
       --muted: rgba(255,255,255,0.70);
       --muted2: rgba(255,255,255,0.46);
-
-      --gold: #f6c24a;
-      --blue: #5bbcff;
-      --aqua: #7fffd4;
-      --violet:#a078ff;
-      --white:#ffffff;
-
-      --green: rgba(120,255,200,0.88);
+      --green: rgba(120,255,200,0.90);
+      --gold: rgba(246,194,74,0.95);
+      --blue: rgba(91,188,255,0.92);
+      --aqua: rgba(127,255,212,0.92);
+      --violet: rgba(160,120,255,0.92);
     }
 
-    html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
+    html, body { height: 100%; margin: 0; background:#000; overflow:hidden; }
     canvas { display:block; width:100vw !important; height:100vh !important; }
 
-    /* ---------- Floating OPEN button ---------- */
+    /* OPEN button (shows when drawer is closed) */
     #openBtn{
       position: fixed;
       left: 18px;
@@ -37,7 +34,7 @@
       padding: 12px 14px;
       border-radius: 18px;
       color: var(--text);
-      background: rgba(12,14,18,0.62);
+      background: rgba(12,14,18,0.70);
       border: 1px solid rgba(255,255,255,0.14);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
@@ -50,8 +47,8 @@
     }
     #openBtn:active { transform: translateY(1px); }
 
-    /* ---------- Bottom Drawer ---------- */
-    #drawer {
+    /* Drawer */
+    #drawer{
       position: fixed;
       left: 50%;
       transform: translateX(-50%);
@@ -70,7 +67,6 @@
       user-select: none;
       overflow: hidden;
     }
-
     #drawer.closed{
       transform: translateX(-50%) translateY(140%);
       opacity: 0;
@@ -81,9 +77,8 @@
       transition: transform 240ms ease, opacity 200ms ease;
     }
 
-    #handle {
-      width: 44px;
-      height: 6px;
+    #handle{
+      width: 44px; height: 6px;
       border-radius: 999px;
       background: rgba(255,255,255,0.18);
       margin: 6px auto 10px;
@@ -102,19 +97,17 @@
       gap:4px;
       padding-right: 8px;
     }
-    #title {
+    #title{
       font: 900 18px/1.1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       letter-spacing: 0.25px;
     }
     #subtitle{
       font: 650 12px/1.25 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       color: var(--muted);
-      max-width: 540px;
+      max-width: 560px;
     }
-
     #closeBtn{
-      width: 40px;
-      height: 40px;
+      width: 40px; height: 40px;
       border-radius: 14px;
       border: 1px solid var(--stroke2);
       background: rgba(255,255,255,0.06);
@@ -142,7 +135,6 @@
       gap: 10px;
       margin-bottom: 10px;
     }
-
     .grid2{
       display:grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -150,7 +142,7 @@
       margin-top: 10px;
     }
 
-    .pill {
+    .pill{
       width: 100%;
       display:inline-flex;
       align-items:center;
@@ -186,7 +178,7 @@
       text-align: right;
     }
 
-    .dot {
+    .dot{
       width: 10px; height: 10px;
       border-radius: 50%;
       background: rgba(255,255,255,0.16);
@@ -194,20 +186,19 @@
       flex: 0 0 auto;
     }
 
+    /* green “lights” when pressed */
     .pill.on .dot{
       background: var(--green);
       box-shadow: 0 0 16px rgba(120,255,200,0.24);
     }
 
-    .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
-    .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 16px rgba(91,188,255,0.22); }
-
-    .pill.on[data-key="rhumb42"] .dot{ background: rgba(246,194,74,0.55); box-shadow:0 0 16px rgba(246,194,74,0.16); }
-    .pill.on[data-key="gc42"]    .dot{ background: rgba(91,188,255,0.55); box-shadow:0 0 16px rgba(91,188,255,0.16); }
-
-    .pill.on[data-key="stations"]   .dot{ background: rgba(127,255,212,0.90); box-shadow:0 0 16px rgba(127,255,212,0.18); }
-    .pill.on[data-key="aurora"]     .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 16px rgba(160,120,255,0.18); }
-    .pill.on[data-key="nightLights"].dot{ background: rgba(140,255,200,0.92); box-shadow:0 0 16px rgba(140,255,200,0.18); }
+    /* colored “lights” for layer toggles */
+    .pill.on[data-key="rhumb222"] .dot{ background: var(--gold); box-shadow:0 0 16px rgba(246,194,74,0.22); }
+    .pill.on[data-key="gc222"]    .dot{ background: var(--blue); box-shadow:0 0 16px rgba(91,188,255,0.22); }
+    .pill.on[data-key="rhumb42"]  .dot{ background: rgba(246,194,74,0.55); box-shadow:0 0 16px rgba(246,194,74,0.16); }
+    .pill.on[data-key="gc42"]     .dot{ background: rgba(91,188,255,0.55); box-shadow:0 0 16px rgba(91,188,255,0.16); }
+    .pill.on[data-key="stations"] .dot{ background: var(--aqua); box-shadow:0 0 16px rgba(127,255,212,0.18); }
+    .pill.on[data-key="aurora"]   .dot{ background: var(--violet); box-shadow:0 0 16px rgba(160,120,255,0.18); }
 
     .pill.switch.on{
       border-color: rgba(255,255,255,0.22);
@@ -242,12 +233,11 @@
     #drawer.collapsed #drawerBody,
     #drawer.collapsed #statusBar,
     #drawer.collapsed #errors { display:none; }
-    #drawer.collapsed { padding-bottom: 12px; }
 
     #switchboardGroup{ display:none; }
     #switchboardGroup.on{ display:block; }
 
-    /* ---------- Modal ---------- */
+    /* Modal */
     #modalMask{
       position: fixed;
       inset: 0;
@@ -265,7 +255,7 @@
     #modal{
       width: min(980px, calc(100vw - 24px));
       height: min(84vh, 780px);
-      background: rgba(12,14,18,0.78);
+      background: rgba(12,14,18,0.82);
       border: 1px solid rgba(255,255,255,0.16);
       border-radius: 22px;
       box-shadow: 0 20px 70px rgba(0,0,0,0.55);
@@ -273,7 +263,6 @@
       display:flex;
       flex-direction: column;
     }
-
     #modalTop{
       display:flex;
       align-items:center;
@@ -288,22 +277,19 @@
       padding-left: 6px;
     }
     #modalClose{
-      width: 40px;
-      height: 40px;
+      width: 40px; height: 40px;
       border-radius: 14px;
       border: 1px solid rgba(255,255,255,0.14);
       background: rgba(255,255,255,0.06);
       color: rgba(255,255,255,0.92);
       cursor:pointer;
     }
-
     #modalBody{
       flex: 1 1 auto;
       overflow: auto;
       -webkit-overflow-scrolling: touch;
       background: rgba(0,0,0,0.15);
     }
-
     #welcomeFrame{
       width: 100%;
       height: 100%;
@@ -311,13 +297,13 @@
       display:block;
       background: #000;
     }
-
     #missionContent{
       padding: 18px 18px 24px;
       color: rgba(255,255,255,0.88);
       font: 650 14px/1.55 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       max-width: 920px;
       margin: 0 auto;
+      display:none;
     }
     #missionContent h2{
       font: 900 18px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
@@ -379,17 +365,11 @@
           <button class="pill" data-key="names222"><span class="left"><span class="dot"></span><span class="label">Names 222 SW</span></span></button>
           <button class="pill" data-key="names42"><span class="left"><span class="dot"></span><span class="label">Names 42 NE</span></span></button>
 
-          <button class="pill" data-key="perpLine"><span class="left"><span class="dot"></span><span class="label">Perpendiculars</span></span></button>
-          <button class="pill" data-key="continents"><span class="left"><span class="dot"></span><span class="label">Continents</span></span></button>
+          <button class="pill" data-key="perp"><span class="left"><span class="dot"></span><span class="label">Perpendiculars 132/312</span></span></button>
+          <button class="pill" data-key="night"><span class="left"><span class="dot"></span><span class="label">Night Lights</span></span></button>
 
           <button class="pill on" data-key="stations"><span class="left"><span class="dot"></span><span class="label">Stations</span></span></button>
-          <button class="pill" data-key="corridors"><span class="left"><span class="dot"></span><span class="label">Corridors</span></span></button>
-
-          <button class="pill" data-key="magField"><span class="left"><span class="dot"></span><span class="label">Magnetic Field</span></span></button>
           <button class="pill" data-key="aurora"><span class="left"><span class="dot"></span><span class="label">Aurora</span></span></button>
-
-          <button class="pill on" data-key="nightLights"><span class="left"><span class="dot"></span><span class="label">Night Lights</span></span></button>
-          <button class="pill" data-key="perpName"><span class="left"><span class="dot"></span><span class="label">Perp Name</span></span></button>
         </div>
       </div>
 
@@ -411,26 +391,19 @@
       <div id="modalBody">
         <iframe id="welcomeFrame" title="MAP E.D.E.N. Welcome" loading="lazy"></iframe>
 
-        <!-- Mission content -->
-        <div id="missionContent" style="display:none;">
+        <div id="missionContent">
           <h2>MISSION</h2>
           <p>MAP E.D.E.N. is the operational field platform for Project E.D.E.N. (Earth Diametric &amp; Energy Network)—a secure, repeatable way to run real-world tests along defined Earth corridors, beginning with the 42/222 diametric axis (42° and 222° are opposite bearings on the same straight line). Based on a 20+ year personal observation record, the Founder identified “222” as a persistent recurring numeric event marker across routine environments (time displays, identifiers, signage). This long-duration recurrence served as the initial trigger for structuring Project E.D.E.N. as a measurement-first field program.</p>
           <p>Over time, and in multiple documented sessions, the “222” event marker also coincided with a compass bearing of 222° (SW)—reinforcing the 42/222 line as a repeatable corridor for formal testing. MAP E.D.E.N. equips trusted operators with clear protocols to collect environmental field measurements and navigation-behavior observations, including human biological magnetoreception and magnetically influenced orientation, homing, and migratory navigation in animals and insects, so results can be compared across time.</p>
         </div>
-
       </div>
     </div>
   </div>
 
   <script type="module">
     import * as THREE from "https://unpkg.com/three@0.161.0/build/three.module.js";
-    import { EffectComposer } from "https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/EffectComposer.js";
-    import { RenderPass } from "https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/RenderPass.js";
-    import { ShaderPass } from "https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/ShaderPass.js";
-    import { OutputPass } from "https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/OutputPass.js";
-    import { UnrealBloomPass } from "https://unpkg.com/three@0.161.0/examples/jsm/postprocessing/UnrealBloomPass.js";
 
-    // ---------- UI ----------
+    // ---------- UI refs ----------
     const statusEl   = document.getElementById("status");
     const errorsEl   = document.getElementById("errors");
     const drawerEl   = document.getElementById("drawer");
@@ -450,14 +423,22 @@
     const welcomeFrame = document.getElementById("welcomeFrame");
     const missionContent = document.getElementById("missionContent");
 
-    // Make top buttons light green when pressed
-    function setTopBtnOn(btn, isOn){
-      if (!btn) return;
-      btn.classList.toggle("on", !!isOn);
-    }
+    const layerButtons = {
+      rhumb222: document.querySelector('.pill[data-key="rhumb222"]'),
+      rhumb42:  document.querySelector('.pill[data-key="rhumb42"]'),
+      gc222:    document.querySelector('.pill[data-key="gc222"]'),
+      gc42:     document.querySelector('.pill[data-key="gc42"]'),
+      names222: document.querySelector('.pill[data-key="names222"]'),
+      names42:  document.querySelector('.pill[data-key="names42"]'),
+      perp:     document.querySelector('.pill[data-key="perp"]'),
+      night:    document.querySelector('.pill[data-key="night"]'),
+      stations: document.querySelector('.pill[data-key="stations"]'),
+      aurora:   document.querySelector('.pill[data-key="aurora"]'),
+    };
+
+    function setTopBtnOn(btn, isOn){ btn?.classList.toggle("on", !!isOn); }
 
     function showError(msg){
-      if (!errorsEl) return;
       errorsEl.style.display = "block";
       errorsEl.textContent += (errorsEl.textContent ? "\n\n" : "") + msg;
       statusEl.textContent = "Error (see panel)";
@@ -474,19 +455,25 @@
     closeBtn.addEventListener("click", () => setDrawerClosed(true));
     handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
 
-    // Modal controls
+    // Modal
     function openModal(kind){
       modalMask.classList.add("on");
       setTopBtnOn(welcomeBtn, kind === "welcome");
       setTopBtnOn(missionBtn, kind === "mission");
+
       if (kind === "welcome"){
         modalTitle.textContent = "WELCOME";
         missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
 
-        // Drop-in HTML file (put this file next to this globe HTML in your repo)
-        const WELCOME_FILE = "welcome.html";
-        welcomeFrame.src = encodeURI(WELCOME_FILE);
+        // load welcome.html (must exist in repo root)
+        const file = "welcome.html";
+        welcomeFrame.src = file;
+
+        // fallback if iframe load fails
+        welcomeFrame.onerror = () => {
+          welcomeFrame.srcdoc = "<!doctype html><html><body style='background:#000;color:#fff;font-family:-apple-system,system-ui; padding:20px;'><h2>WELCOME</h2><p>Could not load welcome.html. Ensure it is in the repo root next to index.html.</p></body></html>";
+        };
       } else {
         modalTitle.textContent = "MISSION";
         welcomeFrame.style.display = "none";
@@ -497,7 +484,7 @@
       modalMask.classList.remove("on");
       setTopBtnOn(welcomeBtn, false);
       setTopBtnOn(missionBtn, false);
-      // avoid iOS memory spikes by unloading iframe when closed
+      // unload iframe to reduce iOS memory spikes
       if (welcomeFrame.style.display !== "none") welcomeFrame.src = "about:blank";
     }
     modalClose.addEventListener("click", closeModal);
@@ -516,25 +503,56 @@
     switchBtn.addEventListener("click", ()=> setSwitchboard(!switchboardOn));
     setSwitchboard(false);
 
-    // ---------- Math helpers ----------
-    const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+    // ---------- THREE scene ----------
+    statusEl.textContent = "Starting…";
+
+    // WebGL guard
+    const testCanvas = document.createElement("canvas");
+    const gl = testCanvas.getContext("webgl") || testCanvas.getContext("experimental-webgl");
+    if (!gl){
+      showError("WebGL is not available on this device/browser.");
+      throw new Error("WebGL not available");
+    }
+
+    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false, powerPreference:"high-performance" });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000000, 1);
+    document.body.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 3.0);
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    // lights
+    const sun = new THREE.DirectionalLight(0xffffff, 1.35);
+    sun.position.set(5, 2, 5);
+    scene.add(sun);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.28));
+
+    // constants + helpers
     const DEG = Math.PI/180;
     const RAD = 180/Math.PI;
+    const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
 
-    function isUIEventTarget(target){
+    function isUI(target){
       return !!(target && (target.closest?.("#drawer") || target.closest?.("#openBtn") || target.closest?.("#modalMask")));
     }
 
-    function latLonToVec3(latDeg, lonDeg, radius=1.0){
+    function latLonToVec3(latDeg, lonDeg, r=1){
       const lat = latDeg * DEG;
       const lon = lonDeg * DEG;
       return new THREE.Vector3(
-        radius * Math.cos(lat) * Math.cos(lon),
-        radius * Math.sin(lat),
-        radius * Math.cos(lat) * Math.sin(lon)
+        r * Math.cos(lat) * Math.cos(lon),
+        r * Math.sin(lat),
+        r * Math.cos(lat) * Math.sin(lon)
       );
     }
 
+    // Great circle forward
     function greatCirclePoints(lat0Deg, lon0Deg, bearingDeg, stepDeg=1.0){
       const lat0 = lat0Deg * DEG;
       const lon0 = lon0Deg * DEG;
@@ -553,8 +571,8 @@
       return pts;
     }
 
-    // Rhumb line (loxodrome) forward computation for plotting
-    function rhumbLinePoints(lat0Deg, lon0Deg, bearingDeg, stepKm=120, steps=120){
+    // Rhumb line (loxodrome) stepping
+    function rhumbLinePoints(lat0Deg, lon0Deg, bearingDeg, stepKm=160, steps=140){
       const R = 6371;
       const brng = bearingDeg * DEG;
 
@@ -562,521 +580,367 @@
       let lon = lon0Deg * DEG;
 
       const pts = [{lat: lat0Deg, lon: lon0Deg}];
-
       for(let i=0;i<steps;i++){
-        const d = (stepKm / R); // angular distance
+        const d = (stepKm / R);
         const dLat = d * Math.cos(brng);
-        lat = lat + dLat;
+        const lat2 = lat + dLat;
+        const lat2c = clamp(lat2, -Math.PI/2 + 1e-6, Math.PI/2 - 1e-6);
 
-        // Clamp lat to avoid infinity at poles
-        lat = clamp(lat, -Math.PI/2 + 1e-6, Math.PI/2 - 1e-6);
-
-        const dPsi = Math.log(Math.tan(Math.PI/4 + lat/2) / Math.tan(Math.PI/4 + (lat - dLat)/2));
+        const dPsi = Math.log(Math.tan(Math.PI/4 + lat2c/2) / Math.tan(Math.PI/4 + lat/2));
         const q = (Math.abs(dPsi) > 1e-12) ? (dLat / dPsi) : Math.cos(lat);
 
         const dLon = d * Math.sin(brng) / q;
-        lon = lon + dLon;
+        const lon2 = lon + dLon;
 
-        const latDeg = lat * RAD;
-        const lonDeg = ((lon * RAD + 540) % 360) - 180;
-        pts.push({lat: latDeg, lon: lonDeg});
+        lat = lat2c;
+        lon = lon2;
+
+        pts.push({ lat: lat*RAD, lon: ((lon*RAD + 540) % 360) - 180 });
       }
       return pts;
     }
 
-    // ---------- Scene ----------
-    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false, powerPreference:"high-performance" });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x000000, 1);
-    document.body.appendChild(renderer.domElement);
+    function buildLine(points, color, opacity){
+      const geom = new THREE.BufferGeometry();
+      const verts = new Float32Array(points.length * 3);
+      const r = 1.002;
+      for(let i=0;i<points.length;i++){
+        const v = latLonToVec3(points[i].lat, points[i].lon, r);
+        verts[i*3+0] = v.x;
+        verts[i*3+1] = v.y;
+        verts[i*3+2] = v.z;
+      }
+      geom.setAttribute("position", new THREE.BufferAttribute(verts, 3));
+      const mat = new THREE.LineBasicMaterial({ color, transparent:true, opacity });
+      return new THREE.Line(geom, mat);
+    }
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 0, 3.0);
+    function makeTextSprite(text, rgba="255,255,255,0.95"){
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const pad = 18;
 
-    const group = new THREE.Group();
-    scene.add(group);
+      ctx.font = "900 36px -apple-system, system-ui, Segoe UI, Roboto, Arial";
+      const w = Math.ceil(ctx.measureText(text).width) + pad*2;
+      const h = 64;
+      canvas.width = w;
+      canvas.height = h;
 
-    // Lighting
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.6);
-    sunLight.position.set(5, 2, 5);
-    scene.add(sunLight);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+      ctx.font = "900 36px -apple-system, system-ui, Segoe UI, Roboto, Arial";
+      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      ctx.fillRect(0,0,w,h);
+      ctx.fillStyle = "rgba(" + rgba + ")";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, pad, h/2);
 
-    // ---------- Texture loading ----------
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      const mat = new THREE.SpriteMaterial({ map: tex, transparent:true, depthWrite:false });
+      const spr = new THREE.Sprite(mat);
+      spr.scale.set(0.58*(w/h), 0.58, 1);
+      return spr;
+    }
+
+    // Station 1 (Exit 222)
+    const STATION1 = { lat: 38 + 9/60 + 39/3600, lon: -(79 + 4/60 + 24/3600) };
+
+    // textures
+    const texBase = "https://unpkg.com/three@0.161.0/examples/textures/planets/";
     const loader = new THREE.TextureLoader();
-    const base = "https://unpkg.com/three@0.161.0/examples/textures/";
 
-    statusEl.textContent = "Starting…";
-
-    const textures = {};
-    function loadTex(name, url){
+    function loadTex(url){
       return new Promise((resolve, reject)=>{
-        loader.load(url, (t)=>{
-          t.colorSpace = THREE.SRGBColorSpace;
-          t.anisotropy = 8;
-          textures[name] = t;
-          resolve(t);
-        }, undefined, reject);
+        loader.load(url, t=>resolve(t), undefined, e=>reject(e));
       });
     }
 
+    // overlay containers
+    const overlays = new THREE.Group();
+    group.add(overlays);
+
+    const labelGroup = new THREE.Group();
+    overlays.add(labelGroup);
+
+    const stationGroup = new THREE.Group();
+    overlays.add(stationGroup);
+
+    const perpGroup = new THREE.Group();
+    overlays.add(perpGroup);
+
+    const auroraGroup = new THREE.Group();
+    overlays.add(auroraGroup);
+
+    let earthMesh = null;
+    let nightShell = null;
+
+    // Build globe
     (async()=>{
       try{
         statusEl.textContent = "Loading textures…";
 
-        // Use standard three.js example textures for stable GitHub Pages hosting.
-        // Earth base + spec + normal
-        await loadTex("earthMap", base + "planets/earth_atmos_2048.jpg");
-        await loadTex("earthNormal", base + "planets/earth_normal_2048.jpg");
-        await loadTex("earthSpec", base + "planets/earth_specular_2048.jpg");
-        await loadTex("clouds", base + "planets/earth_clouds_1024.png");
+        // day textures (these are stable from three.js example CDN)
+        const day = await loadTex(texBase + "earth_atmos_2048.jpg");
+        day.colorSpace = THREE.SRGBColorSpace;
 
-        // Night lights (fallback: re-use earth map if missing)
+        const normal = await loadTex(texBase + "earth_normal_2048.jpg");
+        const spec = await loadTex(texBase + "earth_specular_2048.jpg");
+
+        // clouds optional
+        let clouds = null;
         try{
-          await loadTex("night", base + "planets/earth_lights_2048.png");
-        }catch(e){
-          textures.night = textures.earthMap;
-        }
+          clouds = await loadTex(texBase + "earth_clouds_1024.png");
+          clouds.colorSpace = THREE.SRGBColorSpace;
+        }catch{}
 
-        // ---------- Earth material (custom shader for day/night + spec) ----------
+        // night lights optional (if missing, feature still works without it)
+        let night = null;
+        try{
+          night = await loadTex(texBase + "earth_lights_2048.png");
+          night.colorSpace = THREE.SRGBColorSpace;
+        }catch{}
+
+        statusEl.textContent = "Building globe…";
+
         const radius = 1.0;
+        const geo = new THREE.SphereGeometry(radius, 64, 64);
 
-        const earthUniforms = {
-          dayMap:    { value: textures.earthMap },
-          nightMap:  { value: textures.night },
-          normalMap: { value: textures.earthNormal },
-          specMap:   { value: textures.earthSpec },
-          sunDir:    { value: sunLight.position.clone().normalize() },
-          cameraPos: { value: camera.position.clone() },
-        };
-
-        const earthMat = new THREE.ShaderMaterial({
-          uniforms: earthUniforms,
-          vertexShader: `
-            varying vec2 vUv;
-            varying vec3 vNormalW;
-            varying vec3 vPosW;
-            void main(){
-              vUv = uv;
-              vNormalW = normalize(mat3(modelMatrix) * normal);
-              vec4 wPos = modelMatrix * vec4(position,1.0);
-              vPosW = wPos.xyz;
-              gl_Position = projectionMatrix * viewMatrix * wPos;
-            }
-          `,
-          fragmentShader: `
-            varying vec2 vUv;
-            varying vec3 vNormalW;
-            varying vec3 vPosW;
-            uniform sampler2D dayMap;
-            uniform sampler2D nightMap;
-            uniform sampler2D normalMap;
-            uniform sampler2D specMap;
-            uniform vec3 sunDir;
-            uniform vec3 cameraPos;
-
-            // Cheap normal mapping (tangent-free approximation)
-            vec3 perturbNormal(vec3 n, vec2 uv){
-              vec3 nm = texture2D(normalMap, uv).xyz * 2.0 - 1.0;
-              // rotate normal map into world-ish space using base normal (approx)
-              vec3 up = abs(n.y) < 0.999 ? vec3(0.0,1.0,0.0) : vec3(1.0,0.0,0.0);
-              vec3 t = normalize(cross(up, n));
-              vec3 b = cross(n, t);
-              mat3 TBN = mat3(t, b, n);
-              return normalize(TBN * nm);
-            }
-
-            void main(){
-              vec3 n = normalize(vNormalW);
-              vec3 nn = perturbNormal(n, vUv);
-
-              float ndl = clamp(dot(nn, normalize(sunDir)), 0.0, 1.0);
-
-              vec3 day = texture2D(dayMap, vUv).rgb;
-              vec3 night = texture2D(nightMap, vUv).rgb;
-
-              // Soften terminator
-              float t = smoothstep(0.05, 0.35, ndl);
-
-              vec3 col = mix(night * 1.15, day, t);
-
-              // Specular
-              vec3 v = normalize(cameraPos - vPosW);
-              vec3 h = normalize(v + normalize(sunDir));
-              float spec = pow(clamp(dot(nn, h), 0.0, 1.0), 64.0);
-              float specMask = texture2D(specMap, vUv).r;
-              col += spec * specMask * 0.55;
-
-              gl_FragColor = vec4(col, 1.0);
-            }
-          `
+        const earthMat = new THREE.MeshPhongMaterial({
+          map: day,
+          normalMap: normal,
+          specularMap: spec,
+          specular: new THREE.Color(0x222222),
+          shininess: 18
         });
 
-        const earthGeo = new THREE.SphereGeometry(radius, 64, 64);
-        const earth = new THREE.Mesh(earthGeo, earthMat);
-        group.add(earth);
+        earthMesh = new THREE.Mesh(geo, earthMat);
+        group.add(earthMesh);
 
-        // Clouds
-        const cloudsMat = new THREE.MeshLambertMaterial({
-          map: textures.clouds,
-          transparent: true,
-          opacity: 0.38,
-          depthWrite: false
-        });
-        const clouds = new THREE.Mesh(new THREE.SphereGeometry(radius*1.005, 64, 64), cloudsMat);
-        group.add(clouds);
+        // night shell (additive)
+        if (night){
+          const nightMat = new THREE.MeshBasicMaterial({
+            map: night,
+            transparent: true,
+            opacity: 0.38,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+          });
+          nightShell = new THREE.Mesh(new THREE.SphereGeometry(radius*1.0006, 64, 64), nightMat);
+          overlays.add(nightShell);
+        }
 
-        // Subtle cloud shadow (darken day side slightly)
-        const cloudShadowMat = new THREE.MeshBasicMaterial({
-          color: 0x000000,
-          transparent: true,
-          opacity: 0.10,
-          depthWrite: false
-        });
-        const cloudShadow = new THREE.Mesh(new THREE.SphereGeometry(radius*1.003, 64, 64), cloudShadowMat);
-        group.add(cloudShadow);
+        // clouds
+        if (clouds){
+          const cloudMat = new THREE.MeshLambertMaterial({
+            map: clouds,
+            transparent: true,
+            opacity: 0.35,
+            depthWrite: false
+          });
+          const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(radius*1.006, 64, 64), cloudMat);
+          group.add(cloudMesh);
 
-        // Atmosphere glow
-        const atmoUniforms = {
-          sunDir: { value: sunLight.position.clone().normalize() },
-          cameraPos: { value: camera.position.clone() }
-        };
+          // slow spin
+          cloudMesh.userData.spin = 0.0016;
+          scene.userData.cloudMesh = cloudMesh;
+        }
+
+        // atmosphere (simple glow)
+        const atmoGeo = new THREE.SphereGeometry(radius*1.02, 64, 64);
         const atmoMat = new THREE.ShaderMaterial({
-          uniforms: atmoUniforms,
           transparent: true,
-          depthWrite: false,
           blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          uniforms: {
+            c: { value: 0.6 },
+            p: { value: 2.3 },
+            glowColor: { value: new THREE.Color(0x4aa3ff) },
+            viewVector: { value: camera.position.clone() }
+          },
           vertexShader: `
-            varying vec3 vNormalW;
-            varying vec3 vPosW;
+            uniform vec3 viewVector;
+            uniform float c;
+            uniform float p;
+            varying float intensity;
             void main(){
-              vNormalW = normalize(mat3(modelMatrix) * normal);
-              vec4 wPos = modelMatrix * vec4(position,1.0);
-              vPosW = wPos.xyz;
-              gl_Position = projectionMatrix * viewMatrix * wPos;
+              vec3 vNormal = normalize(normalMatrix * normal);
+              vec3 vNormel = normalize(normalMatrix * viewVector);
+              intensity = pow(c - dot(vNormal, vNormel), p);
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
             }
           `,
           fragmentShader: `
-            varying vec3 vNormalW;
-            varying vec3 vPosW;
-            uniform vec3 sunDir;
-            uniform vec3 cameraPos;
-
+            uniform vec3 glowColor;
+            varying float intensity;
             void main(){
-              vec3 n = normalize(vNormalW);
-              vec3 v = normalize(cameraPos - vPosW);
-              float fres = pow(1.0 - clamp(dot(n, v), 0.0, 1.0), 2.2);
-              float day = clamp(dot(n, normalize(sunDir)), 0.0, 1.0);
-              vec3 col = mix(vec3(0.08,0.25,0.55), vec3(0.25,0.55,0.95), day);
-              gl_FragColor = vec4(col * fres * 0.75, fres);
+              gl_FragColor = vec4(glowColor, intensity);
             }
           `
         });
-        const atmo = new THREE.Mesh(new THREE.SphereGeometry(radius*1.02, 64, 64), atmoMat);
+        const atmo = new THREE.Mesh(atmoGeo, atmoMat);
         group.add(atmo);
+        scene.userData.atmo = atmo;
 
-        // ---------- Overlays (lines/points) ----------
-        const overlays = new THREE.Group();
-        group.add(overlays);
+        // ---- Lines / overlays ----
+        const rh222 = buildLine(rhumbLinePoints(STATION1.lat, STATION1.lon, 222), 0xF6C24A, 0.95);
+        const rh42  = buildLine(rhumbLinePoints(STATION1.lat, STATION1.lon, 42),  0xF6C24A, 0.32);
+        const gc222 = buildLine(greatCirclePoints(STATION1.lat, STATION1.lon, 222, 1), 0x5BBCFF, 0.95);
+        const gc42  = buildLine(greatCirclePoints(STATION1.lat, STATION1.lon, 42,  1), 0x5BBCFF, 0.32);
 
-        const lineMaterial = (rgb, opacity=0.95)=> new THREE.LineBasicMaterial({ color: rgb, transparent:true, opacity });
+        overlays.add(rh222, rh42, gc222, gc42);
 
-        function buildLineFromLatLon(points, color, opacity=0.95){
-          const geom = new THREE.BufferGeometry();
-          const verts = [];
-          for(const p of points){
-            const v = latLonToVec3(p.lat, p.lon, radius*1.001);
-            verts.push(v.x, v.y, v.z);
-          }
-          geom.setAttribute("position", new THREE.Float32BufferAttribute(verts, 3));
-          return new THREE.Line(geom, lineMaterial(color, opacity));
-        }
+        // labels
+        const lab222 = makeTextSprite("222° SW", "246,194,74,0.98");
+        lab222.position.copy(latLonToVec3(STATION1.lat - 8, STATION1.lon - 8, 1.09));
+        labelGroup.add(lab222);
 
-        // Station 1: 38°9′39″ N, 79°4′24″ W
-        const STATION1 = { lat: 38 + 9/60 + 39/3600, lon: -(79 + 4/60 + 24/3600) };
+        const lab42 = makeTextSprite("42° NE", "91,188,255,0.98");
+        lab42.position.copy(latLonToVec3(STATION1.lat + 10, STATION1.lon + 10, 1.09));
+        labelGroup.add(lab42);
 
-        // Main axis bearing corridor
-        const rhumb222Pts = rhumbLinePoints(STATION1.lat, STATION1.lon, 222, 160, 140);
-        const rhumb42Pts  = rhumbLinePoints(STATION1.lat, STATION1.lon, 42, 160, 140);
-        const gc222Pts    = greatCirclePoints(STATION1.lat, STATION1.lon, 222, 1.0);
-        const gc42Pts     = greatCirclePoints(STATION1.lat, STATION1.lon, 42, 1.0);
+        // Station dot + label
+        const dot = new THREE.Mesh(
+          new THREE.SphereGeometry(0.013, 18, 18),
+          new THREE.MeshBasicMaterial({ color: 0x7FFFD4 })
+        );
+        dot.position.copy(latLonToVec3(STATION1.lat, STATION1.lon, 1.01));
+        stationGroup.add(dot);
 
-        const lineRhumb222 = buildLineFromLatLon(rhumb222Pts, 0xF6C24A, 0.95);
-        const lineRhumb42  = buildLineFromLatLon(rhumb42Pts,  0xF6C24A, 0.35);
-        const lineGc222    = buildLineFromLatLon(gc222Pts,    0x5BBCFF, 0.95);
-        const lineGc42     = buildLineFromLatLon(gc42Pts,     0x5BBCFF, 0.35);
+        const stLab = makeTextSprite("Station 1", "127,255,212,0.98");
+        stLab.position.copy(latLonToVec3(STATION1.lat+2.2, STATION1.lon-2.5, 1.07));
+        stationGroup.add(stLab);
 
-        overlays.add(lineRhumb222, lineRhumb42, lineGc222, lineGc42);
+        // perpendiculars (132 / 312)
+        const p132 = buildLine(greatCirclePoints(STATION1.lat, STATION1.lon, 132, 2).slice(60, 90), 0xffffff, 0.35);
+        const p312 = buildLine(greatCirclePoints(STATION1.lat, STATION1.lon, 312, 2).slice(60, 90), 0xffffff, 0.35);
+        perpGroup.add(p132, p312);
 
-        // Names/labels as sprite text
-        function makeTextSprite(text, color="#ffffff"){
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-          const pad = 18;
-          ctx.font = "800 36px -apple-system, system-ui, Segoe UI, Roboto, Arial";
-          const w = Math.ceil(ctx.measureText(text).width) + pad*2;
-          const h = 64;
-          canvas.width = w; canvas.height = h;
-          ctx.font = "800 36px -apple-system, system-ui, Segoe UI, Roboto, Arial";
-          ctx.fillStyle = "rgba(0,0,0,0.0)";
-          ctx.fillRect(0,0,w,h);
-          ctx.fillStyle = "rgba(0,0,0,0.55)";
-          ctx.fillRect(0,0,w,h);
-          ctx.fillStyle = color;
-          ctx.textBaseline = "middle";
-          ctx.fillText(text, pad, h/2);
-
-          const tex = new THREE.CanvasTexture(canvas);
-          tex.colorSpace = THREE.SRGBColorSpace;
-          const mat = new THREE.SpriteMaterial({ map: tex, transparent:true, opacity:0.95, depthWrite:false });
-          const spr = new THREE.Sprite(mat);
-          spr.scale.set(0.55*(w/h), 0.55, 1);
-          return spr;
-        }
-
-        const labelGroup = new THREE.Group();
-        overlays.add(labelGroup);
-
-        const label222 = makeTextSprite("222° SW", "rgba(246,194,74,0.98)");
-        label222.position.copy(latLonToVec3(STATION1.lat - 8, STATION1.lon - 8, radius*1.08));
-        labelGroup.add(label222);
-
-        const label42 = makeTextSprite("42° NE", "rgba(91,188,255,0.98)");
-        label42.position.copy(latLonToVec3(STATION1.lat + 10, STATION1.lon + 10, radius*1.08));
-        labelGroup.add(label42);
-
-        // Perpendicular controls (132/312) shown as short segments through station
-        function buildPerpSegment(bearing){
-          const pts = greatCirclePoints(STATION1.lat, STATION1.lon, bearing, 3.0).slice(50, 72);
-          return buildLineFromLatLon(pts, 0xffffff, 0.35);
-        }
-        const perp132 = buildPerpSegment(132);
-        const perp312 = buildPerpSegment(312);
-        overlays.add(perp132, perp312);
-
-        // Continents placeholder (simple sphere ring grid)
-        const grid = new THREE.GridHelper(4, 12, 0xffffff, 0xffffff);
-        grid.material.transparent = true;
-        grid.material.opacity = 0.08;
-        grid.rotation.x = Math.PI/2;
-        overlays.add(grid);
-
-        // Stations
-        const stationsGroup = new THREE.Group();
-        overlays.add(stationsGroup);
-
-        const stationMat = new THREE.MeshBasicMaterial({ color: 0x7FFFD4 });
-        const stationDot = new THREE.Mesh(new THREE.SphereGeometry(0.013, 18, 18), stationMat);
-        stationDot.position.copy(latLonToVec3(STATION1.lat, STATION1.lon, radius*1.01));
-        stationsGroup.add(stationDot);
-
-        const stationLabel = makeTextSprite("Station 1", "rgba(127,255,212,0.98)");
-        stationLabel.position.copy(latLonToVec3(STATION1.lat+2.2, STATION1.lon-2.5, radius*1.07));
-        stationsGroup.add(stationLabel);
-
-        // Corridors placeholder (offset rings)
-        const corridorGroup = new THREE.Group();
-        overlays.add(corridorGroup);
-        corridorGroup.visible = false;
-        for(const op of [0.0, 0.015, 0.03]){
-          const ring = new THREE.Mesh(
-            new THREE.TorusGeometry(radius*1.002, 0.0016, 10, 180),
-            new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity: 0.10 })
-          );
-          ring.rotation.x = Math.PI/2;
-          ring.scale.set(1+op,1+op,1);
-          corridorGroup.add(ring);
-        }
-
-        // Magnetic field placeholder (subtle arrows)
-        const fieldGroup = new THREE.Group();
-        overlays.add(fieldGroup);
-        fieldGroup.visible = false;
-        const arrowMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity: 0.12 });
-        for(let i=0;i<18;i++){
-          const a = (i/18) * Math.PI*2;
-          const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.01, 0.04, 10), arrowMat);
-          arrow.position.set(Math.cos(a)*1.1, 0, Math.sin(a)*1.1);
-          arrow.lookAt(0,0,0);
-          arrow.rotateX(Math.PI/2);
-          fieldGroup.add(arrow);
-        }
-
-        // Aurora placeholder (glow belt)
-        const auroraGroup = new THREE.Group();
-        overlays.add(auroraGroup);
-        auroraGroup.visible = false;
-        const auroraMat = new THREE.MeshBasicMaterial({ color: 0xA078FF, transparent:true, opacity: 0.10, blending: THREE.AdditiveBlending });
-        const aurora = new THREE.Mesh(new THREE.TorusGeometry(radius*1.08, 0.035, 20, 240), auroraMat);
+        // aurora ring (visual overlay)
+        const aurora = new THREE.Mesh(
+          new THREE.TorusGeometry(1.08, 0.035, 18, 220),
+          new THREE.MeshBasicMaterial({ color: 0xA078FF, transparent:true, opacity: 0.10, blending: THREE.AdditiveBlending, depthWrite:false })
+        );
         aurora.rotation.x = Math.PI/2;
         aurora.rotation.y = Math.PI/6;
         auroraGroup.add(aurora);
 
-        // Night lights toggle (just boosts night map contribution by raising opacity of a mesh shell)
-        const nightGroup = new THREE.Group();
-        overlays.add(nightGroup);
-        const nightShellMat = new THREE.MeshBasicMaterial({
-          map: textures.night,
-          transparent: true,
-          opacity: 0.0,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false
-        });
-        const nightShell = new THREE.Mesh(new THREE.SphereGeometry(radius*1.0005, 64, 64), nightShellMat);
-        nightGroup.add(nightShell);
+        // initial visibility
+        rh222.visible = true;
+        gc222.visible = true;
+        rh42.visible  = false;
+        gc42.visible  = false;
 
-        // ---------- Toggle map ----------
-        const toggles = {
-          rhumb222: { el: document.querySelector('.pill[data-key="rhumb222"]'), obj: lineRhumb222, on: true },
-          rhumb42:  { el: document.querySelector('.pill[data-key="rhumb42"]'),  obj: lineRhumb42,  on: false },
-          gc222:    { el: document.querySelector('.pill[data-key="gc222"]'),    obj: lineGc222,    on: true },
-          gc42:     { el: document.querySelector('.pill[data-key="gc42"]'),     obj: lineGc42,     on: false },
+        labelGroup.visible = false;          // names off by default
+        stationGroup.visible = true;         // stations on by default
+        perpGroup.visible = false;           // perp off by default
+        auroraGroup.visible = false;         // aurora off by default
+        if (nightShell) nightShell.visible = true; // night lights on by default
 
-          names222: { el: document.querySelector('.pill[data-key="names222"]'), obj: label222, on: false },
-          names42:  { el: document.querySelector('.pill[data-key="names42"]'),  obj: label42,  on: false },
-
-          perpLine: { el: document.querySelector('.pill[data-key="perpLine"]'), obj: [perp132, perp312], on: false },
-          continents:{el: document.querySelector('.pill[data-key="continents"]'), obj: grid, on: false },
-          stations: { el: document.querySelector('.pill[data-key="stations"]'), obj: stationsGroup, on: true },
-          corridors:{ el: document.querySelector('.pill[data-key="corridors"]'), obj: corridorGroup, on: false },
-          magField: { el: document.querySelector('.pill[data-key="magField"]'), obj: fieldGroup, on: false },
-          aurora:   { el: document.querySelector('.pill[data-key="aurora"]'),   obj: auroraGroup, on: false },
-          nightLights:{el: document.querySelector('.pill[data-key="nightLights"]'), obj: nightShellMat, on: true },
-          perpName: { el: document.querySelector('.pill[data-key="perpName"]'), obj: null, on: false }
+        // Toggle state
+        const state = {
+          rhumb222: true,
+          rhumb42: false,
+          gc222: true,
+          gc42: false,
+          names222: false,
+          names42: false,
+          perp: false,
+          night: true,
+          stations: true,
+          aurora: false
         };
 
-        function applyToggle(key){
-          const t = toggles[key];
-          if (!t) return;
-          t.on = !t.on;
-          t.el.classList.toggle("on", t.on);
-
-          if (key === "nightLights"){
-            nightShellMat.opacity = t.on ? 0.40 : 0.0;
-            return;
-          }
-
-          const obj = t.obj;
-          if (Array.isArray(obj)){
-            obj.forEach(o=> o.visible = t.on);
-          } else if (obj && obj.visible !== undefined){
-            obj.visible = t.on;
-          } else if (obj){
-            obj.visible = t.on;
-          }
+        function setBtn(key, on){
+          state[key] = !!on;
+          layerButtons[key]?.classList.toggle("on", !!on);
         }
 
-        for (const [k,t] of Object.entries(toggles)){
-          if (!t.el) continue;
-          // apply initial state
-          t.el.classList.toggle("on", !!t.on);
-          if (k === "nightLights"){ nightShellMat.opacity = t.on ? 0.40 : 0.0; }
-          else if (Array.isArray(t.obj)) t.obj.forEach(o=>o.visible = !!t.on);
-          else if (t.obj && t.obj.visible !== undefined) t.obj.visible = !!t.on;
-
-          t.el.addEventListener("click", ()=> applyToggle(k));
+        // bind toggles
+        function bind(key, fn){
+          layerButtons[key]?.addEventListener("click", ()=>{
+            const on = !state[key];
+            setBtn(key, on);
+            fn(on);
+          });
         }
 
-        // ---------- Postprocessing (bloom) ----------
-        const renderScene = new RenderPass(scene, camera);
+        bind("rhumb222", (on)=> rh222.visible = on);
+        bind("rhumb42",  (on)=> rh42.visible  = on);
+        bind("gc222",    (on)=> gc222.visible = on);
+        bind("gc42",     (on)=> gc42.visible  = on);
 
-        const bloomComposer = new EffectComposer(renderer);
-        bloomComposer.renderToScreen = false;
-        bloomComposer.addPass(renderScene);
+        bind("names222", (on)=> { labelGroup.visible = on || state.names42; });
+        bind("names42",  (on)=> { labelGroup.visible = on || state.names222; });
 
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.75, 0.35, 0.90);
-        bloomComposer.addPass(bloomPass);
+        bind("perp",     (on)=> perpGroup.visible = on);
 
-        const finalComposer = new EffectComposer(renderer);
-        finalComposer.addPass(renderScene);
-        const finalPass = new ShaderPass(new THREE.ShaderMaterial({
-          uniforms: {
-            baseTexture: { value: null },
-            bloomTexture:{ value: bloomComposer.renderTarget2.texture }
-          },
-          vertexShader: `
-            varying vec2 vUv;
-            void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
-          `,
-          fragmentShader: `
-            uniform sampler2D baseTexture;
-            uniform sampler2D bloomTexture;
-            varying vec2 vUv;
-            void main(){
-              vec4 base = texture2D(baseTexture, vUv);
-              vec4 bloom = texture2D(bloomTexture, vUv);
-              gl_FragColor = base + bloom * 0.95;
-            }
-          `,
-          defines: {}
-        }), "baseTexture");
-        finalPass.needsSwap = true;
-        finalComposer.addPass(finalPass);
-        finalComposer.addPass(new OutputPass());
+        bind("night",    (on)=> { if (nightShell) nightShell.visible = on; });
 
-        // ---------- Interaction ----------
+        bind("stations", (on)=> stationGroup.visible = on);
+        bind("aurora",   (on)=> auroraGroup.visible  = on);
+
+        // sync button initial “on” classes
+        Object.keys(state).forEach(k => setBtn(k, state[k]));
+
+        statusEl.textContent = "Running";
+
+        // Interaction (drag rotate + pinch zoom)
         let dragging = false;
-        let lastX = 0, lastY = 0;
-        let velX = 0, velY = 0;
-        const DAMPING = 0.92;
+        let lastX=0, lastY=0;
+        let velX=0, velY=0;
         const ROT_SPEED = 0.005;
-        const AUTO_SPIN = 0.00035;
+        const DAMP = 0.92;
         const MAX_PITCH = Math.PI/2.4;
+        const AUTO_SPIN = 0.00025;
 
         let pinching = false;
-        let startDist = 0;
+        let startDist=0;
         let startZ = camera.position.z;
-        const Z_MIN = 1.8, Z_MAX = 5.0;
+        const Z_MIN = 1.85, Z_MAX = 5.0;
 
-        function getDist(t1, t2){
+        function dist(t1,t2){
           const dx = t1.clientX - t2.clientX;
           const dy = t1.clientY - t2.clientY;
           return Math.sqrt(dx*dx + dy*dy);
         }
 
-        function pointerDown(e){
-          if (isUIEventTarget(e.target)) return;
+        renderer.domElement.addEventListener("pointerdown", (e)=>{
+          if (isUI(e.target)) return;
           dragging = true;
           lastX = e.clientX;
           lastY = e.clientY;
           renderer.domElement.setPointerCapture?.(e.pointerId);
-        }
-        function pointerMove(e){
-          if (!dragging || isUIEventTarget(e.target)) return;
+        }, { passive:true });
+
+        renderer.domElement.addEventListener("pointermove", (e)=>{
+          if (!dragging || isUI(e.target)) return;
           const dx = e.clientX - lastX;
           const dy = e.clientY - lastY;
           lastX = e.clientX;
           lastY = e.clientY;
+
           velY = dx * ROT_SPEED;
           velX = dy * ROT_SPEED;
+
           group.rotation.y += velY;
           group.rotation.x = clamp(group.rotation.x + velX, -MAX_PITCH, MAX_PITCH);
-        }
-        function pointerUp(){
-          dragging = false;
-        }
+        }, { passive:true });
 
-        renderer.domElement.addEventListener("pointerdown", pointerDown, { passive:true });
-        renderer.domElement.addEventListener("pointermove", pointerMove, { passive:true });
-        renderer.domElement.addEventListener("pointerup", pointerUp, { passive:true });
-        renderer.domElement.addEventListener("pointercancel", pointerUp, { passive:true });
+        renderer.domElement.addEventListener("pointerup", ()=> dragging = false, { passive:true });
+        renderer.domElement.addEventListener("pointercancel", ()=> dragging = false, { passive:true });
 
-        // Touch pinch zoom
         renderer.domElement.addEventListener("touchstart", (e)=>{
-          if (isUIEventTarget(e.target)) return;
+          if (isUI(e.target)) return;
           if (e.touches.length === 2){
             pinching = true;
-            startDist = getDist(e.touches[0], e.touches[1]);
+            startDist = dist(e.touches[0], e.touches[1]);
             startZ = camera.position.z;
           }
         }, { passive:true });
 
         renderer.domElement.addEventListener("touchmove", (e)=>{
-          if (!pinching || isUIEventTarget(e.target)) return;
+          if (!pinching || isUI(e.target)) return;
           if (e.touches.length === 2){
-            const d = getDist(e.touches[0], e.touches[1]);
+            const d = dist(e.touches[0], e.touches[1]);
             const scale = startDist / d;
             camera.position.z = clamp(startZ * scale, Z_MIN, Z_MAX);
           }
@@ -1086,26 +950,20 @@
           if (e.touches.length < 2) pinching = false;
         }, { passive:true });
 
-        // Wheel zoom
         window.addEventListener("wheel", (e)=>{
-          if (isUIEventTarget(e.target)) return;
+          if (isUI(e.target)) return;
           camera.position.z = clamp(camera.position.z + (e.deltaY * 0.0025), Z_MIN, Z_MAX);
         }, { passive:true });
 
-        // Resize (stable on iOS rotation)
-        let resizeTimer = 0;
+        // Resize
+        let resizeTimer=0;
         function doResize(){
           const w = Math.max(1, window.innerWidth);
           const h = Math.max(1, window.innerHeight);
-
           camera.aspect = w/h;
           camera.updateProjectionMatrix();
           renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
           renderer.setSize(w, h, false);
-
-          bloomComposer.setSize(w, h);
-          finalComposer.setSize(w, h);
-          bloomPass.setSize(w, h);
         }
         function scheduleResize(){
           clearTimeout(resizeTimer);
@@ -1118,43 +976,31 @@
         let running = true;
         let rafId = 0;
 
-        function renderBloom(){
-          // render bloom into target
-          bloomComposer.render();
-        }
-
-        statusEl.textContent = "Running";
-
-        const sunDrift = 0.00005;
-        const cloudSpin = 0.0020;
-
         function animate(){
           if (!running){ rafId = 0; return; }
           rafId = requestAnimationFrame(animate);
 
-          clouds.rotation.y += cloudSpin;
-          cloudShadow.rotation.y += cloudSpin + 0.00015;
+          // cloud spin (if present)
+          const cloudMesh = scene.userData.cloudMesh;
+          if (cloudMesh) cloudMesh.rotation.y += cloudMesh.userData.spin || 0.0014;
+
+          // atmo viewVector update
+          const atmo = scene.userData.atmo;
+          if (atmo?.material?.uniforms?.viewVector){
+            atmo.material.uniforms.viewVector.value.copy(camera.position);
+          }
 
           if(!dragging && !pinching){
             group.rotation.y += AUTO_SPIN + velY;
             group.rotation.x = clamp(group.rotation.x + velX, -MAX_PITCH, MAX_PITCH);
-            velY *= DAMPING;
-            velX *= DAMPING;
+            velY *= DAMP;
+            velX *= DAMP;
           }
 
-          sunLight.position.applyAxisAngle(new THREE.Vector3(0,1,0), sunDrift);
-          const sunDir = sunLight.position.clone().normalize();
-          earthUniforms.sunDir.value.copy(sunDir);
-          earthUniforms.cameraPos.value.copy(camera.position);
-          atmoUniforms.sunDir.value.copy(sunDir);
-          atmoUniforms.cameraPos.value.copy(camera.position);
-
-          renderBloom();
-          finalComposer.render();
+          renderer.render(scene, camera);
         }
         animate();
 
-        // Pause render when hidden
         document.addEventListener("visibilitychange", ()=>{
           running = !document.hidden;
           if (running && !rafId) animate();
