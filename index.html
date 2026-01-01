@@ -3,6 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="referrer" content="no-referrer" />
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    img-src 'self' data: https:;
+    style-src 'self' 'unsafe-inline';
+    script-src 'self' https://unpkg.com https://cdn.jsdelivr.net https://threejs.org 'unsafe-inline';
+    connect-src 'self' https://unpkg.com https://cdn.jsdelivr.net https://threejs.org;
+    frame-src 'self';
+    font-src 'self' data:;
+  " />
   <title>MAP E.D.E.N. Globe</title>
 
   <style>
@@ -13,12 +23,10 @@
       --text: rgba(255,255,255,0.92);
       --muted: rgba(255,255,255,0.70);
       --muted2: rgba(255,255,255,0.46);
-
       --gold: #f6c24a;
       --blue: #5bbcff;
       --aqua: #7fffd4;
       --violet:#a078ff;
-      --white:#ffffff;
     }
 
     html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
@@ -190,6 +198,7 @@
       flex: 0 0 auto;
     }
 
+    /* ✅ “Lights turn green” when a top button is pressed */
     .pill.on .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 16px rgba(120,255,200,0.24); }
     .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
     .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 16px rgba(91,188,255,0.22); }
@@ -466,6 +475,8 @@
     closeBtn.addEventListener("click", () => setDrawerClosed(true));
     handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
 
+    function setTopOn(btn){ btn.classList.add("on"); }
+
     function openModal(kind){
       modalMask.classList.add("on");
       if (kind === "welcome"){
@@ -473,7 +484,7 @@
         missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
 
-        // ✅ Loads the correct file AND bypasses cache on iOS/GitHub Pages
+        // ✅ always loads newest welcome.html (bypass cache)
         const WELCOME_FILE = "welcome.html";
         welcomeFrame.src = encodeURI(WELCOME_FILE) + "?v=" + Date.now();
       } else {
@@ -488,8 +499,6 @@
     }
     modalClose.addEventListener("click", closeModal);
     modalMask.addEventListener("click", (e)=>{ if(e.target === modalMask) closeModal(); });
-
-    function setTopOn(btn){ btn.classList.add("on"); }
 
     welcomeBtn.addEventListener("click", ()=>{
       setTopOn(welcomeBtn);
@@ -721,7 +730,7 @@
           const tex = await tryOne(u);
           tex.colorSpace = THREE.SRGBColorSpace;
           return tex;
-        } catch { }
+        } catch { /* try next */ }
       }
 
       showError(`Texture fallback used for: ${label}\n(CDN blocked/failed on this device/network)`);
@@ -779,11 +788,9 @@
 
         statusEl.textContent = "Running";
 
-        {
-          const starGeo = new THREE.SphereGeometry(90, 64, 64);
-          const starMat = new THREE.MeshBasicMaterial({ map: starMap, side: THREE.BackSide });
-          scene.add(new THREE.Mesh(starGeo, starMat));
-        }
+        const starGeo = new THREE.SphereGeometry(90, 64, 64);
+        const starMat = new THREE.MeshBasicMaterial({ map: starMap, side: THREE.BackSide });
+        scene.add(new THREE.Mesh(starGeo, starMat));
 
         const earthRadius = 1.0;
         const SEG = 96;
@@ -996,7 +1003,6 @@
         Object.values(overlays).forEach(g => globe.add(g));
 
         const ANCHOR = { name: "Exit 222 • Station 1", lat: 38.1608333333, lon: -79.0733333333 };
-
         const BEAR_222 = 222;
         const BEAR_42  = 42;
 
@@ -1024,19 +1030,17 @@
         }
         overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
-        {
-          const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 7, glow:"rgba(246,194,74,0.18)" });
-          n222.position.copy(latLonToVec3(18, -18, earthRadius*1.10));
-          overlays.names222.add(n222);
+        const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 7, glow:"rgba(246,194,74,0.18)" });
+        n222.position.copy(latLonToVec3(18, -18, earthRadius*1.10));
+        overlays.names222.add(n222);
 
-          const n42 = makeTextSprite("42 NE", { fontSize: 20, glowBlur: 7, glow:"rgba(91,188,255,0.18)" });
-          n42.position.copy(latLonToVec3(-6, 62, earthRadius*1.10));
-          overlays.names42.add(n42);
+        const n42 = makeTextSprite("42 NE", { fontSize: 20, glowBlur: 7, glow:"rgba(91,188,255,0.18)" });
+        n42.position.copy(latLonToVec3(-6, 62, earthRadius*1.10));
+        overlays.names42.add(n42);
 
-          const pLabel = makeTextSprite("132° / 312°", { fontSize: 18, glowBlur: 7, glow:"rgba(91,188,255,0.16)" });
-          pLabel.position.copy(latLonToVec3(52, 105, earthRadius*1.11));
-          overlays.perpName.add(pLabel);
-        }
+        const pLabel = makeTextSprite("132° / 312°", { fontSize: 18, glowBlur: 7, glow:"rgba(91,188,255,0.16)" });
+        pLabel.position.copy(latLonToVec3(52, 105, earthRadius*1.11));
+        overlays.perpName.add(pLabel);
 
         const CONT = [
           { name:"North America", lat: 45,  lon:-102 },
@@ -1062,7 +1066,6 @@
         for (const c of corridorRadii){
           overlays.corridors.add(makeGlowTube(gc222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
           overlays.corridors.add(makeGlowTube(rh222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
-
           overlays.corridors.add(makeGlowTube(gc42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.8));
           overlays.corridors.add(makeGlowTube(rh42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.75));
         }
@@ -1207,10 +1210,8 @@
           overlays.rhumb42.visible  = state.rhumb42;
           overlays.gc222.visible    = state.gc222;
           overlays.gc42.visible     = state.gc42;
-
           overlays.names222.visible = state.names222;
           overlays.names42.visible  = state.names42;
-
           overlays.perpLine.visible = state.perpLine;
           overlays.perpName.visible = state.perpName;
           overlays.continents.visible = state.continents;
@@ -1218,7 +1219,6 @@
           overlays.corridors.visible = state.corridors;
           overlays.magField.visible = state.magField;
           overlays.aurora.visible = state.aurora;
-
           nightLights.visible = state.nightLights;
         }
 
