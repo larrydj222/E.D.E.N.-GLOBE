@@ -199,7 +199,14 @@
     }
 
     /* ON colors (default green) */
-    .pill.on .dot{ background: var(--greenDot); box-shadow: 0 0 16px var(--greenGlow); }
+    .pill.on:not([data-key]){
+      border-color: var(--greenStroke);
+      box-shadow: 0 0 0 1px rgba(120,255,200,0.10) inset, 0 0 28px rgba(120,255,200,0.10);
+    }
+    .pill.on .dot{
+      background: var(--greenDot);
+      box-shadow: 0 0 16px var(--greenGlow);
+    }
 
     /* Layer-specific dot colors */
     .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
@@ -508,11 +515,27 @@
     closeBtn.addEventListener("click", () => setDrawerClosed(true));
     handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
 
+    // Switchboard (only show layer toggles when ON)
+    let switchboardOn = false;
+    function setSwitchboard(on){
+      switchboardOn = !!on;
+      switchBtn.classList.toggle("on", switchboardOn);  // ✅ green when pressed
+      switchGrp.classList.toggle("on", switchboardOn);
+      switchHint.textContent = switchboardOn ? "Tap to close" : "Tap to open";
+    }
+    switchBtn.addEventListener("click", ()=> setSwitchboard(!switchboardOn));
+    setSwitchboard(false);
+
     // ---- Top buttons: GREEN when pressed ----
     function setTopActive(which){
+      // Only one of Welcome/Mission should be green at a time
       welcomeBtn.classList.toggle("on", which === "welcome");
       missionBtn.classList.toggle("on", which === "mission");
-      // switchBtn handled separately by switchboard state (also green)
+
+      // Cleanliness: close switchboard when opening a modal page
+      if (which === "welcome" || which === "mission") {
+        setSwitchboard(false);
+      }
     }
     function clearTopActive(){
       welcomeBtn.classList.remove("on");
@@ -527,37 +550,43 @@
       if (kind === "welcome"){
         modalTitle.textContent = "WELCOME";
         setTopActive("welcome");
+
         missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
-        welcomeFrame.src = WELCOME_FILE; // ✅ direct load
+
+        // iOS-safe reload: blank first, then load welcome.html
+        welcomeFrame.src = "about:blank";
+        requestAnimationFrame(() => {
+          welcomeFrame.src = WELCOME_FILE + "?v=" + Date.now();
+        });
+
       } else {
         modalTitle.textContent = "MISSION";
         setTopActive("mission");
+
         welcomeFrame.style.display = "none";
         missionContent.style.display = "block";
+
+        // Make sure iframe is not running in background
+        welcomeFrame.src = "about:blank";
       }
     }
     function closeModal(){
       modalMask.classList.remove("on");
       clearTopActive();
-      // unload iframe to reduce iOS memory spikes
-      if (welcomeFrame.style.display !== "none") welcomeFrame.src = "about:blank";
+
+      // Always unload iframe (prevents black screens / memory retention on iOS)
+      welcomeFrame.src = "about:blank";
     }
     modalClose.addEventListener("click", closeModal);
     modalMask.addEventListener("click", (e)=>{ if(e.target === modalMask) closeModal(); });
     welcomeBtn.addEventListener("click", ()=>openModal("welcome"));
     missionBtn.addEventListener("click", ()=>openModal("mission"));
 
-    // Switchboard (only show layer toggles when ON)
-    let switchboardOn = false;
-    function setSwitchboard(on){
-      switchboardOn = !!on;
-      switchBtn.classList.toggle("on", switchboardOn);  // ✅ green when pressed
-      switchGrp.classList.toggle("on", switchboardOn);
-      switchHint.textContent = switchboardOn ? "Tap to close" : "Tap to open";
-    }
-    switchBtn.addEventListener("click", ()=> setSwitchboard(!switchboardOn));
-    setSwitchboard(false);
+    // ESC closes modal (desktop)
+    window.addEventListener("keydown", (e)=>{
+      if (e.key === "Escape" && modalMask.classList.contains("on")) closeModal();
+    });
 
     // ---------- Math helpers ----------
     const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
@@ -1282,7 +1311,7 @@
         }
 
         function setPill(key, on){
-          const b = document.querySelector(\`.pill[data-key="\${key}"]\`);
+          const b = document.querySelector(`.pill[data-key="${key}"]`);
           if (b) b.classList.toggle("on", !!on);
         }
         Object.keys(state).forEach(k => setPill(k, state[k]));
