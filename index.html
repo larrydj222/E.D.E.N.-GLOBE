@@ -23,7 +23,6 @@
     html, body { height: 100%; margin: 0; background:#000; overflow:hidden; }
     canvas { display:block; width:100vw !important; height:100vh !important; }
 
-    /* OPEN button (shows when drawer is closed) */
     #openBtn{
       position: fixed;
       left: 18px;
@@ -47,7 +46,6 @@
     }
     #openBtn:active { transform: translateY(1px); }
 
-    /* Drawer */
     #drawer{
       position: fixed;
       left: 50%;
@@ -186,13 +184,11 @@
       flex: 0 0 auto;
     }
 
-    /* green “lights” when pressed */
     .pill.on .dot{
       background: var(--green);
       box-shadow: 0 0 16px rgba(120,255,200,0.24);
     }
 
-    /* colored “lights” for layer toggles */
     .pill.on[data-key="rhumb222"] .dot{ background: var(--gold); box-shadow:0 0 16px rgba(246,194,74,0.22); }
     .pill.on[data-key="gc222"]    .dot{ background: var(--blue); box-shadow:0 0 16px rgba(91,188,255,0.22); }
     .pill.on[data-key="rhumb42"]  .dot{ background: rgba(246,194,74,0.55); box-shadow:0 0 16px rgba(246,194,74,0.16); }
@@ -237,7 +233,6 @@
     #switchboardGroup{ display:none; }
     #switchboardGroup.on{ display:block; }
 
-    /* Modal */
     #modalMask{
       position: fixed;
       inset: 0;
@@ -436,15 +431,22 @@
       aurora:   document.querySelector('.pill[data-key="aurora"]'),
     };
 
-    function setTopBtnOn(btn, isOn){ btn?.classList.toggle("on", !!isOn); }
-
     function showError(msg){
       errorsEl.style.display = "block";
       errorsEl.textContent += (errorsEl.textContent ? "\n\n" : "") + msg;
       statusEl.textContent = "Error (see panel)";
     }
-    window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
-    window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
+    function fmtErr(e){
+      if (!e) return "Unknown error";
+      if (typeof e === "string") return e;
+      if (e instanceof Error) return e.stack || e.message;
+      if (e.type) return `Event type="${e.type}" (likely a failed network/image load)`;
+      try { return JSON.stringify(e); } catch { return String(e); }
+    }
+    window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || fmtErr(e.error || e))));
+    window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + fmtErr(e.reason)));
+
+    function setTopBtnOn(btn, isOn){ btn?.classList.toggle("on", !!isOn); }
 
     function setDrawerClosed(isClosed){
       drawerEl.classList.toggle("closed", !!isClosed);
@@ -465,14 +467,12 @@
         modalTitle.textContent = "WELCOME";
         missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
-
-        // load welcome.html (must exist in repo root)
-        const file = "welcome.html";
-        welcomeFrame.src = file;
-
-        // fallback if iframe load fails
+        welcomeFrame.src = "welcome.html";
         welcomeFrame.onerror = () => {
-          welcomeFrame.srcdoc = "<!doctype html><html><body style='background:#000;color:#fff;font-family:-apple-system,system-ui; padding:20px;'><h2>WELCOME</h2><p>Could not load welcome.html. Ensure it is in the repo root next to index.html.</p></body></html>";
+          welcomeFrame.srcdoc =
+            "<!doctype html><html><body style='background:#000;color:#fff;font-family:-apple-system,system-ui;padding:20px'>" +
+            "<h2>WELCOME</h2><p>Could not load <b>welcome.html</b>. Ensure it is in the repo root next to <b>index.html</b>.</p>" +
+            "</body></html>";
         };
       } else {
         modalTitle.textContent = "MISSION";
@@ -484,7 +484,6 @@
       modalMask.classList.remove("on");
       setTopBtnOn(welcomeBtn, false);
       setTopBtnOn(missionBtn, false);
-      // unload iframe to reduce iOS memory spikes
       if (welcomeFrame.style.display !== "none") welcomeFrame.src = "about:blank";
     }
     modalClose.addEventListener("click", closeModal);
@@ -492,7 +491,7 @@
     welcomeBtn.addEventListener("click", ()=>openModal("welcome"));
     missionBtn.addEventListener("click", ()=>openModal("mission"));
 
-    // Switchboard open/close (green light stays on while open)
+    // Switchboard
     let switchboardOn = false;
     function setSwitchboard(on){
       switchboardOn = !!on;
@@ -518,6 +517,7 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     document.body.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
@@ -527,13 +527,11 @@
     const group = new THREE.Group();
     scene.add(group);
 
-    // lights
     const sun = new THREE.DirectionalLight(0xffffff, 1.35);
     sun.position.set(5, 2, 5);
     scene.add(sun);
     scene.add(new THREE.AmbientLight(0xffffff, 0.28));
 
-    // constants + helpers
     const DEG = Math.PI/180;
     const RAD = 180/Math.PI;
     const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
@@ -552,7 +550,6 @@
       );
     }
 
-    // Great circle forward
     function greatCirclePoints(lat0Deg, lon0Deg, bearingDeg, stepDeg=1.0){
       const lat0 = lat0Deg * DEG;
       const lon0 = lon0Deg * DEG;
@@ -571,7 +568,6 @@
       return pts;
     }
 
-    // Rhumb line (loxodrome) stepping
     function rhumbLinePoints(lat0Deg, lon0Deg, bearingDeg, stepKm=160, steps=140){
       const R = 6371;
       const brng = bearingDeg * DEG;
@@ -644,17 +640,34 @@
     // Station 1 (Exit 222)
     const STATION1 = { lat: 38 + 9/60 + 39/3600, lon: -(79 + 4/60 + 24/3600) };
 
-    // textures
-    const texBase = "https://unpkg.com/three@0.161.0/examples/textures/planets/";
+    // IMPORTANT FIX: use stable texture host (threejs.org)
+    const TEX = "https://threejs.org/examples/textures/planets/";
+
     const loader = new THREE.TextureLoader();
+    loader.crossOrigin = "anonymous";
 
     function loadTex(url){
       return new Promise((resolve, reject)=>{
-        loader.load(url, t=>resolve(t), undefined, e=>reject(e));
+        loader.load(
+          url,
+          (t)=>resolve(t),
+          undefined,
+          (e)=>reject({ url, event: e })
+        );
       });
     }
 
-    // overlay containers
+    async function tryLoadTex(url, label){
+      try{
+        const t = await loadTex(url);
+        t.colorSpace = THREE.SRGBColorSpace;
+        return t;
+      }catch(err){
+        showError(`Texture failed: ${label}\n${url}\n${fmtErr(err?.event || err)}`);
+        return null; // continue with fallback
+      }
+    }
+
     const overlays = new THREE.Group();
     group.add(overlays);
 
@@ -673,41 +686,28 @@
     let earthMesh = null;
     let nightShell = null;
 
-    // Build globe
     (async()=>{
       try{
         statusEl.textContent = "Loading textures…";
 
-        // day textures (these are stable from three.js example CDN)
-        const day = await loadTex(texBase + "earth_atmos_2048.jpg");
-        day.colorSpace = THREE.SRGBColorSpace;
+        const day    = await tryLoadTex(TEX + "earth_atmos_2048.jpg", "Day (earth_atmos_2048)");
+        const normal = await tryLoadTex(TEX + "earth_normal_2048.jpg", "Normal (earth_normal_2048)");
+        const spec   = await tryLoadTex(TEX + "earth_specular_2048.jpg", "Specular (earth_specular_2048)");
 
-        const normal = await loadTex(texBase + "earth_normal_2048.jpg");
-        const spec = await loadTex(texBase + "earth_specular_2048.jpg");
-
-        // clouds optional
-        let clouds = null;
-        try{
-          clouds = await loadTex(texBase + "earth_clouds_1024.png");
-          clouds.colorSpace = THREE.SRGBColorSpace;
-        }catch{}
-
-        // night lights optional (if missing, feature still works without it)
-        let night = null;
-        try{
-          night = await loadTex(texBase + "earth_lights_2048.png");
-          night.colorSpace = THREE.SRGBColorSpace;
-        }catch{}
+        const clouds = await tryLoadTex(TEX + "earth_clouds_1024.png", "Clouds (earth_clouds_1024)") ;
+        const night  = await tryLoadTex(TEX + "earth_lights_2048.png", "Night lights (earth_lights_2048)") ;
 
         statusEl.textContent = "Building globe…";
 
         const radius = 1.0;
         const geo = new THREE.SphereGeometry(radius, 64, 64);
 
+        // Fallback-safe material
         const earthMat = new THREE.MeshPhongMaterial({
-          map: day,
-          normalMap: normal,
-          specularMap: spec,
+          color: day ? 0xffffff : 0x223355,
+          map: day || null,
+          normalMap: normal || null,
+          specularMap: spec || null,
           specular: new THREE.Color(0x222222),
           shininess: 18
         });
@@ -738,13 +738,11 @@
           });
           const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(radius*1.006, 64, 64), cloudMat);
           group.add(cloudMesh);
-
-          // slow spin
           cloudMesh.userData.spin = 0.0016;
           scene.userData.cloudMesh = cloudMesh;
         }
 
-        // atmosphere (simple glow)
+        // atmosphere glow
         const atmoGeo = new THREE.SphereGeometry(radius*1.02, 64, 64);
         const atmoMat = new THREE.ShaderMaterial({
           transparent: true,
@@ -780,15 +778,14 @@
         group.add(atmo);
         scene.userData.atmo = atmo;
 
-        // ---- Lines / overlays ----
+        // Lines
         const rh222 = buildLine(rhumbLinePoints(STATION1.lat, STATION1.lon, 222), 0xF6C24A, 0.95);
         const rh42  = buildLine(rhumbLinePoints(STATION1.lat, STATION1.lon, 42),  0xF6C24A, 0.32);
         const gc222 = buildLine(greatCirclePoints(STATION1.lat, STATION1.lon, 222, 1), 0x5BBCFF, 0.95);
         const gc42  = buildLine(greatCirclePoints(STATION1.lat, STATION1.lon, 42,  1), 0x5BBCFF, 0.32);
-
         overlays.add(rh222, rh42, gc222, gc42);
 
-        // labels
+        // Labels
         const lab222 = makeTextSprite("222° SW", "246,194,74,0.98");
         lab222.position.copy(latLonToVec3(STATION1.lat - 8, STATION1.lon - 8, 1.09));
         labelGroup.add(lab222);
@@ -797,7 +794,7 @@
         lab42.position.copy(latLonToVec3(STATION1.lat + 10, STATION1.lon + 10, 1.09));
         labelGroup.add(lab42);
 
-        // Station dot + label
+        // Station marker
         const dot = new THREE.Mesh(
           new THREE.SphereGeometry(0.013, 18, 18),
           new THREE.MeshBasicMaterial({ color: 0x7FFFD4 })
@@ -809,12 +806,12 @@
         stLab.position.copy(latLonToVec3(STATION1.lat+2.2, STATION1.lon-2.5, 1.07));
         stationGroup.add(stLab);
 
-        // perpendiculars (132 / 312)
+        // Perpendiculars
         const p132 = buildLine(greatCirclePoints(STATION1.lat, STATION1.lon, 132, 2).slice(60, 90), 0xffffff, 0.35);
         const p312 = buildLine(greatCirclePoints(STATION1.lat, STATION1.lon, 312, 2).slice(60, 90), 0xffffff, 0.35);
         perpGroup.add(p132, p312);
 
-        // aurora ring (visual overlay)
+        // Aurora ring
         const aurora = new THREE.Mesh(
           new THREE.TorusGeometry(1.08, 0.035, 18, 220),
           new THREE.MeshBasicMaterial({ color: 0xA078FF, transparent:true, opacity: 0.10, blending: THREE.AdditiveBlending, depthWrite:false })
@@ -823,19 +820,18 @@
         aurora.rotation.y = Math.PI/6;
         auroraGroup.add(aurora);
 
-        // initial visibility
+        // Initial visibility
         rh222.visible = true;
         gc222.visible = true;
         rh42.visible  = false;
         gc42.visible  = false;
 
-        labelGroup.visible = false;          // names off by default
-        stationGroup.visible = true;         // stations on by default
-        perpGroup.visible = false;           // perp off by default
-        auroraGroup.visible = false;         // aurora off by default
-        if (nightShell) nightShell.visible = true; // night lights on by default
+        labelGroup.visible = false;
+        stationGroup.visible = true;
+        perpGroup.visible = false;
+        auroraGroup.visible = false;
+        if (nightShell) nightShell.visible = true;
 
-        // Toggle state
         const state = {
           rhumb222: true,
           rhumb42: false,
@@ -853,8 +849,6 @@
           state[key] = !!on;
           layerButtons[key]?.classList.toggle("on", !!on);
         }
-
-        // bind toggles
         function bind(key, fn){
           layerButtons[key]?.addEventListener("click", ()=>{
             const on = !state[key];
@@ -872,18 +866,15 @@
         bind("names42",  (on)=> { labelGroup.visible = on || state.names222; });
 
         bind("perp",     (on)=> perpGroup.visible = on);
-
         bind("night",    (on)=> { if (nightShell) nightShell.visible = on; });
-
         bind("stations", (on)=> stationGroup.visible = on);
         bind("aurora",   (on)=> auroraGroup.visible  = on);
 
-        // sync button initial “on” classes
         Object.keys(state).forEach(k => setBtn(k, state[k]));
 
         statusEl.textContent = "Running";
 
-        // Interaction (drag rotate + pinch zoom)
+        // Interaction
         let dragging = false;
         let lastX=0, lastY=0;
         let velX=0, velY=0;
@@ -980,11 +971,9 @@
           if (!running){ rafId = 0; return; }
           rafId = requestAnimationFrame(animate);
 
-          // cloud spin (if present)
           const cloudMesh = scene.userData.cloudMesh;
           if (cloudMesh) cloudMesh.rotation.y += cloudMesh.userData.spin || 0.0014;
 
-          // atmo viewVector update
           const atmo = scene.userData.atmo;
           if (atmo?.material?.uniforms?.viewVector){
             atmo.material.uniforms.viewVector.value.copy(camera.position);
@@ -1007,7 +996,7 @@
         });
 
       } catch (err){
-        showError("Top-level error:\n" + (err?.stack || err?.message || err));
+        showError("Top-level error:\n" + fmtErr(err));
       }
     })();
   </script>
