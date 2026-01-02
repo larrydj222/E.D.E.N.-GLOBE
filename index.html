@@ -1,5 +1,3 @@
-index.html 
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -486,8 +484,9 @@ index.html
         missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
 
-        // ✅ always loads newest welcome.html (bypass cache)
-        const WELCOME_FILE = "welcome.html";
+        // ✅ always loads newest welcome (bypass cache)
+        // ✅ UPDATED: point to assets/welcome3.html
+        const WELCOME_FILE = "assets/welcome3.html";
         welcomeFrame.src = encodeURI(WELCOME_FILE) + "?v=" + Date.now();
       } else {
         modalTitle.textContent = "MISSION";
