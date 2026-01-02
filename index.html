@@ -198,7 +198,7 @@
       flex: 0 0 auto;
     }
 
-    /* ✅ “Lights turn green” when a top button is pressed */
+    /* “Lights turn green” when a top button is pressed */
     .pill.on .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 16px rgba(120,255,200,0.24); }
     .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
     .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 16px rgba(91,188,255,0.22); }
@@ -484,12 +484,12 @@
         missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
 
-        /* ✅ UPDATED: load welcome6 */
+        // ✅ UPDATED: load the real file that exists in your repo
         const WELCOME_FILE = "assets/welcome6.html";
 
-        /* ✅ robust URL resolution for GitHub Pages subpaths */
+        // ✅ robust URL resolution for GitHub Pages subpaths
         const u = new URL(WELCOME_FILE, window.location.href);
-        u.searchParams.set("v", Date.now().toString()); // bust cache
+        u.searchParams.set("v", Date.now().toString());
         welcomeFrame.src = u.toString();
 
       } else {
