@@ -457,6 +457,9 @@
     const welcomeFrame = document.getElementById("welcomeFrame");
     const missionContent = document.getElementById("missionContent");
 
+    // ✅ LOCKED: Welcome page MUST be assets/welcome3.html (and nothing else)
+    const WELCOME_FILE = "assets/welcome3.html";
+
     function showError(msg){
       if (!errorsEl) return;
       errorsEl.style.display = "block";
@@ -484,8 +487,7 @@
         missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
 
-        // ✅ always loads newest welcome.html (bypass cache)
-        const WELCOME_FILE = "welcome.html";
+        // ✅ always loads newest welcome3.html (bypass cache)
         welcomeFrame.src = encodeURI(WELCOME_FILE) + "?v=" + Date.now();
       } else {
         modalTitle.textContent = "MISSION";
@@ -501,11 +503,11 @@
     modalMask.addEventListener("click", (e)=>{ if(e.target === modalMask) closeModal(); });
 
     welcomeBtn.addEventListener("click", ()=>{
-      setTopOn(welcomeBtn);
-      openModal("welcome");
+      setTopOn(welcomeBtn);   // ✅ turns green
+      openModal("welcome");   // ✅ opens assets/welcome3.html
     });
     missionBtn.addEventListener("click", ()=>{
-      setTopOn(missionBtn);
+      setTopOn(missionBtn);   // ✅ turns green
       openModal("mission");
     });
 
