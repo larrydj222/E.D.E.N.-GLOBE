@@ -199,16 +199,16 @@
     }
 
     /* ✅ “Lights turn green” when a top button is pressed */
-    .pill.on .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 16px rgba(120,255,200,0.24); }
-    .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
-    .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 16px rgba(91,188,255,0.22); }
+    .pill.on .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 14px rgba(120,255,200,0.18); }
+    .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 14px rgba(246,194,74,0.16); }
+    .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 14px rgba(91,188,255,0.16); }
 
-    .pill.on[data-key="rhumb42"] .dot{ background: rgba(246,194,74,0.55); box-shadow:0 0 16px rgba(246,194,74,0.16); }
-    .pill.on[data-key="gc42"]    .dot{ background: rgba(91,188,255,0.55); box-shadow:0 0 16px rgba(91,188,255,0.16); }
+    .pill.on[data-key="rhumb42"] .dot{ background: rgba(246,194,74,0.55); box-shadow:0 0 14px rgba(246,194,74,0.12); }
+    .pill.on[data-key="gc42"]    .dot{ background: rgba(91,188,255,0.55); box-shadow:0 0 14px rgba(91,188,255,0.12); }
 
-    .pill.on[data-key="stations"]   .dot{ background: rgba(127,255,212,0.90); box-shadow:0 0 16px rgba(127,255,212,0.18); }
-    .pill.on[data-key="aurora"]     .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 16px rgba(160,120,255,0.18); }
-    .pill.on[data-key="nightLights"].dot{ background: rgba(140,255,200,0.92); box-shadow:0 0 16px rgba(140,255,200,0.18); }
+    .pill.on[data-key="stations"]   .dot{ background: rgba(127,255,212,0.90); box-shadow:0 0 14px rgba(127,255,212,0.14); }
+    .pill.on[data-key="aurora"]     .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 14px rgba(160,120,255,0.14); }
+    .pill.on[data-key="nightLights"].dot{ background: rgba(140,255,200,0.92); box-shadow:0 0 14px rgba(140,255,200,0.14); }
 
     #statusBar{
       margin-top: 10px;
@@ -352,7 +352,8 @@
     <div id="drawerTop">
       <div id="titleBlock">
         <div id="title">MAP E.D.E.N.</div>
-        <div id="subtitle">Earth Diametric Energy Network • Tap Switchboard to open layers</div>
+        <!-- ✅ renamed Switchboard -> Station -->
+        <div id="subtitle">Earth Diametric Energy Network • Tap Station to open layers</div>
       </div>
       <button id="closeBtn" aria-label="Close drawer" title="Close">✕</button>
     </div>
@@ -367,8 +368,9 @@
           <span class="left"><span class="dot"></span><span class="label">Mission</span></span>
         </button>
 
+        <!-- ✅ button label changed -->
         <button class="pill switch" id="switchboardBtn">
-          <span class="left"><span class="dot"></span><span class="label">Switchboard</span></span>
+          <span class="left"><span class="dot"></span><span class="label">Station</span></span>
           <span class="hint" id="switchHint">Tap to open</span>
         </button>
       </div>
@@ -422,9 +424,7 @@
             Turn the 42° / 222° axis hypothesis into a coordinated, evidence-first experiment by producing sensor datasets
             that are repeatable, controlled, and comparable across stations and time.
           </p>
-          <p>
-            This globe is a visual switchboard for the core overlays (Rhumb, Great Circle, Corridors, Field previews) while keeping the Earth render clean.
-          </p>
+          <!-- ✅ removed the extra “This globe is a visual switchboard…” paragraph -->
         </div>
       </div>
     </div>
@@ -457,37 +457,11 @@
     const welcomeFrame = document.getElementById("welcomeFrame");
     const missionContent = document.getElementById("missionContent");
 
-    // ============================
-    // Quiet status system (no red panel for texture fallbacks)
-    // ============================
-    let statusBase = "Booting…";
-    const notices = new Set();
-
-    function renderStatus(){
-      if (!statusEl) return;
-      if (notices.size){
-        const list = Array.from(notices).join(", ");
-        statusEl.textContent = `${statusBase} • Texture fallback: ${list}`;
-      } else {
-        statusEl.textContent = statusBase;
-      }
-    }
-    function setStatusBase(s){
-      statusBase = s;
-      renderStatus();
-    }
-    function addNotice(n){
-      notices.add(n);
-      renderStatus();
-    }
-
-    // Only REAL errors get the red panel
     function showError(msg){
-      if (errorsEl){
-        errorsEl.style.display = "block";
-        errorsEl.textContent += (errorsEl.textContent ? "\n\n" : "") + msg;
-      }
-      setStatusBase("Error (see panel)");
+      if (!errorsEl) return;
+      errorsEl.style.display = "block";
+      errorsEl.textContent += (errorsEl.textContent ? "\n\n" : "") + msg;
+      statusEl.textContent = "Error (see panel)";
     }
     window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
     window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
@@ -510,14 +484,12 @@
         missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
 
-        // ✅ UPDATED: load welcome6.html (in /assets/)
+        // ✅ updated to welcome6.html
         const WELCOME_FILE = "assets/welcome6.html";
 
-        // ✅ robust URL resolution for GitHub Pages subpaths
         const u = new URL(WELCOME_FILE, window.location.href);
         u.searchParams.set("v", Date.now().toString());
         welcomeFrame.src = u.toString();
-
       } else {
         modalTitle.textContent = "MISSION";
         welcomeFrame.style.display = "none";
@@ -614,13 +586,13 @@
       return pts;
     }
 
-    function makeGlowTube(pointsVec3, radius, coreColor, haloColor, coreOpacity=1.0, haloOpacity=0.28){
+    function makeGlowTube(pointsVec3, radius, coreColor, haloColor, coreOpacity=1.0, haloOpacity=0.22){
       if (!pointsVec3 || pointsVec3.length < 4) return new THREE.Group();
       const curve = new THREE.CatmullRomCurve3(pointsVec3, false, "catmullrom", 0.15);
       const segs = Math.max(320, pointsVec3.length*2);
 
       const coreGeom = new THREE.TubeGeometry(curve, segs, radius, 10, false);
-      const haloGeom = new THREE.TubeGeometry(curve, segs, radius*2.6, 10, false);
+      const haloGeom = new THREE.TubeGeometry(curve, segs, radius*2.4, 10, false);
 
       const coreMat = new THREE.MeshBasicMaterial({ color: coreColor, transparent: coreOpacity<1, opacity: coreOpacity, depthWrite:false });
       const haloMat = new THREE.MeshBasicMaterial({ color: haloColor, transparent:true, opacity: haloOpacity, blending: THREE.AdditiveBlending, depthWrite:false });
@@ -631,11 +603,12 @@
       return g;
     }
 
+    // ✅ reduced glow for text sprites (settled)
     function makeTextSprite(text, {
       fontSize=22,
-      color="rgba(255,255,255,0.92)",
-      glow="rgba(255,255,255,0.16)",
-      glowBlur=5,
+      color="rgba(255,255,255,0.90)",
+      glow="rgba(255,255,255,0.12)",
+      glowBlur=4,
       padding=8,
       scale=0.0048
     } = {}){
@@ -749,6 +722,16 @@
       return t;
     }
 
+    // ✅ no big red error panel for texture fallback (keeps things clean)
+    const fallbackNotes = new Set();
+    function noteFallback(label){
+      fallbackNotes.add(label);
+      if (fallbackNotes.size > 0){
+        statusEl.textContent = "Running";
+      }
+      console.warn("Texture fallback used for:", label);
+    }
+
     async function loadTextureWithFallback(urls, fallbackTex, label){
       const loader = new THREE.TextureLoader();
       loader.setCrossOrigin("anonymous");
@@ -764,8 +747,7 @@
         } catch { /* try next */ }
       }
 
-      // ✅ Quiet notice only (no red panel)
-      addNotice(label);
+      noteFallback(label);
       return fallbackTex;
     }
 
@@ -776,7 +758,7 @@
 
     (async ()=>{
       try{
-        setStatusBase("Starting…");
+        statusEl.textContent = "Starting…";
         scene = new THREE.Scene();
 
         camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 5000);
@@ -804,7 +786,7 @@
         ];
         const urls = (path)=>BASES.map(b=>b+path);
 
-        setStatusBase("Loading textures…");
+        statusEl.textContent = "Loading textures…";
 
         const dayMap   = await loadTextureWithFallback(urls("planets/earth_atmos_2048.jpg"), makeFallbackEarthDay(), "earth day");
         const nightMap = await loadTextureWithFallback(urls("planets/earth_lights_2048.png"), makeFallbackNight(), "earth night lights");
@@ -818,7 +800,7 @@
           t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
         });
 
-        setStatusBase("Running");
+        statusEl.textContent = "Running";
 
         const starGeo = new THREE.SphereGeometry(90, 64, 64);
         const starMat = new THREE.MeshBasicMaterial({ map: starMap, side: THREE.BackSide });
@@ -1048,30 +1030,30 @@
         const rh42 = rhumbPoints(ANCHOR.lat, ANCHOR.lon, BEAR_42, 240)
           .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
 
-        overlays.gc222.add(makeGlowTube(gc222, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.28));
-        overlays.rhumb222.add(makeGlowTube(rh222, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.26));
+        overlays.gc222.add(makeGlowTube(gc222, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.24));
+        overlays.rhumb222.add(makeGlowTube(rh222, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.22));
 
-        overlays.gc42.add(makeGlowTube(gc42, 0.0032, 0x5bbcff, 0x5bbcff, 0.55, 0.20));
-        overlays.rhumb42.add(makeGlowTube(rh42, 0.0032, 0xf6c24a, 0xf6c24a, 0.55, 0.18));
+        overlays.gc42.add(makeGlowTube(gc42, 0.0032, 0x5bbcff, 0x5bbcff, 0.55, 0.18));
+        overlays.rhumb42.add(makeGlowTube(rh42, 0.0032, 0xf6c24a, 0xf6c24a, 0.55, 0.16));
 
         function arcFromBearing(bearingDeg){
           const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, bearingDeg, 1.2)
             .filter((_, i) => i > 40 && i < 260)
             .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
-          return makeGlowTube(pts, 0.0026, 0x5bbcff, 0x5bbcff, 1.0, 0.18);
+          return makeGlowTube(pts, 0.0026, 0x5bbcff, 0x5bbcff, 1.0, 0.14);
         }
         overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
-        // ✅ Reduced glow on name labels (settled, less radiant)
-        const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 4, glow:"rgba(246,194,74,0.10)" });
+        // ✅ settled text glow
+        const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 3, glow:"rgba(246,194,74,0.10)" });
         n222.position.copy(latLonToVec3(18, -18, earthRadius*1.10));
         overlays.names222.add(n222);
 
-        const n42 = makeTextSprite("42 NE", { fontSize: 20, glowBlur: 4, glow:"rgba(91,188,255,0.10)" });
+        const n42 = makeTextSprite("42 NE", { fontSize: 20, glowBlur: 3, glow:"rgba(91,188,255,0.10)" });
         n42.position.copy(latLonToVec3(-6, 62, earthRadius*1.10));
         overlays.names42.add(n42);
 
-        const pLabel = makeTextSprite("132° / 312°", { fontSize: 18, glowBlur: 4, glow:"rgba(91,188,255,0.09)" });
+        const pLabel = makeTextSprite("132° / 312°", { fontSize: 18, glowBlur: 3, glow:"rgba(91,188,255,0.08)" });
         pLabel.position.copy(latLonToVec3(52, 105, earthRadius*1.11));
         overlays.perpName.add(pLabel);
 
@@ -1085,16 +1067,16 @@
           { name:"Antarctica",    lat:-80,  lon:  0 }
         ];
         for (const c of CONT){
-          const s = makeTextSprite(c.name, { fontSize: 18, glowBlur: 4, glow:"rgba(255,255,255,0.08)" });
+          const s = makeTextSprite(c.name, { fontSize: 18, glowBlur: 3, glow:"rgba(255,255,255,0.08)" });
           s.position.copy(latLonToVec3(c.lat, c.lon, earthRadius*1.10));
           overlays.continents.add(s);
         }
 
         const kmToUnit = (km)=> (km/6371)*earthRadius;
         const corridorRadii = [
-          { km: 1,  r: kmToUnit(1),  o: 0.16 },
-          { km: 5,  r: kmToUnit(5),  o: 0.09 },
-          { km: 10, r: kmToUnit(10), o: 0.06 }
+          { km: 1,  r: kmToUnit(1),  o: 0.14 },
+          { km: 5,  r: kmToUnit(5),  o: 0.08 },
+          { km: 10, r: kmToUnit(10), o: 0.05 }
         ];
         for (const c of corridorRadii){
           overlays.corridors.add(makeGlowTube(gc222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
@@ -1108,16 +1090,16 @@
           const p = latLonToVec3(lat, lon, earthRadius*1.02);
 
           const pin = new THREE.Mesh(new THREE.SphereGeometry(0.010, 18, 18),
-            new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.95 })
+            new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.92 })
           );
           pin.position.copy(p);
 
           const glow = new THREE.Mesh(new THREE.SphereGeometry(0.020, 18, 18),
-            new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.16, blending:THREE.AdditiveBlending, depthWrite:false })
+            new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.12, blending:THREE.AdditiveBlending, depthWrite:false })
           );
           glow.position.copy(p);
 
-          const tag = makeTextSprite(label, { fontSize: 18, glowBlur: 4, glow:"rgba(255,255,255,0.10)" });
+          const tag = makeTextSprite(label, { fontSize: 18, glowBlur: 3, glow:"rgba(255,255,255,0.10)" });
           tag.position.copy(latLonToVec3(lat, lon, earthRadius*1.12));
 
           g.add(glow, pin, tag);
@@ -1152,7 +1134,7 @@
                 return v.normalize().multiplyScalar(len);
               });
               const ringClamped = ring.filter(v => v.length() < earthRadius*7.5);
-              g.add(makeGlowTube(ringClamped, 0.0014, col, col, 0.0, 0.055));
+              g.add(makeGlowTube(ringClamped, 0.0014, col, col, 0.0, 0.045));
             }
           }
           return g;
@@ -1164,7 +1146,7 @@
           for (const lat of [latDeg, -latDeg]){
             const pts = [];
             for (let lon=-180; lon<=180; lon+=2) pts.push(latLonToVec3(lat, lon, earthRadius*1.05));
-            g.add(makeGlowTube(pts, 0.0026, color, color, 0.0, 0.11));
+            g.add(makeGlowTube(pts, 0.0026, color, color, 0.0, 0.09));
           }
           return g;
         }
@@ -1196,7 +1178,8 @@
 
         const renderScene = new RenderPass(scene, camera);
 
-        bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.10, 0.85, 0.10);
+        // ✅ slightly reduced bloom intensity (settled)
+        bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.85, 0.78, 0.12);
         bloomComposer = new EffectComposer(renderer);
         bloomComposer.renderToScreen = false;
         bloomComposer.addPass(renderScene);
