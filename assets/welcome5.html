@@ -1,47 +1,204 @@
 <!DOCTYPE html>
-
 <html lang="en">
-<head> <meta charset="utf-8"/> <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=yes, maximum-scale=5" /> <title>MAP E.D.E.N.</title> <style> :root{ --bg:#050508; /* space black */ --fg:#ffffff; --muted:rgba(255,255,255,.72); --muted2:rgba(255,255,255,.55); } *{box-sizing:border-box;} html,body{height:100%;} body{ margin:0; background:var(--bg); color:var(--fg); font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Segoe UI,Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; } .page{ width:min(980px, 92vw); margin:0 auto; padding:28px 0 44px; } /* HERO */ .hero{ display:flex; flex-direction:column; align-items:center; gap:22px; padding-top:6px; } /* LOGOS */ .logo{display:block; height:auto;} .logoMain{ width:min(640px, 86vw); filter: drop-shadow(0 16px 34px rgba(255,255,255,.06)); } /* COPY */ .copy{ margin:26px auto 0; width:min(780px, 92vw); text-align:center; } .copy p{ margin:0 0 14px; font-size:18px; line-height:1.7; color:var(--muted); } .copy h2{ margin:26px 0 14px; font-size:15px; line-height:1.2; letter-spacing:.24em; text-transform:uppercase; color:rgba(255,255,255,.92); } .copy .launch{ margin:10px 0 0; font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted2); } /* FOOTER LOGOS */ .footer{ margin-top:30px; display:flex; flex-direction:column; align-items:center; gap:18px; padding-top:8px; } .footerLogo{width:min(720px,92vw);height:auto;display:block;} .footerLogo.project{width:min(720px,92vw);} .footerLogo.mandorla{width:min(420px, 74vw);} .legal{ margin-top:10px; width:min(860px, 94vw); text-align:center; font-size:12px; line-height:1.55; color:rgba(255,255,255,.52); } /* MOBILE TWEAKS */ @media (max-width:520px){ .page{padding:22px 0 40px;} .copy p{font-size:17px;} .copy h2{font-size:14px;} } .globeStage{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:100%;} .globeStage::before{content:"";position:absolute;inset:-18%;background:radial-gradient(circle at center, rgba(255,255,255,.07) 0%, rgba(255,255,255,.03) 22%, rgba(0,0,0,0) 62%);pointer-events:none;}
-.globeSpin{height:clamp(150px,22vh,260px);width:auto;max-height:100%;max-width:100%;aspect-ratio:1/1;border-radius:999px;animation: globeSpin 16s linear infinite;filter: drop-shadow(0 0 18px rgba(255,255,255,.10));-webkit-transform: translateZ(0);transform: translateZ(0);-webkit-mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 62%, rgba(0,0,0,.85) 70%, rgba(0,0,0,0) 86%);mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 62%, rgba(0,0,0,.85) 70%, rgba(0,0,0,0) 86%);} to{transform:rotate(360deg) translateZ(0);} } 
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=yes, maximum-scale=5" />
+  <title>MAP E.D.E.N. — Welcome</title>
 
-/* Mission blocks */
-.copy .mission{max-width:820px;margin:0 auto;text-align:left;}
-.copy .mission h3{margin:22px 0 10px;font-size:14px;letter-spacing:.26em;text-transform:uppercase;color:rgba(255,255,255,.92);text-align:center;}
-.copy .mission p{margin:0 0 14px;color:rgba(255,255,255,.72);font-size:16px;line-height:1.75;}
-@media (max-width:520px){.copy .mission{max-width:92vw;} .copy .mission h3{font-size:13px;} .copy .mission p{font-size:15px;}}
+  <style>
+    :root{
+      --bg:#050508;
+      --fg:#ffffff;
+      --muted:rgba(255,255,255,.72);
+      --muted2:rgba(255,255,255,.55);
+      --legal:rgba(255,255,255,.52);
+    }
+    *{box-sizing:border-box;}
+    html,body{height:100%;}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--fg);
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
 
+    .page{
+      width:min(980px, 92vw);
+      margin:0 auto;
+      padding:24px 0 44px;
+    }
 
-/* --- v22 consistency patch --- */
-html, body { -webkit-text-size-adjust: 100%; text-rendering: geometricPrecision; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-.copy p{ margin:0 0 14px; color:rgba(255,255,255,.72); font-size:16px; line-height:1.75; }
-.copy h2{ margin-top:34px; margin-bottom:14px; }
-.copy .launch{ margin:10px auto 6px; }
-img.logo{ background:transparent; border:0; outline:0; box-shadow:none; }
-@media (max-width:520px){ .copy p{ font-size:16px; } }
+    /* TOP LOGO (asset_1.png) */
+    .hero{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding-top:6px;
+      margin-bottom:18px;
+    }
+    .topLogo{
+      width:min(720px, 92vw);
+      height:auto;
+      display:block;
+      filter: drop-shadow(0 16px 34px rgba(255,255,255,.06));
+    }
 
-/* --- v22 logo spacing patch (welcome4) --- */
-.hero{gap:0;padding-top:0;}
-.footer{gap:0;padding-top:0;}
-.logoMain,.footerLogo{margin:0;}
+    /* MAIN COPY */
+    .copy{
+      margin:0 auto;
+      width:min(820px, 92vw);
+      text-align:center;
+    }
+    .copy p{
+      margin:0 0 14px;
+      font-size:16px;
+      line-height:1.75;
+      color:var(--muted);
+      text-align:left;
+    }
+    .copy h2{
+      margin:34px 0 14px;
+      font-size:15px;
+      line-height:1.2;
+      letter-spacing:.24em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.92);
+      text-align:center;
+    }
+    .copy .launch{
+      margin:10px 0 6px;
+      font-size:13px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted2);
+      text-align:center;
+    }
 
+    /* Mission blocks */
+    .mission{max-width:820px;margin:0 auto;}
+    .mission h3{
+      margin:22px 0 10px;
+      font-size:14px;
+      letter-spacing:.26em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.92);
+      text-align:center;
+    }
+    .mission p{
+      margin:0 0 14px;
+      color:var(--muted);
+      font-size:16px;
+      line-height:1.75;
+      text-align:left;
+    }
 
-/* --- v23 hide logo visuals (welcome5) --- */
-img.logo{visibility:hidden !important; opacity:0 !important;}
+    /* BOTTOM STACKED LOGOS */
+    .footer{
+      margin-top:30px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:14px;
+      padding-top:8px;
+    }
+    .footerLogo{
+      height:auto;
+      display:block;
+    }
+    .footerLogo.asset1{ width:min(720px, 92vw); }
+    .footerLogo.asset3{ width:min(720px, 92vw); }
+    .footerLogo.asset4{ width:min(420px, 74vw); }
 
-</style>
+    .legal{
+      margin-top:10px;
+      width:min(860px, 94vw);
+      text-align:center;
+      font-size:12px;
+      line-height:1.55;
+      color:var(--legal);
+    }
+
+    @media (max-width:520px){
+      .page{padding:22px 0 40px;}
+      .copy p,.mission p{font-size:15px;}
+      .copy h2{font-size:14px;}
+      .mission h3{font-size:13px;}
+    }
+  </style>
 </head>
-<body> <main class="page"> <section class="hero"> <img alt="MAP E.D.E.N. Logo" class="logo logoMain" src="assets/asset_1.png"/> </section> <section class="copy"> <p>MAP E.D.E.N. is the secure field platform for Project E.D.E.N. (Earth Diametric &amp; Energy Network)—built to run repeatable, real-world tests along Earth corridors, starting with the 42/222 diametric axis. Powered by Mandorla.io and Mandorla.app, MAP E.D.E.N. equips trusted operators to capture measurements, events, and evidence with disciplined protocols. MAP E.D.E.N. operationalizes the Project E.D.E.N. Field Test framework within Mandorla so every session is comparable across time, operators, and corridors.</p> <h2>Mission</h2><div class="mission">
-<h3>MAP E.D.E.N.</h3>
-<p>MAP E.D.E.N. is the operational field platform for Project E.D.E.N. (Earth Diametric &amp; Energy Network)—a secure, repeatable way to run real-world tests along defined Earth corridors, beginning with the 42/222 diametric axis (42° and 222° are opposite bearings on the same straight line). Based on a 20+ year personal observation record, the Founder identified “222” as a persistent recurring numeric event marker across routine environments (time displays, identifiers, signage). This long-duration recurrence served as the initial trigger for structuring Project E.D.E.N. as a measurement-first field program.</p>
-<h3>Project E.D.E.N.</h3>
-<p>Over time, and in multiple documented sessions, the “222” event marker also coincided with a compass bearing of 222° (SW)—reinforcing the 42/222 line as a repeatable corridor for formal testing. MAP E.D.E.N. equips trusted operators with clear protocols to collect environmental field measurements and navigation-behavior observations, including human biological magnetoreception and magnetically influenced orientation, homing, and migratory navigation in animals and insects, so results can be compared across time and location.</p>
-<p>To strengthen controls and create repeatable, instrument-verifiable stimuli, Project E.D.E.N. includes a Magnetically Responsive Materials (MRM) workstream focused on ferrofluids and magnetorheological (MR) fluids. These materials provide a controlled “known magnetic response” reference—allowing operators to validate sensor integrity, characterize local magnetic noise, and run standardized interaction tests under defined field conditions. The MRM workstream is explicitly calibration-first and falsification-driven: it exists to improve replication and reduce misinterpretation, rather than to pre-judge any explanation for observed phenomena. Because magnetically responsive materials demonstrate measurable coupling between matter and fields, they also support a disciplined exploration—as testable hypotheses—of whether magnetic coupling could ever contribute to navigation, actuation, or signaling behaviors across domains (land, water, air, and near-space). These questions are treated as research targets governed by controls and falsification criteria, not as expected outcomes.</p>
-<p>MAP E.D.E.N. frames the 42/222 axis as a corridor spanning the Known and the Unknown: on the Known side, the line intersects heavily instrumented, institution-dense systems where data is abundant and continuously monitored (national security and governance infrastructure, global finance and information markets, and protected archival assets such as seed repositories and long-term preservation facilities), while on the Unknown side it points toward regions sparse in public instrumentation and rich in unresolved questions, including the deep Antarctic interior and vast stretches of the Indian Ocean associated with limited visibility, incomplete records, and enduring aviation and maritime mysteries.</p>
-<p>In field terms, the program begins at a discreet baseline station near Exit 222 in the Staunton, Virginia (USA) area, and treats the antipode—the diametric counterpart along the same 42/222 line—as the long-horizon expansion target. The objective is to determine—through controls (including MRM baselines), replication, and conservative analysis—whether the axis shows repeatable signal coherence distinguishable from ordinary noise and known artifacts, including the open question of whether advanced signals could reflect interaction between humans and terrestrial and celestial non-human sources. Subsurface and extraterrestrial hypotheses (including “Hollow Earth” concepts) are treated strictly as testable targets governed by defined controls and falsification criteria, not assumptions. Any discussion of terrestrial or extraterrestrial transportation, domain traversal (land/water/air/space), or communication remains strictly conditional on future datasets meeting predefined thresholds for repeatability, control performance, and independent replication; until then, MAP E.D.E.N. reports measurements, uncertainty, and null results without attributing mechanism or agency.</p>
-<h3>Mandorla</h3>
-<p>Mandorla.io and Mandorla.app provide the logging and evidence backbone for Project E.D.E.N., enabling every MAP E.D.E.N. session to be executed as a standardized field test with consistent metadata and evidence requirements so events and signals are captured the same way every time and can be audited, replicated, and tracked over long baselines.</p>
-</div>
-<h2>Mandorla (Parent Platform)</h2> <p>Mandorla (by Mandorla, Inc.) is a private technology and research company that operates a nonprofit research initiative dedicated to investigating repeating-number phenomena and pattern signals across terrestrial, oneiric (dream), and extraterrestrial/cosmic contexts. Through a peer-to-peer social-intelligence network, people around the world can log “222” and other repeating-number sightings, add real-time context, stories, and reflections, and see how their experiences connect to broader numerical, cosmological, and signal-detection models—providing the research foundation that powers Project E.D.E.N. via Mandorla.io and Mandorla.app.</p> <div class="launch">Launching Spring 2026.</div> <h2>Operator Access</h2> <p>Approved operators may receive access to MAP E.D.E.N. Operator Kits for field deployment. Operator Kits are distributed through secure channels and are available only via authorized download links provided within the MAP E.D.E.N. portal. Each kit contains the current protocols, checklists, and required logging standards to ensure tests are executed consistently, evidence is captured correctly, and results remain comparable across operators, locations, and time. If you have been approved as an operator, follow the official instructions you were issued to access the portal and download the latest kit version; do not use third-party mirrors or forwarded links.</p> <div class="launch">Launching Spring 2026.</div> <h2>Boundary + Ethics</h2> <p>MAP E.D.E.N. is measurement-first. We prioritize evidence, controls, replication, and conservative interpretation—no claim is treated as established unless results repeat across independent tests. Privacy and safety come first: operator identities, exact private locations, and sensitive site details are protected, and fieldwork must follow all laws and respect wildlife, protected lands, and restricted areas.</p>
-<p>All hypotheses remain testable: terrestrial, subsurface (including “Hollow Earth” concepts), and extraterrestrial possibilities are explored as research targets—evaluated by data, not belief.</p> </section> <section class="footer"> <img alt="MAP E.D.E.N. Logo" class="logo footerLogo" src="assets/asset_1.png"/> <img alt="Project E.D.E.N. Logo" class="logo footerLogo project" src="assets/asset_3.png"/> <img alt="Mandorla Logo" class="logo footerLogo mandorla" src="assets/asset_4.png"/> <div class="legal">© 2025–2026 Mandorla. All Rights Reserved. MAP E.D.E.N.™, Project E.D.E.N.™, Operation E.D.E.N.™, and Mandorla™ are proprietary marks of Mandorla.io and may not be used without prior written permission.</div> </section> </main>
+
+<body>
+  <main class="page">
+
+    <!-- TOP: asset_1.png -->
+    <section class="hero">
+      <!-- IMPORTANT: welcome5.html is inside /assets, so the src is just the filename -->
+      <img class="topLogo" src="asset_1.png" alt="MAP E.D.E.N. Logo" />
+    </section>
+
+    <section class="copy">
+      <p>
+        MAP E.D.E.N. is the secure field platform for Project E.D.E.N. (Earth Diametric &amp; Energy Network)—built to run repeatable, real-world tests along Earth corridors, starting with the 42/222 diametric axis. Powered by Mandorla.io and Mandorla.app, MAP E.D.E.N. equips trusted operators to capture measurements, events, and evidence with disciplined protocols. MAP E.D.E.N. operationalizes the Project E.D.E.N. Field Test framework within Mandorla so every session is comparable across time, operators, and corridors.
+      </p>
+
+      <h2>Mission</h2>
+
+      <div class="mission">
+        <h3>MAP E.D.E.N.</h3>
+        <p>
+          MAP E.D.E.N. is the operational field platform for Project E.D.E.N. (Earth Diametric &amp; Energy Network)—a secure, repeatable way to run real-world tests along defined Earth corridors, beginning with the 42/222 diametric axis (42° and 222° are opposite bearings on the same straight line). Based on a 20+ year personal observation record, the Founder identified “222” as a persistent recurring numeric event marker across routine environments (time displays, identifiers, signage). This long-duration recurrence served as the initial trigger for structuring Project E.D.E.N. as a measurement-first field program.
+        </p>
+
+        <h3>Project E.D.E.N.</h3>
+        <p>
+          Over time, and in multiple documented sessions, the “222” event marker also coincided with a compass bearing of 222° (SW)—reinforcing the 42/222 line as a repeatable corridor for formal testing. MAP E.D.E.N. equips trusted operators with clear protocols to collect environmental field measurements and navigation-behavior observations, including human biological magnetoreception and magnetically influenced orientation, homing, and migratory navigation in animals and insects, so results can be compared across time and location.
+        </p>
+
+        <p>
+          To strengthen controls and create repeatable, instrument-verifiable stimuli, Project E.D.E.N. includes a Magnetically Responsive Materials (MRM) workstream focused on ferrofluids and magnetorheological (MR) fluids. These materials provide a controlled “known magnetic response” reference—allowing operators to validate sensor integrity, characterize local magnetic noise, and run standardized interaction tests under defined field conditions. The MRM workstream is explicitly calibration-first and falsification-driven: it exists to improve replication and reduce misinterpretation, rather than to pre-judge any explanation for observed phenomena.
+        </p>
+
+        <p>
+          MAP E.D.E.N. frames the 42/222 axis as a corridor spanning the Known and the Unknown: on the Known side, the line intersects heavily instrumented, institution-dense systems where data is abundant and continuously monitored, while on the Unknown side it points toward regions sparse in public instrumentation and rich in unresolved questions, including the deep Antarctic interior and vast stretches of the Indian Ocean.
+        </p>
+
+        <h3>Mandorla</h3>
+        <p>
+          Mandorla.io and Mandorla.app provide the logging and evidence backbone for Project E.D.E.N., enabling every MAP E.D.E.N. session to be executed as a standardized field test with consistent metadata and evidence requirements so events and signals are captured the same way every time and can be audited, replicated, and tracked over long baselines.
+        </p>
+      </div>
+
+      <h2>Mandorla (Parent Platform)</h2>
+      <p>
+        Mandorla (by Mandorla, Inc.) is a private technology and research company that operates a nonprofit research initiative dedicated to investigating repeating-number phenomena and pattern signals across terrestrial, oneiric (dream), and extraterrestrial/cosmic contexts.
+      </p>
+      <div class="launch">Launching Spring 2026.</div>
+
+      <h2>Operator Access</h2>
+      <p>
+        Approved operators may receive access to MAP E.D.E.N. Operator Kits for field deployment. Operator Kits are distributed through secure channels and are available only via authorized download links provided within the MAP E.D.E.N. portal.
+      </p>
+      <div class="launch">Launching Spring 2026.</div>
+
+      <h2>Boundary + Ethics</h2>
+      <p>
+        MAP E.D.E.N. is measurement-first. We prioritize evidence, controls, replication, and conservative interpretation—no claim is treated as established unless results repeat across independent tests.
+      </p>
+    </section>
+
+    <!-- BOTTOM: asset_1, asset_3, asset_4 (vertical) then legal -->
+    <section class="footer">
+      <img class="footerLogo asset1" src="asset_1.png" alt="MAP E.D.E.N. Logo" />
+      <img class="footerLogo asset3" src="asset_3.png" alt="Project E.D.E.N. Logo" />
+      <img class="footerLogo asset4" src="asset_4.png" alt="Mandorla Logo" />
+
+      <div class="legal">
+        © 2025–2026 Mandorla. All Rights Reserved. MAP E.D.E.N.™, Project E.D.E.N.™, Operation E.D.E.N.™, and Mandorla™ are proprietary marks of Mandorla.io and may not be used without prior written permission.
+      </div>
+    </section>
+
+  </main>
 </body>
 </html>
