@@ -484,10 +484,14 @@
         missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
 
-        // ✅ always loads newest welcome (bypass cache)
-        // ✅ UPDATED: point to assets/welcome3.html
-        const WELCOME_FILE = "assets/welcome3.html";
-        welcomeFrame.src = encodeURI(WELCOME_FILE) + "?v=" + Date.now();
+        // ✅ FIX: load the real file that exists in your repo
+        const WELCOME_FILE = "assets/welcome1.html";
+
+        // ✅ robust URL resolution for GitHub Pages subpaths
+        const u = new URL(WELCOME_FILE, window.location.href);
+        u.searchParams.set("v", Date.now().toString());
+        welcomeFrame.src = u.toString();
+
       } else {
         modalTitle.textContent = "MISSION";
         welcomeFrame.style.display = "none";
