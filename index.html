@@ -198,7 +198,7 @@
       flex: 0 0 auto;
     }
 
-    /* “Lights turn green” when a top button is pressed */
+    /* ✅ “Lights turn green” when a top button is pressed */
     .pill.on .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 16px rgba(120,255,200,0.24); }
     .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
     .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 16px rgba(91,188,255,0.22); }
@@ -457,11 +457,37 @@
     const welcomeFrame = document.getElementById("welcomeFrame");
     const missionContent = document.getElementById("missionContent");
 
+    // ============================
+    // Quiet status system (no red panel for texture fallbacks)
+    // ============================
+    let statusBase = "Booting…";
+    const notices = new Set();
+
+    function renderStatus(){
+      if (!statusEl) return;
+      if (notices.size){
+        const list = Array.from(notices).join(", ");
+        statusEl.textContent = `${statusBase} • Texture fallback: ${list}`;
+      } else {
+        statusEl.textContent = statusBase;
+      }
+    }
+    function setStatusBase(s){
+      statusBase = s;
+      renderStatus();
+    }
+    function addNotice(n){
+      notices.add(n);
+      renderStatus();
+    }
+
+    // Only REAL errors get the red panel
     function showError(msg){
-      if (!errorsEl) return;
-      errorsEl.style.display = "block";
-      errorsEl.textContent += (errorsEl.textContent ? "\n\n" : "") + msg;
-      statusEl.textContent = "Error (see panel)";
+      if (errorsEl){
+        errorsEl.style.display = "block";
+        errorsEl.textContent += (errorsEl.textContent ? "\n\n" : "") + msg;
+      }
+      setStatusBase("Error (see panel)");
     }
     window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
     window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
@@ -484,7 +510,7 @@
         missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
 
-        // ✅ UPDATED: load the real file that exists in your repo
+        // ✅ UPDATED: load welcome6.html (in /assets/)
         const WELCOME_FILE = "assets/welcome6.html";
 
         // ✅ robust URL resolution for GitHub Pages subpaths
@@ -608,8 +634,8 @@
     function makeTextSprite(text, {
       fontSize=22,
       color="rgba(255,255,255,0.92)",
-      glow="rgba(255,255,255,0.22)",
-      glowBlur=8,
+      glow="rgba(255,255,255,0.16)",
+      glowBlur=5,
       padding=8,
       scale=0.0048
     } = {}){
@@ -738,7 +764,8 @@
         } catch { /* try next */ }
       }
 
-      showError(`Texture fallback used for: ${label}\n(CDN blocked/failed on this device/network)`);
+      // ✅ Quiet notice only (no red panel)
+      addNotice(label);
       return fallbackTex;
     }
 
@@ -749,7 +776,7 @@
 
     (async ()=>{
       try{
-        statusEl.textContent = "Starting…";
+        setStatusBase("Starting…");
         scene = new THREE.Scene();
 
         camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 5000);
@@ -777,7 +804,7 @@
         ];
         const urls = (path)=>BASES.map(b=>b+path);
 
-        statusEl.textContent = "Loading textures…";
+        setStatusBase("Loading textures…");
 
         const dayMap   = await loadTextureWithFallback(urls("planets/earth_atmos_2048.jpg"), makeFallbackEarthDay(), "earth day");
         const nightMap = await loadTextureWithFallback(urls("planets/earth_lights_2048.png"), makeFallbackNight(), "earth night lights");
@@ -791,7 +818,7 @@
           t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
         });
 
-        statusEl.textContent = "Running";
+        setStatusBase("Running");
 
         const starGeo = new THREE.SphereGeometry(90, 64, 64);
         const starMat = new THREE.MeshBasicMaterial({ map: starMap, side: THREE.BackSide });
@@ -1035,15 +1062,16 @@
         }
         overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
-        const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 7, glow:"rgba(246,194,74,0.18)" });
+        // ✅ Reduced glow on name labels (settled, less radiant)
+        const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 4, glow:"rgba(246,194,74,0.10)" });
         n222.position.copy(latLonToVec3(18, -18, earthRadius*1.10));
         overlays.names222.add(n222);
 
-        const n42 = makeTextSprite("42 NE", { fontSize: 20, glowBlur: 7, glow:"rgba(91,188,255,0.18)" });
+        const n42 = makeTextSprite("42 NE", { fontSize: 20, glowBlur: 4, glow:"rgba(91,188,255,0.10)" });
         n42.position.copy(latLonToVec3(-6, 62, earthRadius*1.10));
         overlays.names42.add(n42);
 
-        const pLabel = makeTextSprite("132° / 312°", { fontSize: 18, glowBlur: 7, glow:"rgba(91,188,255,0.16)" });
+        const pLabel = makeTextSprite("132° / 312°", { fontSize: 18, glowBlur: 4, glow:"rgba(91,188,255,0.09)" });
         pLabel.position.copy(latLonToVec3(52, 105, earthRadius*1.11));
         overlays.perpName.add(pLabel);
 
@@ -1057,7 +1085,7 @@
           { name:"Antarctica",    lat:-80,  lon:  0 }
         ];
         for (const c of CONT){
-          const s = makeTextSprite(c.name, { fontSize: 18, glowBlur: 7, glow:"rgba(255,255,255,0.14)" });
+          const s = makeTextSprite(c.name, { fontSize: 18, glowBlur: 4, glow:"rgba(255,255,255,0.08)" });
           s.position.copy(latLonToVec3(c.lat, c.lon, earthRadius*1.10));
           overlays.continents.add(s);
         }
@@ -1089,7 +1117,7 @@
           );
           glow.position.copy(p);
 
-          const tag = makeTextSprite(label, { fontSize: 18, glowBlur: 8, glow:"rgba(255,255,255,0.18)" });
+          const tag = makeTextSprite(label, { fontSize: 18, glowBlur: 4, glow:"rgba(255,255,255,0.10)" });
           tag.position.copy(latLonToVec3(lat, lon, earthRadius*1.12));
 
           g.add(glow, pin, tag);
