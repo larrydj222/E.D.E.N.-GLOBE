@@ -4,15 +4,22 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="referrer" content="no-referrer" />
+
+  <!-- ✅ CSP updated:
+       - allow the texture CDNs used in the code (threejs.org, unpkg, jsdelivr)
+       - allow images from those CDNs (img-src)
+       - allow frames to load local welcome.html (frame-src 'self')
+  -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
-    img-src 'self' data: https:;
+    img-src 'self' data: https://threejs.org https://unpkg.com https://cdn.jsdelivr.net https:;
     style-src 'self' 'unsafe-inline';
-    script-src 'self' https://unpkg.com https://cdn.jsdelivr.net https://threejs.org 'unsafe-inline';
+    script-src 'self' https://unpkg.com https://cdn.jsdelivr.net https://threejs.org;
     connect-src 'self' https://unpkg.com https://cdn.jsdelivr.net https://threejs.org;
     frame-src 'self';
     font-src 'self' data:;
   " />
+
   <title>MAP E.D.E.N. Globe</title>
 
   <style>
@@ -333,11 +340,12 @@
     }
   </style>
 
+  <!-- ✅ Use jsDelivr for importmap (more reliable than unpkg on some networks) -->
   <script type="importmap">
     {
       "imports": {
-        "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+        "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
       }
     }
   </script>
@@ -479,12 +487,14 @@
 
     function openModal(kind){
       modalMask.classList.add("on");
+
       if (kind === "welcome"){
         modalTitle.textContent = "WELCOME";
         missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
 
-        // ✅ always loads newest welcome.html (bypass cache)
+        // ✅ ALWAYS routes through welcome.html (which redirects to welcome1.html)
+        // ✅ cache-bust so GitHub Pages doesn't serve an old version
         const WELCOME_FILE = "welcome.html";
         welcomeFrame.src = encodeURI(WELCOME_FILE) + "?v=" + Date.now();
       } else {
@@ -767,8 +777,8 @@
 
         const BASES = [
           "https://threejs.org/examples/textures/",
-          "https://unpkg.com/three@0.161.0/examples/textures/",
-          "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/"
+          "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/",
+          "https://unpkg.com/three@0.161.0/examples/textures/"
         ];
         const urls = (path)=>BASES.map(b=>b+path);
 
