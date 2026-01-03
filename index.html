@@ -23,14 +23,10 @@
       --text: rgba(255,255,255,0.92);
       --muted: rgba(255,255,255,0.70);
       --muted2: rgba(255,255,255,0.46);
-
       --gold: #f6c24a;
       --blue: #5bbcff;
       --aqua: #7fffd4;
       --violet:#a078ff;
-
-      --good: rgba(120,255,200,0.88);
-      --warn: rgba(246,194,74,0.95);
     }
 
     html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
@@ -117,7 +113,7 @@
     #subtitle{
       font: 650 12px/1.25 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       color: var(--muted);
-      max-width: 560px;
+      max-width: 540px;
     }
 
     #closeBtn{
@@ -188,10 +184,12 @@
       text-overflow: ellipsis;
     }
     .pill .hint{
-      font: 800 11px/1.1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      font: 900 11px/1.1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       color: rgba(255,255,255,0.55);
       letter-spacing: 0.1px;
       text-align: right;
+      flex: 0 0 auto;
+      white-space: nowrap;
     }
 
     .dot {
@@ -202,14 +200,21 @@
       flex: 0 0 auto;
     }
 
-    /* “Lights turn green” when a primary button is pressed */
-    .pill.on .dot{ background: var(--good); box-shadow: 0 0 16px rgba(120,255,200,0.24); }
+    .pill.on .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 16px rgba(120,255,200,0.24); }
 
-    /* Overlay color hints (only when ON) */
+    /* Overlay key accents */
     .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
     .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 16px rgba(91,188,255,0.22); }
-    .pill.on[data-key="stations"] .dot{ background: rgba(127,255,212,0.90); box-shadow:0 0 16px rgba(127,255,212,0.18); }
+    .pill.on[data-key="rhumb42"]  .dot{ background: rgba(246,194,74,0.55); box-shadow:0 0 16px rgba(246,194,74,0.16); }
+    .pill.on[data-key="gc42"]     .dot{ background: rgba(91,188,255,0.55); box-shadow:0 0 16px rgba(91,188,255,0.16); }
+    .pill.on[data-key="aurora"]     .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 16px rgba(160,120,255,0.18); }
     .pill.on[data-key="nightLights"].dot{ background: rgba(140,255,200,0.92); box-shadow:0 0 16px rgba(140,255,200,0.18); }
+
+    .pill.disabled{
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .pill.disabled:active{ transform:none; }
 
     #statusBar{
       margin-top: 10px;
@@ -241,78 +246,11 @@
     #drawer.collapsed #errors { display:none; }
     #drawer.collapsed { padding-bottom: 12px; }
 
-    /* Station panel (previously Switchboard) */
+    /* Station panel group (Core/Stack/Stations/Overlay+/Clear) */
     #stationGroup{ display:none; }
     #stationGroup.on{ display:block; }
 
-    /* Minimal station card */
-    .card{
-      margin-top: 10px;
-      padding: 12px 12px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(0,0,0,0.14);
-      color: rgba(255,255,255,0.82);
-    }
-    .row{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      font: 800 12px/1.3 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-    }
-    .row + .row{ margin-top: 8px; }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-weight: 650; }
-
-    .btnMini{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding: 9px 10px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.92);
-      cursor:pointer;
-      font: 900 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .btnMini:active{ transform: translateY(1px); }
-
-    #overlayManager{ display:none; }
-    #overlayManager.on{ display:block; }
-
-    .overlayItem{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding: 10px 10px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(255,255,255,0.04);
-    }
-    .overlayItem .name{
-      font: 900 13px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      letter-spacing: 0.1px;
-      color: rgba(255,255,255,0.90);
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
-    .overlayItem .meta{
-      font: 750 11px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.55);
-      margin-top: 3px;
-    }
-    .overlayItem .actions{
-      display:flex;
-      gap:8px;
-      flex: 0 0 auto;
-    }
-    .actionPlus{ border-color: rgba(120,255,200,0.22); }
-    .actionMinus{ border-color: rgba(246,194,74,0.22); }
-
+    /* Full-screen modal system */
     #modalMask{
       position: fixed;
       inset: 0;
@@ -391,12 +329,263 @@
     }
     #missionContent p{ margin: 0 0 12px; color: rgba(255,255,255,0.80); }
 
+    /* Overlay Library */
+    #overlayContent{
+      display:none;
+      padding: 14px 14px 18px;
+      max-width: 920px;
+      margin: 0 auto;
+      color: rgba(255,255,255,0.90);
+    }
+    .modalSectionTitle{
+      font: 900 16px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.2px;
+      margin: 4px 0 10px;
+    }
+    .modalSub{
+      font: 650 12px/1.35 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      color: rgba(255,255,255,0.62);
+      margin-bottom: 10px;
+    }
+    .barRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content: space-between;
+      margin: 10px 0 12px;
+      flex-wrap: wrap;
+    }
+    .search{
+      flex: 1 1 240px;
+      min-width: 220px;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.92);
+      outline: none;
+      font: 700 13px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+    }
+    .chipBtn{
+      flex: 0 0 auto;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.92);
+      cursor:pointer;
+      font: 900 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.2px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .chipBtn:active{ transform: translateY(1px); }
+
+    /* Stations modal */
+    #stationsContent{
+      display:none;
+      padding: 14px 14px 18px;
+      max-width: 920px;
+      margin: 0 auto;
+      color: rgba(255,255,255,0.90);
+    }
+    .card{
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      border-radius: 18px;
+      padding: 14px;
+      margin-top: 10px;
+    }
+    .cardTop{
+      display:flex;
+      justify-content: space-between;
+      gap:12px;
+      align-items:flex-start;
+      flex-wrap: wrap;
+    }
+    .cardTitle{
+      font: 900 16px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.2px;
+      margin: 0;
+    }
+    .cardMeta{
+      font: 650 12px/1.35 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      color: rgba(255,255,255,0.64);
+      margin-top: 6px;
+    }
+    .actionsRow{
+      display:flex;
+      gap:10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .miniPill{
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.92);
+      cursor:pointer;
+      font: 900 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.2px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .miniPill:active{ transform: translateY(1px); }
+    .miniPill.disabled{ opacity:0.45; cursor:not-allowed; }
+    .miniPill.disabled:active{ transform:none; }
+
+    /* Hub (X + Discord minimal) */
+    #hubContent{
+      display:none;
+      padding: 14px 14px 18px;
+      max-width: 920px;
+      margin: 0 auto;
+      color: rgba(255,255,255,0.90);
+    }
+    .hubHeader{
+      display:flex;
+      justify-content: space-between;
+      gap:12px;
+      align-items:flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .hubTitle{
+      font: 900 16px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.2px;
+      margin: 0;
+    }
+    .hubMeta{
+      font: 650 12px/1.35 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      color: rgba(255,255,255,0.62);
+      margin-top: 6px;
+    }
+    .tabRow{
+      display:flex;
+      gap:10px;
+      flex-wrap: wrap;
+      margin: 10px 0 12px;
+    }
+    .tabBtn{
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.92);
+      cursor:pointer;
+      font: 900 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.2px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tabBtn.on{
+      border-color: rgba(120,255,200,0.24);
+      box-shadow: 0 0 18px rgba(120,255,200,0.10);
+    }
+    .hubPanel{
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      border-radius: 18px;
+      padding: 12px;
+      min-height: 240px;
+    }
+    .hubItem{
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 10px 0;
+    }
+    .hubItem:last-child{ border-bottom:0; }
+    .hubItemTitle{
+      font: 900 13px/1.25 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.15px;
+      color: rgba(255,255,255,0.92);
+      margin: 0 0 4px;
+    }
+    .hubItemMeta{
+      font: 650 12px/1.35 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      color: rgba(255,255,255,0.62);
+      margin: 0;
+    }
+
+    /* Role sheet */
+    #roleSheetMask{
+      position: fixed;
+      inset: 0;
+      z-index: 25000;
+      display:none;
+      align-items: center;
+      justify-content:center;
+      padding: 18px;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    #roleSheetMask.on{ display:flex; }
+
+    #roleSheet{
+      width: min(520px, calc(100vw - 24px));
+      background: rgba(12,14,18,0.88);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 22px;
+      overflow:hidden;
+      box-shadow: 0 20px 70px rgba(0,0,0,0.55);
+    }
+    #roleTop{
+      padding: 12px 12px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap:12px;
+    }
+    #roleTitle{
+      font: 900 13px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.3px;
+      color: rgba(255,255,255,0.92);
+      padding-left: 6px;
+    }
+    #roleClose{
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.92);
+      cursor:pointer;
+    }
+    #roleBody{
+      padding: 14px;
+    }
+    #roleNote{
+      font: 650 12px/1.35 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      color: rgba(255,255,255,0.62);
+      margin-bottom: 12px;
+    }
+
+    /* Toast */
+    #toast{
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 22px;
+      z-index: 30000;
+      display:none;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(12,14,18,0.78);
+      color: rgba(255,255,255,0.92);
+      font: 900 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.2px;
+      box-shadow: 0 14px 44px rgba(0,0,0,0.42);
+      max-width: min(92vw, 720px);
+      text-align:center;
+      pointer-events:none;
+    }
+    #toast.on{ display:block; }
+
     @media (max-width: 520px){
       .gridTop{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .pill{ padding: 12px 12px; border-radius: 16px; font-size: 13px; }
       #drawerBody{ max-height: calc(100vh - 200px); }
-      #subtitle{ max-width: 320px; }
-      .pill .hint{ display:none; }
+      #subtitle{ max-width: 310px; }
     }
     @media (max-width: 380px){
       .gridTop{ grid-template-columns: 1fr; }
@@ -422,7 +611,7 @@
     <div id="drawerTop">
       <div id="titleBlock">
         <div id="title">MAP E.D.E.N.</div>
-        <div id="subtitle">Tap Station to manage Core + your local station.</div>
+        <div id="subtitle">Earth Diametric Energy Network • Tap Station to open layers</div>
       </div>
       <button id="closeBtn" aria-label="Close drawer" title="Close">✕</button>
     </div>
@@ -437,72 +626,22 @@
           <span class="left"><span class="dot"></span><span class="label">Mission</span></span>
         </button>
 
-        <!-- ✅ Renamed: Switchboard -> Station -->
         <button class="pill" id="stationBtn">
           <span class="left"><span class="dot"></span><span class="label">Station</span></span>
           <span class="hint" id="stationHint">Tap to open</span>
         </button>
       </div>
 
-      <!-- ✅ Station panel (minimal by default): Core, Stack, Stations, Overlay +, Clear -->
+      <!-- ✅ Station panel: ONLY these 5 controls -->
       <div id="stationGroup">
         <div class="grid2">
-          <button class="pill" id="coreBtn" data-ui="primary"><span class="left"><span class="dot"></span><span class="label">Core</span></span></button>
-          <button class="pill" id="stackBtn" data-ui="primary"><span class="left"><span class="dot"></span><span class="label">Stack</span></span></button>
+          <button class="pill on" id="coreBtn"><span class="left"><span class="dot"></span><span class="label">Core</span></span></button>
+          <button class="pill" id="stackBtn"><span class="left"><span class="dot"></span><span class="label">Stack</span></span></button>
 
-          <button class="pill" id="stationsBtn" data-key="stations"><span class="left"><span class="dot"></span><span class="label">Stations</span></span></button>
+          <button class="pill on" id="stationsBtn"><span class="left"><span class="dot"></span><span class="label">Stations</span></span></button>
           <button class="pill" id="overlayPlusBtn"><span class="left"><span class="dot"></span><span class="label">Overlay +</span></span></button>
 
           <button class="pill" id="clearBtn"><span class="left"><span class="dot"></span><span class="label">Clear</span></span></button>
-          <button class="pill" id="locateBtn"><span class="left"><span class="dot"></span><span class="label">Locate</span></span><span class="hint">Nearby</span></button>
-        </div>
-
-        <!-- Station info + join/create/delete (localStorage) -->
-        <div class="card" id="stationCard">
-          <div class="row">
-            <span>Active</span>
-            <span class="mono" id="activeStationText">Exit222•Station1</span>
-          </div>
-          <div class="row">
-            <span>Range</span>
-            <span class="mono" id="rangeText">Locating…</span>
-          </div>
-          <div class="row">
-            <span>Your role</span>
-            <span class="mono" id="roleText">N/A</span>
-          </div>
-          <div class="row" style="gap:8px;">
-            <button class="btnMini" id="joinBtn">Join</button>
-            <button class="btnMini" id="leaveBtn">Leave</button>
-            <button class="btnMini" id="createStationBtn">Create</button>
-            <button class="btnMini" id="deleteStationBtn">Delete</button>
-          </div>
-          <div class="row" style="color:rgba(255,255,255,0.55); font-weight:750;">
-            <span id="stationNote">Stations are local (this device). Join is limited to nearby stations.</span>
-          </div>
-        </div>
-
-        <!-- User-selected overlays appear here (only after added) -->
-        <div id="userOverlaysWrap" class="card" style="display:none;">
-          <div class="row"><span>Overlays</span><span class="mono" id="overlayCount">0</span></div>
-          <div id="userOverlays" class="grid2" style="margin-top:10px;"></div>
-        </div>
-
-        <!-- Overlay manager -->
-        <div id="overlayManager" class="card">
-          <div class="row">
-            <span>Overlay Manager</span>
-            <span class="mono" id="overlayManagerHint">Owner/Operator only</span>
-          </div>
-          <div class="row" style="margin-top:10px;">
-            <button class="btnMini actionPlus" id="closeOverlayMgrBtn">Done</button>
-            <button class="btnMini actionMinus" id="overlayMinusBtn" title="Remove overlays from your Station">Overlay -</button>
-          </div>
-
-          <div id="overlayList" class="grid2" style="margin-top:10px;"></div>
-          <div class="row" style="margin-top:10px; color:rgba(255,255,255,0.55); font-weight:750;">
-            <span>Adding/removing here controls what appears on your Station.</span>
-          </div>
         </div>
 
         <div id="errors"></div>
@@ -511,10 +650,11 @@
 
     <div id="statusBar">
       <span id="status">Booting…</span>
-      <span id="stationText">Exit222•Station1 @ 38°9′39″ N, 79°4′24″ W</span>
+      <span id="stationText">Exit 222 • Station 1 @ 38°9′39″ N, 79°4′24″ W</span>
     </div>
   </div>
 
+  <!-- Full-screen modal -->
   <div id="modalMask" role="dialog" aria-modal="true" aria-label="MAP E.D.E.N. Modal">
     <div id="modal">
       <div id="modalTop">
@@ -531,12 +671,83 @@
             that are repeatable, controlled, and comparable across stations and time.
           </p>
           <p>
-            This globe is a visual station interface: Core stays clean; operators add overlays only when needed.
+            MAP E.D.E.N. is a secure station network along defined corridors. Operators capture controlled measurements; Analysts validate patterns; Observers track and report.
           </p>
+        </div>
+
+        <!-- ✅ Overlay Library -->
+        <div id="overlayContent">
+          <div class="modalSectionTitle">Overlay Library</div>
+          <div class="modalSub">Add/remove overlays for your Station. (Stations are separate from overlays.)</div>
+
+          <div class="barRow">
+            <input id="overlaySearch" class="search" placeholder="Search overlays…" />
+            <button class="chipBtn" id="overlayAllOnBtn">All On</button>
+            <button class="chipBtn" id="overlayAllOffBtn">Overlay − (All Off)</button>
+          </div>
+
+          <div class="grid2" id="overlayGrid"></div>
+
+          <div class="modalSub" style="margin-top:12px;">
+            Tip: Use <b>Core</b> or <b>Stack</b> to load a preset, then fine-tune overlays here.
+          </div>
+        </div>
+
+        <!-- ✅ Stations -->
+        <div id="stationsContent">
+          <div class="modalSectionTitle">Stations</div>
+          <div class="modalSub">Join only works near your location. Exit222•Station1 (Axis 42/222) is the only active station right now.</div>
+
+          <div class="barRow">
+            <input id="stationSearch" class="search" placeholder="Search stations…" />
+            <button class="chipBtn" id="createStationBtn">+ Create</button>
+            <button class="chipBtn" id="deleteStationBtn">− Delete</button>
+          </div>
+
+          <div id="stationsList"></div>
+        </div>
+
+        <!-- ✅ Hub (View Hub) -->
+        <div id="hubContent">
+          <div class="hubHeader">
+            <div>
+              <div class="hubTitle" id="hubTitleText">Station Hub</div>
+              <div class="hubMeta" id="hubMetaText">Scientific log + datasets + discussion</div>
+            </div>
+          </div>
+
+          <div class="tabRow">
+            <button class="tabBtn on" data-tab="feed">Feed</button>
+            <button class="tabBtn" data-tab="data">Data</button>
+            <button class="tabBtn" data-tab="chat">Chat</button>
+            <button class="tabBtn" data-tab="files">Files</button>
+          </div>
+
+          <div class="hubPanel" id="hubPanel"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Role picker -->
+  <div id="roleSheetMask" aria-modal="true" role="dialog" aria-label="Choose station role">
+    <div id="roleSheet">
+      <div id="roleTop">
+        <div id="roleTitle">Choose role</div>
+        <button id="roleClose" aria-label="Close">✕</button>
+      </div>
+      <div id="roleBody">
+        <div id="roleNote"></div>
+        <div class="grid2" id="roleGrid"></div>
+        <div class="barRow" style="margin-top:12px;">
+          <button class="chipBtn" id="requestAccessBtn">Request Owner Approval</button>
         </div>
       </div>
     </div>
   </div>
+
+  <div id="toast"></div>
 
   <script type="module">
     import * as THREE from "three";
@@ -547,7 +758,7 @@
     import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 
     // ============================
-    // Elements
+    // UI refs
     // ============================
     const statusEl   = document.getElementById("status");
     const errorsEl   = document.getElementById("errors");
@@ -563,43 +774,58 @@
     const stationHint = document.getElementById("stationHint");
     const stationGrp  = document.getElementById("stationGroup");
 
-    const coreBtn = document.getElementById("coreBtn");
-    const stackBtn = document.getElementById("stackBtn");
-    const stationsBtn = document.getElementById("stationsBtn");
+    const coreBtn      = document.getElementById("coreBtn");
+    const stackBtn     = document.getElementById("stackBtn");
+    const clearBtn     = document.getElementById("clearBtn");
     const overlayPlusBtn = document.getElementById("overlayPlusBtn");
-    const clearBtn = document.getElementById("clearBtn");
-    const locateBtn = document.getElementById("locateBtn");
-
-    const stationText = document.getElementById("stationText");
-
-    const activeStationText = document.getElementById("activeStationText");
-    const rangeText = document.getElementById("rangeText");
-    const roleText = document.getElementById("roleText");
-    const stationNote = document.getElementById("stationNote");
-
-    const joinBtn = document.getElementById("joinBtn");
-    const leaveBtn = document.getElementById("leaveBtn");
-    const createStationBtn = document.getElementById("createStationBtn");
-    const deleteStationBtn = document.getElementById("deleteStationBtn");
-
-    const userOverlaysWrap = document.getElementById("userOverlaysWrap");
-    const userOverlays = document.getElementById("userOverlays");
-    const overlayCount = document.getElementById("overlayCount");
-
-    const overlayManager = document.getElementById("overlayManager");
-    const overlayManagerHint = document.getElementById("overlayManagerHint");
-    const overlayList = document.getElementById("overlayList");
-    const closeOverlayMgrBtn = document.getElementById("closeOverlayMgrBtn");
-    const overlayMinusBtn = document.getElementById("overlayMinusBtn");
+    const stationsBtn  = document.getElementById("stationsBtn");
 
     const modalMask  = document.getElementById("modalMask");
     const modalClose = document.getElementById("modalClose");
     const modalTitle = document.getElementById("modalTitle");
-    const welcomeFrame = document.getElementById("welcomeFrame");
-    const missionContent = document.getElementById("missionContent");
+
+    const welcomeFrame    = document.getElementById("welcomeFrame");
+    const missionContent  = document.getElementById("missionContent");
+    const overlayContent  = document.getElementById("overlayContent");
+    const stationsContent = document.getElementById("stationsContent");
+    const hubContent      = document.getElementById("hubContent");
+
+    const overlayGrid   = document.getElementById("overlayGrid");
+    const overlaySearch = document.getElementById("overlaySearch");
+    const overlayAllOnBtn  = document.getElementById("overlayAllOnBtn");
+    const overlayAllOffBtn = document.getElementById("overlayAllOffBtn");
+
+    const stationSearch = document.getElementById("stationSearch");
+    const stationsList  = document.getElementById("stationsList");
+    const createStationBtn = document.getElementById("createStationBtn");
+    const deleteStationBtn = document.getElementById("deleteStationBtn");
+
+    const roleSheetMask = document.getElementById("roleSheetMask");
+    const roleClose     = document.getElementById("roleClose");
+    const roleTitle     = document.getElementById("roleTitle");
+    const roleNote      = document.getElementById("roleNote");
+    const roleGrid      = document.getElementById("roleGrid");
+    const requestAccessBtn = document.getElementById("requestAccessBtn");
+
+    const hubTitleText = document.getElementById("hubTitleText");
+    const hubMetaText  = document.getElementById("hubMetaText");
+    const hubPanel     = document.getElementById("hubPanel");
+
+    const toastEl = document.getElementById("toast");
 
     // ============================
-    // Quiet status system (no red panel for texture fallbacks)
+    // Toast
+    // ============================
+    let toastTimer = 0;
+    function toast(msg){
+      clearTimeout(toastTimer);
+      toastEl.textContent = msg;
+      toastEl.classList.add("on");
+      toastTimer = setTimeout(()=> toastEl.classList.remove("on"), 1600);
+    }
+
+    // ============================
+    // Status system
     // ============================
     let statusBase = "Booting…";
     const notices = new Set();
@@ -626,9 +852,7 @@
     window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
     window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
 
-    // ============================
-    // Drawer controls
-    // ============================
+    // Drawer
     function setDrawerClosed(isClosed){
       drawerEl.classList.toggle("closed", !!isClosed);
       openBtn.style.display = isClosed ? "inline-flex" : "none";
@@ -638,129 +862,244 @@
     closeBtn.addEventListener("click", () => setDrawerClosed(true));
     handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
 
-    function setTopOn(btn){ btn.classList.add("on"); }
-
-    // ============================
-    // Modal
-    // ============================
-    function openModal(kind){
-      modalMask.classList.add("on");
-      if (kind === "welcome"){
-        modalTitle.textContent = "WELCOME";
-        missionContent.style.display = "none";
-        welcomeFrame.style.display = "block";
-
-        const WELCOME_FILE = "assets/welcome6.html";
-        const u = new URL(WELCOME_FILE, window.location.href);
-        u.searchParams.set("v", Date.now().toString());
-        welcomeFrame.src = u.toString();
-
-      } else {
-        modalTitle.textContent = "MISSION";
-        welcomeFrame.style.display = "none";
-        missionContent.style.display = "block";
-      }
-    }
-    function closeModal(){
-      modalMask.classList.remove("on");
-      if (welcomeFrame.style.display !== "none") welcomeFrame.src = "about:blank";
-    }
-    modalClose.addEventListener("click", closeModal);
-    modalMask.addEventListener("click", (e)=>{ if(e.target === modalMask) closeModal(); });
-
-    welcomeBtn.addEventListener("click", ()=>{
-      setTopOn(welcomeBtn);
-      openModal("welcome");
-    });
-    missionBtn.addEventListener("click", ()=>{
-      setTopOn(missionBtn);
-      openModal("mission");
-    });
-
-    // ============================
-    // Station panel toggle (renamed from Switchboard)
-    // ============================
+    // Station panel toggle
     let stationPanelOn = false;
     function setStationPanel(on){
       stationPanelOn = !!on;
       stationBtn.classList.toggle("on", stationPanelOn);
       stationGrp.classList.toggle("on", stationPanelOn);
       stationHint.textContent = stationPanelOn ? "Tap to close" : "Tap to open";
-      if (!stationPanelOn){
-        overlayManager.classList.remove("on");
-      }
     }
     stationBtn.addEventListener("click", ()=> setStationPanel(!stationPanelOn));
     setStationPanel(false);
 
     // ============================
-    // Geo + Stations (local-only, minimal + smart)
+    // Modal routing
     // ============================
-    const LS = {
-      deviceId: "eden_device_id_v1",
-      stations: "eden_stations_v1",
-      membership: "eden_membership_v1",
-      activeStation: "eden_active_station_v1",
-      stationOverlays: "eden_station_overlays_v1"
+    let modalKind = "welcome";
+    let activeHubStation = null;
+
+    function hideAllModalViews(){
+      welcomeFrame.style.display = "none";
+      missionContent.style.display = "none";
+      overlayContent.style.display = "none";
+      stationsContent.style.display = "none";
+      hubContent.style.display = "none";
+    }
+
+    function openModal(kind, payload=null){
+      modalKind = kind;
+      modalMask.classList.add("on");
+
+      hideAllModalViews();
+
+      if (kind === "welcome"){
+        modalTitle.textContent = "WELCOME";
+        welcomeFrame.style.display = "block";
+
+        // Change if needed:
+        const WELCOME_FILE = "assets/welcome6.html";
+        const u = new URL(WELCOME_FILE, window.location.href);
+        u.searchParams.set("v", Date.now().toString());
+        welcomeFrame.src = u.toString();
+      }
+      else if (kind === "mission"){
+        modalTitle.textContent = "MISSION";
+        missionContent.style.display = "block";
+      }
+      else if (kind === "overlays"){
+        modalTitle.textContent = "OVERLAY +";
+        overlayContent.style.display = "block";
+        overlaySearch.value = "";
+        renderOverlayLibrary();
+      }
+      else if (kind === "stations"){
+        modalTitle.textContent = "STATIONS";
+        stationsContent.style.display = "block";
+        stationSearch.value = "";
+        renderStations();
+        requestGeoAndDistance();
+      }
+      else if (kind === "hub"){
+        modalTitle.textContent = "VIEW HUB";
+        hubContent.style.display = "block";
+        activeHubStation = payload;
+        initHub(activeHubStation);
+      }
+    }
+
+    function closeModal(){
+      modalMask.classList.remove("on");
+      if (welcomeFrame.style.display !== "none") welcomeFrame.src = "about:blank";
+      activeHubStation = null;
+    }
+    modalClose.addEventListener("click", closeModal);
+    modalMask.addEventListener("click", (e)=>{ if(e.target === modalMask) closeModal(); });
+
+    welcomeBtn.addEventListener("click", ()=> openModal("welcome"));
+    missionBtn.addEventListener("click", ()=> openModal("mission"));
+    overlayPlusBtn.addEventListener("click", ()=> openModal("overlays"));
+    stationsBtn.addEventListener("click", ()=> openModal("stations"));
+
+    // ============================
+    // Overlay system (Library restored)
+    // ============================
+    const overlayKeys = [
+      { key:"rhumb222",    label:"Rhumb 222 SW" },
+      { key:"rhumb42",     label:"Rhumb 42 NE" },
+      { key:"gc222",       label:"Great Circle 222 SW" },
+      { key:"gc42",        label:"Great Circle 42 NE" },
+      { key:"names222",    label:"Names 222 SW" },
+      { key:"names42",     label:"Names 42 NE" },
+      { key:"perpLine",    label:"Perpendiculars" },
+      { key:"continents",  label:"Continents" },
+      { key:"magField",    label:"Magnetic Field" },
+      { key:"corridors",   label:"Corridors" },
+      { key:"aurora",      label:"Aurora" },
+      { key:"nightLights", label:"Night Lights" },
+      { key:"perpName",    label:"Perp Name" }
+    ];
+
+    const state = {
+      // overlays
+      rhumb222: true,
+      rhumb42:  false,
+      gc222:    true,
+      gc42:     false,
+      names222: false,
+      names42:  false,
+      perpLine: false,
+      continents:false,
+      corridors:false,
+      magField: false,
+      aurora:   false,
+      nightLights: true,
+      perpName: false,
+
+      // stations (separate and always available)
+      stations: true
     };
 
-    function uid(){
-      return Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2);
-    }
-    function getDeviceId(){
-      let id = localStorage.getItem(LS.deviceId);
-      if (!id){ id = "dev_" + uid(); localStorage.setItem(LS.deviceId, id); }
-      return id;
-    }
-    const DEVICE_ID = getDeviceId();
-
-    // ✅ Only active base station now:
-    const BASE_STATION = {
-      id: "exit222_station1",
-      name: "Exit222•Station1",
-      lat: 38.1608333333,
-      lon: -79.0733333333,
-      axis: "42/222",
-      locked: true,
-      ownerId: "system"
-    };
-
-    function loadStations(){
-      const raw = localStorage.getItem(LS.stations);
-      let arr = [];
-      try { arr = raw ? JSON.parse(raw) : []; } catch { arr = []; }
-      // ensure base exists
-      const hasBase = arr.some(s => s.id === BASE_STATION.id);
-      if (!hasBase) arr.unshift(BASE_STATION);
-      // Keep base locked first
-      arr = [
-        BASE_STATION,
-        ...arr.filter(s => s.id !== BASE_STATION.id)
-      ];
-      localStorage.setItem(LS.stations, JSON.stringify(arr));
-      return arr;
+    function setPresetButtons(active){
+      [coreBtn, stackBtn, clearBtn].forEach(b=> b.classList.remove("on"));
+      if (active === "core") coreBtn.classList.add("on");
+      if (active === "stack") stackBtn.classList.add("on");
+      if (active === "clear") clearBtn.classList.add("on");
     }
 
-    function saveStations(stations){
-      localStorage.setItem(LS.stations, JSON.stringify(stations));
+    function applyPresetCore(){
+      state.rhumb222 = true;
+      state.gc222 = true;
+      state.nightLights = true;
+
+      state.rhumb42 = false;
+      state.gc42 = false;
+      state.names222 = false;
+      state.names42 = false;
+      state.perpLine = false;
+      state.perpName = false;
+      state.continents = false;
+      state.corridors = false;
+      state.magField = false;
+      state.aurora = false;
+
+      state.stations = true;
+      setPresetButtons("core");
+      applyVisibility();
+      toast("Core loaded");
     }
 
-    function loadMembership(){
-      const raw = localStorage.getItem(LS.membership);
-      try { return raw ? JSON.parse(raw) : {}; } catch { return {}; }
-    }
-    function saveMembership(m){
-      localStorage.setItem(LS.membership, JSON.stringify(m));
-    }
-
-    function getActiveStationId(){
-      return localStorage.getItem(LS.activeStation) || BASE_STATION.id;
-    }
-    function setActiveStationId(id){
-      localStorage.setItem(LS.activeStation, id);
+    function applyPresetStack(){
+      // ✅ Stack = ALL overlays ON
+      for (const o of overlayKeys) state[o.key] = true;
+      state.stations = true;
+      setPresetButtons("stack");
+      applyVisibility();
+      toast("Stack loaded");
     }
 
-    // distance in km (haversine)
+    function applyPresetClear(){
+      // ✅ Clear = all overlays OFF (stations remain)
+      for (const o of overlayKeys) state[o.key] = false;
+      state.stations = true;
+      setPresetButtons("clear");
+      applyVisibility();
+      toast("Overlays cleared");
+    }
+
+    coreBtn.addEventListener("click", applyPresetCore);
+    stackBtn.addEventListener("click", applyPresetStack);
+    clearBtn.addEventListener("click", applyPresetClear);
+
+    // Overlay+ UI (Add / Overlay −)
+    function pillHintFor(key){
+      return state[key] ? "Overlay −" : "Add";
+    }
+
+    function makeOverlayPill(o){
+      const btn = document.createElement("button");
+      btn.className = "pill";
+      btn.dataset.key = o.key;
+      btn.innerHTML = `
+        <span class="left"><span class="dot"></span><span class="label">${o.label}</span></span>
+        <span class="hint">${pillHintFor(o.key)}</span>
+      `;
+      if (state[o.key]) btn.classList.add("on");
+
+      btn.addEventListener("click", ()=>{
+        state[o.key] = !state[o.key];
+        btn.classList.toggle("on", state[o.key]);
+        btn.querySelector(".hint").textContent = pillHintFor(o.key);
+        applyVisibility();
+      });
+      return btn;
+    }
+
+    function renderOverlayLibrary(){
+      const q = (overlaySearch.value || "").trim().toLowerCase();
+      overlayGrid.innerHTML = "";
+
+      const list = overlayKeys.filter(o => !q || o.label.toLowerCase().includes(q));
+      for (const o of list) overlayGrid.appendChild(makeOverlayPill(o));
+    }
+
+    overlaySearch.addEventListener("input", renderOverlayLibrary);
+    overlayAllOnBtn.addEventListener("click", ()=>{
+      for (const o of overlayKeys) state[o.key] = true;
+      applyVisibility();
+      renderOverlayLibrary();
+      toast("All overlays on");
+    });
+    overlayAllOffBtn.addEventListener("click", ()=>{
+      for (const o of overlayKeys) state[o.key] = false;
+      applyVisibility();
+      renderOverlayLibrary();
+      toast("All overlays off");
+    });
+
+    // ============================
+    // Stations system (single active station)
+    // ============================
+    const JOIN_RADIUS_KM = 100; // adjust whenever you want stricter “near”
+    const stationData = [
+      {
+        id: "exit222_station1",
+        name: "Exit222•Station1",
+        axis: "Axis 42/222",
+        lat: 38.1608333333,
+        lon: -79.0733333333,
+        coordsText: "38°9′39″ N, 79°4′24″ W",
+        ownerExists: true,  // ✅ already created by Owner
+        active: true
+      }
+    ];
+
+    let userDistanceKm = null;
+    let geoAllowed = false;
+
+    // ✅ Permission gate for Analyst/Operator
+    let approvalGranted = false;
+
     function haversineKm(lat1, lon1, lat2, lon2){
       const R = 6371;
       const dLat = (lat2-lat1) * Math.PI/180;
@@ -768,111 +1107,256 @@
       const a =
         Math.sin(dLat/2)**2 +
         Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
-      return 2*R*Math.asin(Math.min(1, Math.sqrt(a)));
+      const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R*c;
     }
 
-    let userLoc = null; // {lat, lon, accM}
-    const JOIN_RADIUS_KM = 75; // “near your location” (adjust anytime)
+    function requestGeoAndDistance(){
+      userDistanceKm = null;
+      geoAllowed = false;
 
-    async function locate(){
-      rangeText.textContent = "Locating…";
-      return new Promise((resolve)=>{
-        if (!navigator.geolocation){
-          rangeText.textContent = "No GPS";
-          userLoc = null;
-          resolve(null);
-          return;
-        }
-        navigator.geolocation.getCurrentPosition(
-          (pos)=>{
-            userLoc = {
-              lat: pos.coords.latitude,
-              lon: pos.coords.longitude,
-              accM: pos.coords.accuracy
-            };
-            resolve(userLoc);
-          },
-          ()=>{
-            userLoc = null;
-            rangeText.textContent = "Location blocked";
-            resolve(null);
-          },
-          { enableHighAccuracy:true, timeout:8000, maximumAge:15000 }
-        );
+      if (!navigator.geolocation){
+        toast("Geolocation not supported");
+        renderStations();
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos)=>{
+          geoAllowed = true;
+          const { latitude, longitude } = pos.coords;
+          const s = stationData[0];
+          userDistanceKm = haversineKm(latitude, longitude, s.lat, s.lon);
+          renderStations();
+        },
+        ()=>{
+          geoAllowed = false;
+          userDistanceKm = null;
+          renderStations();
+        },
+        { enableHighAccuracy:false, timeout: 6000, maximumAge: 30000 }
+      );
+    }
+
+    function canJoinStation(st){
+      if (!geoAllowed || userDistanceKm == null) return false;
+      return userDistanceKm <= JOIN_RADIUS_KM;
+    }
+
+    function renderStations(){
+      const q = (stationSearch.value || "").trim().toLowerCase();
+      stationsList.innerHTML = "";
+
+      const list = stationData.filter(s => s.active && (!q || s.name.toLowerCase().includes(q) || s.axis.toLowerCase().includes(q)));
+      if (!list.length){
+        stationsList.innerHTML = `<div class="modalSub">No matching stations.</div>`;
+        return;
+      }
+
+      for (const st of list){
+        const joinAllowed = canJoinStation(st);
+        const distText = (geoAllowed && userDistanceKm != null)
+          ? `${userDistanceKm.toFixed(1)} km away`
+          : "Location required to join";
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="cardTop">
+            <div>
+              <div class="cardTitle">${st.name}</div>
+              <div class="cardMeta">${st.axis} • ${st.coordsText}</div>
+              <div class="cardMeta">${distText} • Join radius ${JOIN_RADIUS_KM} km</div>
+            </div>
+          </div>
+
+          <div class="actionsRow">
+            <button class="miniPill ${joinAllowed ? "" : "disabled"}" data-act="join">Join</button>
+            <button class="miniPill" data-act="follow">Follow</button>
+            <button class="miniPill" data-act="hub">View Hub</button>
+          </div>
+        `;
+
+        card.querySelector('[data-act="join"]').addEventListener("click", ()=>{
+          if (!joinAllowed){
+            toast("Join requires being near this Station");
+            return;
+          }
+          openRoleSheet(st);
+        });
+
+        card.querySelector('[data-act="follow"]').addEventListener("click", ()=>{
+          toast(`Following ${st.name}`);
+        });
+
+        card.querySelector('[data-act="hub"]').addEventListener("click", ()=>{
+          openModal("hub", st);
+        });
+
+        stationsList.appendChild(card);
+      }
+    }
+
+    stationSearch.addEventListener("input", renderStations);
+
+    createStationBtn.addEventListener("click", ()=>{
+      toast("Create Station (Owner/Operator) — coming soon");
+    });
+    deleteStationBtn.addEventListener("click", ()=>{
+      toast("Delete Station (Owner only) — coming soon");
+    });
+
+    // ============================
+    // Role sheet (ONLY Observer/Analyst/Operator/Owner)
+    // Rules:
+    // - If ownerExists: Observer open; Analyst/Operator require approval; Owner blocked
+    // ============================
+    function openRoleSheet(st){
+      roleTitle.textContent = `Choose role for ${st.name}`;
+      roleSheetMask.classList.add("on");
+
+      const ownerExists = !!st.ownerExists;
+      roleNote.textContent = ownerExists
+        ? "Station already has an Owner. Observer is open. Analyst/Operator require Owner permission."
+        : "No Owner yet. You may claim Owner or join as Observer/Analyst/Operator.";
+
+      roleGrid.innerHTML = "";
+
+      const roles = [
+        { key:"Observer", allow:true, note:"Open" },
+        { key:"Analyst",  allow: !ownerExists || approvalGranted, note: ownerExists ? "Permission" : "Open" },
+        { key:"Operator", allow: !ownerExists || approvalGranted, note: ownerExists ? "Permission" : "Open" },
+        { key:"Owner",    allow: !ownerExists, note: ownerExists ? "Not available" : "Claim" }
+      ];
+
+      for (const r of roles){
+        const b = document.createElement("button");
+        b.className = "pill";
+        b.innerHTML = `
+          <span class="left"><span class="dot"></span><span class="label">${r.key}</span></span>
+          <span class="hint">${r.allow ? r.note : "Locked"}</span>
+        `;
+
+        if (!r.allow) b.classList.add("disabled");
+
+        b.addEventListener("click", ()=>{
+          if (!r.allow){
+            toast("Owner permission required");
+            return;
+          }
+          roleSheetMask.classList.remove("on");
+          toast(`Joined as ${r.key}`);
+        });
+
+        roleGrid.appendChild(b);
+      }
+    }
+
+    function closeRoleSheet(){
+      roleSheetMask.classList.remove("on");
+    }
+    roleClose.addEventListener("click", closeRoleSheet);
+    roleSheetMask.addEventListener("click", (e)=>{ if(e.target === roleSheetMask) closeRoleSheet(); });
+
+    requestAccessBtn.addEventListener("click", ()=>{
+      approvalGranted = true; // simulated
+      toast("Owner permission granted (simulated)");
+      // refresh role sheet UI
+      const st = stationData[0];
+      openRoleSheet(st);
+    });
+
+    // ============================
+    // Hub (X + Discord minimal)
+    // ============================
+    function setHubTab(tab){
+      document.querySelectorAll(".tabBtn").forEach(b=>{
+        b.classList.toggle("on", b.dataset.tab === tab);
+      });
+
+      // Minimal + scientific panels
+      if (tab === "feed"){
+        hubPanel.innerHTML = `
+          <div class="hubItem">
+            <div class="hubItemTitle">Station status: Online</div>
+            <div class="hubItemMeta">Last sync: UTC placeholder • Channel: Exit222•Station1</div>
+          </div>
+          <div class="hubItem">
+            <div class="hubItemTitle">Protocol reminder</div>
+            <div class="hubItemMeta">Capture raw exports + controls • UTC tagging • compare across sessions</div>
+          </div>
+          <div class="hubItem">
+            <div class="hubItemTitle">Activity</div>
+            <div class="hubItemMeta">No new events yet. Feed will show joined operators, uploads, notes, and anomaly flags.</div>
+          </div>
+        `;
+      }
+
+      if (tab === "data"){
+        hubPanel.innerHTML = `
+          <div class="hubItem">
+            <div class="hubItemTitle">Datasets</div>
+            <div class="hubItemMeta">Magnetometer • GNSS • RF scan • Environmental logs (placeholders)</div>
+          </div>
+          <div class="hubItem">
+            <div class="hubItemTitle">Summary</div>
+            <div class="hubItemMeta">No datasets uploaded. When data exists, this tab shows time-series, deltas, and session comparisons.</div>
+          </div>
+          <div class="hubItem">
+            <div class="hubItemTitle">Integrity</div>
+            <div class="hubItemMeta">Evidence quality + controls checklist will be shown here per session.</div>
+          </div>
+        `;
+      }
+
+      if (tab === "chat"){
+        hubPanel.innerHTML = `
+          <div class="hubItem">
+            <div class="hubItemTitle">Station Chat</div>
+            <div class="hubItemMeta">Minimal discussion channel (scientific only). Coming next: pinned protocol + role-gated messaging.</div>
+          </div>
+          <div class="hubItem">
+            <div class="hubItemTitle">Rules</div>
+            <div class="hubItemMeta">No claims of causality. Share raw data, methods, controls, and replication notes.</div>
+          </div>
+        `;
+      }
+
+      if (tab === "files"){
+        hubPanel.innerHTML = `
+          <div class="hubItem">
+            <div class="hubItemTitle">Files</div>
+            <div class="hubItemMeta">Exports • Screenshots • CSV • JSON • Notes (placeholders)</div>
+          </div>
+          <div class="hubItem">
+            <div class="hubItemTitle">Upload format</div>
+            <div class="hubItemMeta">Prefer UTC timestamps + sensor metadata + device model + environment context.</div>
+          </div>
+        `;
+      }
+    }
+
+    function initHub(st){
+      hubTitleText.textContent = `${st.name} • Hub`;
+      hubMetaText.textContent = `${st.axis} • ${st.coordsText} • Minimal scientific interface`;
+      setHubTab("feed");
+
+      document.querySelectorAll(".tabBtn").forEach(b=>{
+        b.onclick = ()=> setHubTab(b.dataset.tab);
       });
     }
 
     // ============================
-    // Overlays: Core + Stack + User overlays
+    // UI helpers for globe input
     // ============================
     const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
     const DEG = Math.PI/180;
     const RAD = 180/Math.PI;
 
     function isUIEventTarget(target){
-      return !!(target && (target.closest?.("#drawer") || target.closest?.("#openBtn") || target.closest?.("#modalMask")));
+      return !!(target && (target.closest?.("#drawer") || target.closest?.("#openBtn") || target.closest?.("#modalMask") || target.closest?.("#roleSheetMask")));
     }
 
-    // keys that exist in rendering state
-    const OVERLAY_LIBRARY = [
-      { key:"rhumb222", label:"Rhumb 222 SW", meta:"Core axis (rhumb)", tier:"core" },
-      { key:"gc222", label:"Great Circle 222 SW", meta:"Core axis (geodesic)", tier:"core" },
-      { key:"nightLights", label:"Night Lights", meta:"Urban glow", tier:"core" },
-
-      { key:"rhumb42", label:"Rhumb 42 NE", meta:"Opposite bearing", tier:"stack" },
-      { key:"gc42", label:"Great Circle 42 NE", meta:"Opposite bearing", tier:"stack" },
-      { key:"names222", label:"Names 222 SW", meta:"Labels", tier:"stack" },
-      { key:"names42", label:"Names 42 NE", meta:"Labels", tier:"stack" },
-      { key:"perpLine", label:"Perpendiculars", meta:"132° / 312°", tier:"stack" },
-      { key:"perpName", label:"Perp Name", meta:"Label", tier:"stack" },
-      { key:"continents", label:"Continents", meta:"Light labels", tier:"stack" },
-      { key:"corridors", label:"Corridors", meta:"±1/±5/±10 km", tier:"stack" },
-      { key:"magField", label:"Magnetic Field", meta:"Dipole preview", tier:"stack" },
-      { key:"aurora", label:"Aurora", meta:"Belt preview", tier:"stack" }
-    ];
-
-    // Default station overlay list is minimal per your rule:
-    // Station shows only: Core, Stack, Stations, Overlay +, Clear
-    // (no extra overlays appear until user adds them)
-    function loadStationOverlays(){
-      const raw = localStorage.getItem(LS.stationOverlays);
-      try { return raw ? JSON.parse(raw) : {}; } catch { return {}; }
-    }
-    function saveStationOverlays(map){
-      localStorage.setItem(LS.stationOverlays, JSON.stringify(map));
-    }
-
-    function getOverlaySetForStation(stationId){
-      const m = loadStationOverlays();
-      return new Set(Array.isArray(m[stationId]) ? m[stationId] : []);
-    }
-    function setOverlaySetForStation(stationId, set){
-      const m = loadStationOverlays();
-      m[stationId] = Array.from(set);
-      saveStationOverlays(m);
-    }
-
-    // Membership + roles: Observer / Analyst / Operator / Owner
-    const ROLES = ["Observer","Analyst","Operator","Owner"];
-    function getRoleForStation(stationId){
-      const mem = loadMembership();
-      const r = mem?.[stationId]?.role;
-      return (ROLES.includes(r) ? r : null);
-    }
-    function setRoleForStation(stationId, role){
-      const mem = loadMembership();
-      mem[stationId] = mem[stationId] || {};
-      mem[stationId].role = role;
-      saveMembership(mem);
-    }
-    function isOwnerOrOperator(stationId){
-      const r = getRoleForStation(stationId);
-      return r === "Owner" || r === "Operator";
-    }
-
-    // ============================
-    // Rendering helpers
-    // ============================
     function latLonToVec3(latDeg, lonDeg, radius=1.0){
       const lat = latDeg * DEG;
       const lon = lonDeg * DEG;
@@ -1078,472 +1562,41 @@
           return tex;
         } catch { /* try next */ }
       }
-
       addNotice(label);
       return fallbackTex;
     }
 
     // ============================
-    // Three.js globals
+    // THREE.js scene
     // ============================
     let renderer, camera, scene, globe;
     let bloomComposer, finalComposer, bloomPass, finalPass;
     let rafId = 0;
     let running = true;
 
-    // Runtime overlay groups (three.js)
-    let overlays = null;
-    let nightLightsMesh = null;
-
-    // Overlay state (visibility toggles)
-    const state = {
-      // Core
-      rhumb222: true,
-      gc222:    true,
-      nightLights: true,
-
-      // Stack candidates
-      rhumb42:  false,
-      gc42:     false,
-      names222: false,
-      names42:  false,
-      perpLine: false,
-      perpName: false,
-      continents:false,
-      corridors:false,
-      magField: false,
-      aurora:   false,
-
-      // Stations
-      stations: true
-    };
-
-    function setPillOn(el, on){ el?.classList.toggle("on", !!on); }
-
-    // ============================
-    // Core / Stack buttons (Just “Core”)
-    // ============================
-    let coreOn = true;
-    let stackOn = false;
+    const overlays = {};
+    let nightLights;
 
     function applyVisibility(){
-      if (!overlays) return;
+      if (!globe || !overlays.rhumb222) return;
 
-      overlays.rhumb222.visible = coreOn && state.rhumb222;
-      overlays.gc222.visible    = coreOn && state.gc222;
-      if (nightLightsMesh) nightLightsMesh.visible = coreOn && state.nightLights;
-
-      // stack bundle toggles
-      overlays.rhumb42.visible    = stackOn && state.rhumb42;
-      overlays.gc42.visible       = stackOn && state.gc42;
-      overlays.names222.visible   = stackOn && state.names222;
-      overlays.names42.visible    = stackOn && state.names42;
-      overlays.perpLine.visible   = stackOn && state.perpLine;
-      overlays.perpName.visible   = stackOn && state.perpName;
-      overlays.continents.visible = stackOn && state.continents;
-      overlays.corridors.visible  = stackOn && state.corridors;
-      overlays.magField.visible   = stackOn && state.magField;
-      overlays.aurora.visible     = stackOn && state.aurora;
+      overlays.rhumb222.visible   = state.rhumb222;
+      overlays.rhumb42.visible    = state.rhumb42;
+      overlays.gc222.visible      = state.gc222;
+      overlays.gc42.visible       = state.gc42;
+      overlays.names222.visible   = state.names222;
+      overlays.names42.visible    = state.names42;
+      overlays.perpLine.visible   = state.perpLine;
+      overlays.perpName.visible   = state.perpName;
+      overlays.continents.visible = state.continents;
+      overlays.corridors.visible  = state.corridors;
+      overlays.magField.visible   = state.magField;
+      overlays.aurora.visible     = state.aurora;
 
       overlays.stations.visible   = state.stations;
+      if (nightLights) nightLights.visible = state.nightLights;
     }
 
-    function setCore(on){
-      coreOn = !!on;
-      setPillOn(coreBtn, coreOn);
-      applyVisibility();
-    }
-    function setStack(on){
-      stackOn = !!on;
-      setPillOn(stackBtn, stackOn);
-      applyVisibility();
-    }
-
-    function clearAll(){
-      // Keep Core + Stations as your minimal “smart” default
-      coreOn = true;
-      stackOn = false;
-
-      Object.keys(state).forEach(k=>{
-        if (["rhumb222","gc222","nightLights","stations"].includes(k)) return;
-        state[k] = false;
-      });
-
-      // Core always on by default (clean)
-      state.rhumb222 = true;
-      state.gc222 = true;
-      state.nightLights = true;
-      state.stations = true;
-
-      setCore(true);
-      setStack(false);
-      setPillOn(stationsBtn, state.stations);
-      refreshUserOverlayUI(); // also re-sync overlay toggles
-      applyVisibility();
-    }
-
-    coreBtn.addEventListener("click", ()=> setCore(!coreOn));
-    stackBtn.addEventListener("click", ()=> setStack(!stackOn));
-    stationsBtn.addEventListener("click", ()=>{
-      state.stations = !state.stations;
-      setPillOn(stationsBtn, state.stations);
-      applyVisibility();
-    });
-    clearBtn.addEventListener("click", clearAll);
-
-    // ============================
-    // Station + Overlay UI logic
-    // ============================
-    function getActiveStation(){
-      const stations = loadStations();
-      const id = getActiveStationId();
-      return stations.find(s=>s.id===id) || BASE_STATION;
-    }
-
-    function setActiveStation(stationId){
-      setActiveStationId(stationId);
-      const st = getActiveStation();
-      activeStationText.textContent = st.name;
-      stationText.textContent = `${st.name} @ ${st.lat.toFixed(4)}, ${st.lon.toFixed(4)}`;
-      roleText.textContent = getRoleForStation(st.id) || "N/A";
-      refreshUserOverlayUI();
-      updateOverlayManagerAccess();
-    }
-
-    function updateRange(){
-      const st = getActiveStation();
-      if (!userLoc){
-        rangeText.textContent = "Unknown";
-        stationNote.textContent = "Stations are local (this device). Join is limited to nearby stations.";
-        return;
-      }
-      const d = haversineKm(userLoc.lat, userLoc.lon, st.lat, st.lon);
-      const ok = d <= JOIN_RADIUS_KM;
-      rangeText.textContent = `${d.toFixed(1)} km • ${ok ? "Nearby" : "Too far"}`;
-      stationNote.textContent = ok
-        ? "You can join this station from your location."
-        : `Join is limited to nearby stations (≤ ${JOIN_RADIUS_KM} km).`;
-    }
-
-    async function locateAndRefresh(){
-      await locate();
-      updateRange();
-      refreshJoinButtons();
-    }
-
-    locateBtn.addEventListener("click", locateAndRefresh);
-
-    function refreshJoinButtons(){
-      const st = getActiveStation();
-      const mem = loadMembership();
-      const joined = !!mem?.[st.id]?.joined;
-
-      const near = (userLoc)
-        ? (haversineKm(userLoc.lat, userLoc.lon, st.lat, st.lon) <= JOIN_RADIUS_KM)
-        : false;
-
-      joinBtn.disabled = !(near && !joined);
-      leaveBtn.disabled = !joined;
-
-      // Create always allowed (creates at your location)
-      createStationBtn.disabled = !userLoc;
-
-      // Delete allowed only if you own the station AND it's not locked
-      const stations = loadStations();
-      const s = stations.find(x=>x.id===st.id);
-      const owned = s && s.ownerId === DEVICE_ID;
-      deleteStationBtn.disabled = !(owned && !s.locked);
-
-      // Overlay editing is Owner/Operator
-      overlayPlusBtn.disabled = !isOwnerOrOperator(st.id);
-      overlayMinusBtn.disabled = !isOwnerOrOperator(st.id);
-      overlayManagerHint.textContent = isOwnerOrOperator(st.id) ? "Owner/Operator" : "Owner/Operator only";
-    }
-
-    function joinActiveStation(){
-      const st = getActiveStation();
-      if (!userLoc){
-        alert("Location is required to join nearby stations.");
-        return;
-      }
-      const d = haversineKm(userLoc.lat, userLoc.lon, st.lat, st.lon);
-      if (d > JOIN_RADIUS_KM){
-        alert(`Too far to join. You are ${d.toFixed(1)} km away (limit ${JOIN_RADIUS_KM} km).`);
-        return;
-      }
-
-      const role = (prompt(`Choose role for ${st.name}:\n${ROLES.join(", ")}`, "Observer") || "Observer").trim();
-      const safeRole = ROLES.includes(role) ? role : "Observer";
-
-      const mem = loadMembership();
-      mem[st.id] = mem[st.id] || {};
-      mem[st.id].joined = true;
-      mem[st.id].role = safeRole;
-      saveMembership(mem);
-
-      roleText.textContent = safeRole;
-      refreshJoinButtons();
-      updateOverlayManagerAccess();
-    }
-
-    function leaveActiveStation(){
-      const st = getActiveStation();
-      const mem = loadMembership();
-      if (mem?.[st.id]){
-        mem[st.id].joined = false;
-        // keep role on device for convenience, but no longer joined
-        saveMembership(mem);
-      }
-      refreshJoinButtons();
-      updateOverlayManagerAccess();
-    }
-
-    function createStation(){
-      if (!userLoc){
-        alert("Tap Locate first to create a station at your location.");
-        return;
-      }
-      const name = (prompt("Station name (example: Ridge•Station2)", "My•Station") || "").trim();
-      if (!name) return;
-
-      const stations = loadStations();
-      const id = "st_" + uid();
-
-      stations.push({
-        id,
-        name,
-        lat: userLoc.lat,
-        lon: userLoc.lon,
-        axis: "local",
-        locked: false,
-        ownerId: DEVICE_ID
-      });
-      saveStations(stations);
-
-      // auto-join as Owner
-      const mem = loadMembership();
-      mem[id] = { joined:true, role:"Owner" };
-      saveMembership(mem);
-
-      // overlays default empty for new station
-      setOverlaySetForStation(id, new Set());
-
-      setActiveStation(id);
-      updateRange();
-      refreshJoinButtons();
-    }
-
-    function deleteStation(){
-      const st = getActiveStation();
-      const stations = loadStations();
-      const s = stations.find(x=>x.id===st.id);
-      if (!s || s.locked){
-        alert("This station is locked.");
-        return;
-      }
-      if (s.ownerId !== DEVICE_ID){
-        alert("Only the Owner can delete this station.");
-        return;
-      }
-      const ok = confirm(`Delete station "${s.name}"?`);
-      if (!ok) return;
-
-      const next = stations.filter(x=>x.id!==s.id);
-      saveStations(next);
-
-      // remove membership + overlay config
-      const mem = loadMembership();
-      delete mem[s.id];
-      saveMembership(mem);
-
-      const ov = loadStationOverlays();
-      delete ov[s.id];
-      saveStationOverlays(ov);
-
-      setActiveStation(BASE_STATION.id);
-      updateRange();
-      refreshJoinButtons();
-    }
-
-    joinBtn.addEventListener("click", joinActiveStation);
-    leaveBtn.addEventListener("click", leaveActiveStation);
-    createStationBtn.addEventListener("click", createStation);
-    deleteStationBtn.addEventListener("click", deleteStation);
-
-    // Overlay manager open/close
-    function updateOverlayManagerAccess(){
-      const st = getActiveStation();
-      const allowed = isOwnerOrOperator(st.id);
-      overlayPlusBtn.disabled = !allowed;
-      overlayManagerHint.textContent = allowed ? "Owner/Operator" : "Owner/Operator only";
-      if (!allowed) overlayManager.classList.remove("on");
-    }
-
-    function openOverlayManager(){
-      const st = getActiveStation();
-      if (!isOwnerOrOperator(st.id)){
-        alert("Only Owners / Operators can modify overlays for this station.");
-        return;
-      }
-      overlayManager.classList.add("on");
-      renderOverlayManagerList();
-    }
-    function closeOverlayManager(){
-      overlayManager.classList.remove("on");
-    }
-
-    overlayPlusBtn.addEventListener("click", openOverlayManager);
-    closeOverlayMgrBtn.addEventListener("click", closeOverlayManager);
-
-    // Overlay - (bulk remove mode: remove selected overlays from station)
-    // Minimal: prompt for comma-separated overlay names and remove those.
-    overlayMinusBtn.addEventListener("click", ()=>{
-      const st = getActiveStation();
-      if (!isOwnerOrOperator(st.id)) return;
-
-      const set = getOverlaySetForStation(st.id);
-      if (!set.size){
-        alert("No overlays to remove.");
-        return;
-      }
-      const list = Array.from(set).join(", ");
-      const raw = (prompt(`Overlay - (remove)\nCurrent: ${list}\nType keys to remove (comma-separated):`, list) || "").trim();
-      if (!raw) return;
-      const keys = raw.split(",").map(s=>s.trim()).filter(Boolean);
-      keys.forEach(k=>set.delete(k));
-      setOverlaySetForStation(st.id, set);
-      refreshUserOverlayUI();
-      renderOverlayManagerList();
-    });
-
-    // Render overlay manager list with Add/Remove
-    function renderOverlayManagerList(){
-      overlayList.innerHTML = "";
-      const st = getActiveStation();
-      const set = getOverlaySetForStation(st.id);
-
-      // Only manage “stack” overlays here (Core is fixed + smart)
-      const manageable = OVERLAY_LIBRARY.filter(o => o.tier === "stack");
-
-      for (const o of manageable){
-        const wrap = document.createElement("div");
-        wrap.className = "overlayItem";
-
-        const left = document.createElement("div");
-        left.style.minWidth = "0";
-
-        const name = document.createElement("div");
-        name.className = "name";
-        name.textContent = o.label;
-
-        const meta = document.createElement("div");
-        meta.className = "meta";
-        meta.textContent = o.meta;
-
-        left.appendChild(name);
-        left.appendChild(meta);
-
-        const actions = document.createElement("div");
-        actions.className = "actions";
-
-        const plus = document.createElement("button");
-        plus.className = "btnMini actionPlus";
-        plus.textContent = "+";
-        plus.title = "Add overlay to Station";
-        plus.disabled = set.has(o.key);
-        plus.addEventListener("click", ()=>{
-          set.add(o.key);
-          setOverlaySetForStation(st.id, set);
-          refreshUserOverlayUI();
-          renderOverlayManagerList();
-        });
-
-        const minus = document.createElement("button");
-        minus.className = "btnMini actionMinus";
-        minus.textContent = "−";
-        minus.title = "Remove overlay from Station";
-        minus.disabled = !set.has(o.key);
-        minus.addEventListener("click", ()=>{
-          set.delete(o.key);
-          setOverlaySetForStation(st.id, set);
-          // also ensure visibility turns off when removed
-          if (o.key in state) state[o.key] = false;
-          refreshUserOverlayUI();
-          renderOverlayManagerList();
-          applyVisibility();
-        });
-
-        actions.appendChild(plus);
-        actions.appendChild(minus);
-
-        wrap.appendChild(left);
-        wrap.appendChild(actions);
-        overlayList.appendChild(wrap);
-      }
-    }
-
-    // Build the “Overlays” section that appears on Station after adding
-    function refreshUserOverlayUI(){
-      const st = getActiveStation();
-      const set = getOverlaySetForStation(st.id);
-      const keys = Array.from(set);
-
-      overlayCount.textContent = String(keys.length);
-      userOverlays.innerHTML = "";
-
-      if (!keys.length){
-        userOverlaysWrap.style.display = "none";
-        return;
-      }
-      userOverlaysWrap.style.display = "block";
-
-      for (const key of keys){
-        const meta = OVERLAY_LIBRARY.find(o=>o.key===key);
-        const label = meta ? meta.label : key;
-
-        const btn = document.createElement("button");
-        btn.className = "pill";
-        btn.dataset.key = key;
-
-        // keep toggle memory per station: default off until tapped
-        if (state[key]) btn.classList.add("on");
-
-        btn.innerHTML = `
-          <span class="left"><span class="dot"></span><span class="label">${label}</span></span>
-        `;
-
-        btn.addEventListener("click", ()=>{
-          // turning on any overlay implies stack is relevant (smart)
-          if (!stackOn) setStack(true);
-
-          if (!(key in state)) return;
-          state[key] = !state[key];
-          btn.classList.toggle("on", !!state[key]);
-          applyVisibility();
-        });
-
-        userOverlays.appendChild(btn);
-      }
-
-      // Ensure pills reflect current state
-      requestAnimationFrame(()=>{
-        userOverlays.querySelectorAll(".pill[data-key]").forEach(b=>{
-          const k = b.dataset.key;
-          b.classList.toggle("on", !!state[k]);
-        });
-      });
-    }
-
-    // ============================
-    // Init: make Station controls minimal by default
-    // ============================
-    setCore(true);
-    setStack(false);
-    setPillOn(stationsBtn, state.stations);
-
-    // ============================
-    // Three.js boot
-    // ============================
     (async ()=>{
       try{
         setStatusBase("Starting…");
@@ -1577,13 +1630,13 @@
         setStatusBase("Loading textures…");
 
         const dayMap   = await loadTextureWithFallback(urls("planets/earth_atmos_2048.jpg"), makeFallbackEarthDay(), "earth day");
-        const nightMap = await loadTextureWithFallback(urls("planets/earth_lights_2048.png"), makeFallbackNight(), "earth night lights");
+        const nMap     = await loadTextureWithFallback(urls("planets/earth_lights_2048.png"), makeFallbackNight(), "earth night lights");
         const specMap  = await loadTextureWithFallback(urls("planets/earth_specular_2048.jpg"), solidTexture("#000"), "earth specular");
         const cloudMap = await loadTextureWithFallback(urls("planets/earth_clouds_1024.png"), makeFallbackClouds(), "earth clouds");
         const starMap  = await loadTextureWithFallback(urls("galaxy_starfield.png"), makeFallbackStars(), "stars");
 
         const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
-        [dayMap, nightMap, specMap, cloudMap, starMap].forEach((t)=>{
+        [dayMap, nMap, specMap, cloudMap, starMap].forEach((t)=>{
           t.anisotropy = maxAniso;
           t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
         });
@@ -1664,12 +1717,12 @@
         const earth = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, SEG, SEG), earthMat);
 
         const lightsUniforms = {
-          nightMap: { value: nightMap },
+          nightMap: { value: nMap },
           sunDir:   { value: new THREE.Vector3(1,0,0) },
           gain:     { value: 2.8 }
         };
 
-        nightLightsMesh = new THREE.Mesh(
+        nightLights = new THREE.Mesh(
           new THREE.SphereGeometry(earthRadius * 1.001, SEG, SEG),
           new THREE.ShaderMaterial({
             uniforms: lightsUniforms,
@@ -1784,10 +1837,11 @@
         );
 
         globe = new THREE.Group();
-        globe.add(earth, nightLightsMesh, cloudShadow, clouds, atmosphere);
+        globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
         scene.add(globe);
 
-        overlays = {
+        // Overlays container
+        Object.assign(overlays, {
           rhumb222: new THREE.Group(),
           rhumb42:  new THREE.Group(),
           gc222:    new THREE.Group(),
@@ -1801,11 +1855,10 @@
           corridors: new THREE.Group(),
           magField: new THREE.Group(),
           aurora: new THREE.Group()
-        };
+        });
         Object.values(overlays).forEach(g => globe.add(g));
 
-        // Core anchor
-        const ANCHOR = { name: "Exit222•Station1", lat: BASE_STATION.lat, lon: BASE_STATION.lon };
+        const ANCHOR = { name: "Exit222•Station1", lat: 38.1608333333, lon: -79.0733333333 };
         const BEAR_222 = 222;
         const BEAR_42  = 42;
 
@@ -1833,7 +1886,6 @@
         }
         overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
-        // Reduced glow labels
         const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 4, glow:"rgba(246,194,74,0.10)" });
         n222.position.copy(latLonToVec3(18, -18, earthRadius*1.10));
         overlays.names222.add(n222);
@@ -1941,11 +1993,11 @@
         }
         overlays.aurora.add(makeAuroraBelt(67));
 
-        // Bloom setup
+        // Bloom
         const BLOOM_LAYER = 1;
         const bloomLayer = new THREE.Layers(); bloomLayer.set(BLOOM_LAYER);
 
-        nightLightsMesh.layers.enable(BLOOM_LAYER);
+        nightLights.layers.enable(BLOOM_LAYER);
         atmosphere.layers.enable(BLOOM_LAYER);
         Object.values(overlays).forEach(g=>{
           g.traverse(o => o.layers && o.layers.enable(BLOOM_LAYER));
@@ -1993,13 +2045,10 @@
           scene.traverse(restoreMaterial);
         }
 
-        // Apply initial visibility (minimal / smart)
+        // Apply initial Core visibility
         applyVisibility();
-        setStatusBase("Running");
 
-        // ============================
-        // Input (drag + pinch)
-        // ============================
+        // Interaction
         let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
         const AUTO_SPIN=0.0012, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
 
@@ -2067,7 +2116,6 @@
           camera.position.z = clamp(camera.position.z + (e.deltaY * 0.0025), Z_MIN, Z_MAX);
         }, { passive:true });
 
-        // Resize
         let resizeTimer = 0;
         function doResize(){
           if (!renderer || !camera) return;
@@ -2129,17 +2177,6 @@
           finalComposer.render();
         }
         animate();
-
-        // ============================
-        // Final UI sync (smart defaults)
-        // ============================
-        // Station panel initial station + overlays
-        loadStations();
-        setActiveStation(getActiveStationId());
-        await locateAndRefresh(); // try to auto-locate once
-        refreshUserOverlayUI();
-        renderOverlayManagerList();
-        refreshJoinButtons();
 
       } catch (err){
         showError("Top-level error:\n" + (err?.stack || err?.message || err));
