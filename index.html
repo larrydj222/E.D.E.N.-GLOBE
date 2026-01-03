@@ -147,6 +147,14 @@
       margin-bottom: 10px;
     }
 
+    /* NEW: 4-button utility row (minimal) */
+    .grid4{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
     .grid2{
       display:grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -198,17 +206,17 @@
       flex: 0 0 auto;
     }
 
-    /* ✅ “Lights turn green” when a top button is pressed */
-    .pill.on .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 14px rgba(120,255,200,0.18); }
-    .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 14px rgba(246,194,74,0.16); }
-    .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 14px rgba(91,188,255,0.16); }
+    /* “Lights turn green” when a button is ON */
+    .pill.on .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 16px rgba(120,255,200,0.24); }
+    .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
+    .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 16px rgba(91,188,255,0.22); }
 
-    .pill.on[data-key="rhumb42"] .dot{ background: rgba(246,194,74,0.55); box-shadow:0 0 14px rgba(246,194,74,0.12); }
-    .pill.on[data-key="gc42"]    .dot{ background: rgba(91,188,255,0.55); box-shadow:0 0 14px rgba(91,188,255,0.12); }
+    .pill.on[data-key="rhumb42"] .dot{ background: rgba(246,194,74,0.55); box-shadow:0 0 16px rgba(246,194,74,0.16); }
+    .pill.on[data-key="gc42"]    .dot{ background: rgba(91,188,255,0.55); box-shadow:0 0 16px rgba(91,188,255,0.16); }
 
-    .pill.on[data-key="stations"]   .dot{ background: rgba(127,255,212,0.90); box-shadow:0 0 14px rgba(127,255,212,0.14); }
-    .pill.on[data-key="aurora"]     .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 14px rgba(160,120,255,0.14); }
-    .pill.on[data-key="nightLights"].dot{ background: rgba(140,255,200,0.92); box-shadow:0 0 14px rgba(140,255,200,0.14); }
+    .pill.on[data-key="stations"]   .dot{ background: rgba(127,255,212,0.90); box-shadow:0 0 16px rgba(127,255,212,0.18); }
+    .pill.on[data-key="aurora"]     .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 16px rgba(160,120,255,0.18); }
+    .pill.on[data-key="nightLights"].dot{ background: rgba(140,255,200,0.92); box-shadow:0 0 16px rgba(140,255,200,0.18); }
 
     #statusBar{
       margin-top: 10px;
@@ -243,6 +251,7 @@
     #switchboardGroup{ display:none; }
     #switchboardGroup.on{ display:block; }
 
+    /* Modal system */
     #modalMask{
       position: fixed;
       inset: 0;
@@ -275,13 +284,36 @@
       justify-content: space-between;
       padding: 12px 12px 10px;
       border-bottom: 1px solid rgba(255,255,255,0.10);
+      gap: 10px;
     }
     #modalTitle{
       font: 900 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       letter-spacing: 0.3px;
       color: rgba(255,255,255,0.92);
       padding-left: 6px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width: 0;
     }
+    #modalTitle .backBtn{
+      display:none;
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.92);
+      cursor:pointer;
+      flex: 0 0 auto;
+    }
+    #modalTitle.hasBack .backBtn{ display:inline-flex; align-items:center; justify-content:center; }
+    #modalTitleText{
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     #modalClose{
       width: 40px;
       height: 40px;
@@ -290,6 +322,7 @@
       background: rgba(255,255,255,0.06);
       color: rgba(255,255,255,0.92);
       cursor:pointer;
+      flex: 0 0 auto;
     }
 
     #modalBody{
@@ -321,15 +354,187 @@
     }
     #missionContent p{ margin: 0 0 12px; color: rgba(255,255,255,0.80); }
 
+    /* Overlay Picker (minimal) */
+    #overlayPicker{
+      display:none;
+      padding: 14px 14px 18px;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+    .searchRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      margin-bottom: 12px;
+    }
+    .searchRow input{
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.92);
+      outline: none;
+      font: 800 13px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.15px;
+    }
+
+    .chipRow{
+      display:flex;
+      gap:10px;
+      overflow:auto;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .chip{
+      flex: 0 0 auto;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.88);
+      font: 900 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.12px;
+      cursor:pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select:none;
+    }
+    .chip.on{
+      border-color: rgba(120,255,200,0.30);
+      background: rgba(120,255,200,0.08);
+      color: rgba(255,255,255,0.92);
+    }
+
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      padding-bottom: 8px;
+    }
+
+    /* Stations Modal */
+    #stationsView{
+      display:none;
+      padding: 14px 14px 18px;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+    .stationCard{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap:12px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      cursor:pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select:none;
+    }
+    .stationCard:active{ transform: translateY(1px); }
+    .stationCard .meta{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .stationCard .name{
+      font: 900 14px/1.1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      color: rgba(255,255,255,0.92);
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .stationCard .sub{
+      font: 800 11px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      color: rgba(255,255,255,0.55);
+      letter-spacing: 0.08px;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .stationCard .badge{
+      flex: 0 0 auto;
+      font: 900 11px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      color: rgba(255,255,255,0.88);
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      letter-spacing: 0.12px;
+    }
+
+    /* Station Preview */
+    #stationPreview{
+      display:none;
+      padding: 14px 14px 18px;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+    .previewTop{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-bottom: 12px;
+    }
+    .previewTitle{
+      font: 900 18px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      color: rgba(255,255,255,0.92);
+      letter-spacing: 0.2px;
+    }
+    .previewSub{
+      font: 800 12px/1.25 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      color: rgba(255,255,255,0.60);
+      letter-spacing: 0.10px;
+    }
+    .previewActions{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap:10px;
+      margin-top: 10px;
+    }
+
+    /* Toast */
+    #toast{
+      position: fixed;
+      left: 50%;
+      bottom: 92px;
+      transform: translateX(-50%) translateY(8px);
+      z-index: 25000;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(12,14,18,0.72);
+      color: rgba(255,255,255,0.92);
+      font: 900 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.16px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 14px 44px rgba(0,0,0,0.42);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+      user-select:none;
+    }
+    #toast.on{
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
     @media (max-width: 520px){
       .gridTop{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .grid4{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .pill{ padding: 12px 12px; border-radius: 16px; font-size: 13px; }
       #drawerBody{ max-height: calc(100vh - 200px); }
       #subtitle{ max-width: 310px; }
       .pill .hint{ display:none; }
+      .previewActions{ grid-template-columns: 1fr; }
     }
     @media (max-width: 380px){
       .gridTop{ grid-template-columns: 1fr; }
+      .grid4{ grid-template-columns: 1fr; }
     }
   </style>
 
@@ -352,8 +557,7 @@
     <div id="drawerTop">
       <div id="titleBlock">
         <div id="title">MAP E.D.E.N.</div>
-        <!-- ✅ renamed Switchboard -> Station -->
-        <div id="subtitle">Earth Diametric Energy Network • Tap Station to open layers</div>
+        <div id="subtitle">Earth Diametric Energy Network • Tap Switchboard to open layers</div>
       </div>
       <button id="closeBtn" aria-label="Close drawer" title="Close">✕</button>
     </div>
@@ -368,14 +572,29 @@
           <span class="left"><span class="dot"></span><span class="label">Mission</span></span>
         </button>
 
-        <!-- ✅ button label changed -->
         <button class="pill switch" id="switchboardBtn">
-          <span class="left"><span class="dot"></span><span class="label">Station</span></span>
+          <span class="left"><span class="dot"></span><span class="label">Switchboard</span></span>
           <span class="hint" id="switchHint">Tap to open</span>
         </button>
       </div>
 
       <div id="switchboardGroup">
+        <!-- NEW: Minimal smart controls -->
+        <div class="grid4">
+          <button class="pill" id="stackBtn">
+            <span class="left"><span class="dot"></span><span class="label">Stack</span></span>
+          </button>
+          <button class="pill" id="coreBtn">
+            <span class="left"><span class="dot"></span><span class="label">Core</span></span>
+          </button>
+          <button class="pill" id="clearBtn">
+            <span class="left"><span class="dot"></span><span class="label">Clear</span></span>
+          </button>
+          <button class="pill" id="overlayPlusBtn">
+            <span class="left"><span class="dot"></span><span class="label">Overlay +</span></span>
+          </button>
+        </div>
+
         <div class="grid2">
           <button class="pill on" data-key="rhumb222"><span class="left"><span class="dot"></span><span class="label">Rhumb 222 SW</span></span></button>
           <button class="pill" data-key="rhumb42"><span class="left"><span class="dot"></span><span class="label">Rhumb 42 NE</span></span></button>
@@ -389,7 +608,12 @@
           <button class="pill" data-key="perpLine"><span class="left"><span class="dot"></span><span class="label">Perpendiculars</span></span></button>
           <button class="pill" data-key="continents"><span class="left"><span class="dot"></span><span class="label">Continents</span></span></button>
 
-          <button class="pill on" data-key="stations"><span class="left"><span class="dot"></span><span class="label">Stations</span></span></button>
+          <!-- Stations is separate: tap opens Stations modal (visibility toggled inside modal) -->
+          <button class="pill on" id="stationsBtn" data-key="stations">
+            <span class="left"><span class="dot"></span><span class="label">Stations</span></span>
+            <span class="hint">Search</span>
+          </button>
+
           <button class="pill" data-key="corridors"><span class="left"><span class="dot"></span><span class="label">Corridors</span></span></button>
 
           <button class="pill" data-key="magField"><span class="left"><span class="dot"></span><span class="label">Magnetic Field</span></span></button>
@@ -412,23 +636,89 @@
   <div id="modalMask" role="dialog" aria-modal="true" aria-label="MAP E.D.E.N. Modal">
     <div id="modal">
       <div id="modalTop">
-        <div id="modalTitle">WELCOME</div>
+        <div id="modalTitle">
+          <button class="backBtn" id="modalBack" aria-label="Back">‹</button>
+          <span id="modalTitleText">WELCOME</span>
+        </div>
         <button id="modalClose" aria-label="Close modal">✕</button>
       </div>
+
       <div id="modalBody">
+        <!-- Welcome -->
         <iframe id="welcomeFrame" title="MAP E.D.E.N. Welcome" loading="lazy"></iframe>
 
+        <!-- Mission -->
         <div id="missionContent" style="display:none;">
           <h2>MAP E.D.E.N. Mission</h2>
           <p>
             Turn the 42° / 222° axis hypothesis into a coordinated, evidence-first experiment by producing sensor datasets
             that are repeatable, controlled, and comparable across stations and time.
           </p>
-          <!-- ✅ removed the extra “This globe is a visual switchboard…” paragraph -->
+          <p>
+            This globe is a visual switchboard for the core overlays (Rhumb, Great Circle, Corridors, Field previews) while keeping the Earth render clean.
+          </p>
         </div>
+
+        <!-- Overlay Picker -->
+        <div id="overlayPicker">
+          <div class="searchRow">
+            <input id="overlaySearch" type="text" placeholder="Search overlays…" autocomplete="off" />
+          </div>
+          <div class="chipRow">
+            <div class="chip on" id="chipAll">All</div>
+            <div class="chip" id="chipCore">Core</div>
+          </div>
+          <div class="list" id="overlayList"></div>
+        </div>
+
+        <!-- Stations -->
+        <div id="stationsView">
+          <div class="searchRow">
+            <input id="stationSearch" type="text" placeholder="Search stations…" autocomplete="off" />
+          </div>
+          <div class="chipRow" id="stationChips">
+            <div class="chip on" data-chip="near">Near</div>
+            <div class="chip" data-chip="42">42</div>
+            <div class="chip" data-chip="222">222</div>
+            <div class="chip" data-chip="active">Active</div>
+            <div class="chip" data-chip="verified">Verified</div>
+          </div>
+
+          <!-- Simple station visibility toggle -->
+          <div class="grid4" style="margin: 6px 0 10px;">
+            <button class="pill" id="stationsVisibleBtn">
+              <span class="left"><span class="dot"></span><span class="label">Show Stations</span></span>
+              <span class="hint" id="stationsVisHint">On</span>
+            </button>
+            <button class="pill" id="stationsClearBtn">
+              <span class="left"><span class="dot"></span><span class="label">Clear</span></span>
+            </button>
+            <div style="display:none;"></div>
+            <div style="display:none;"></div>
+          </div>
+
+          <div class="list" id="stationsList"></div>
+        </div>
+
+        <!-- Station Preview -->
+        <div id="stationPreview">
+          <div class="previewTop">
+            <div class="previewTitle" id="previewName">Station</div>
+            <div class="previewSub" id="previewMeta">Node • Axis • Trust • Status</div>
+          </div>
+
+          <div class="previewActions">
+            <button class="pill" id="previewViewHub"><span class="left"><span class="dot"></span><span class="label">View Hub</span></span></button>
+            <button class="pill" id="previewFollow"><span class="left"><span class="dot"></span><span class="label">Follow</span></span></button>
+            <button class="pill" id="previewJoin"><span class="left"><span class="dot"></span><span class="label">Join</span></span></button>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
+
+  <div id="toast">Applied</div>
 
   <script type="module">
     import * as THREE from "three";
@@ -451,17 +741,82 @@
     const switchHint = document.getElementById("switchHint");
     const switchGrp  = document.getElementById("switchboardGroup");
 
+    // NEW controls
+    const stackBtn = document.getElementById("stackBtn");
+    const coreBtn = document.getElementById("coreBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const overlayPlusBtn = document.getElementById("overlayPlusBtn");
+    const stationsBtn = document.getElementById("stationsBtn");
+
+    // Modal + views
     const modalMask  = document.getElementById("modalMask");
     const modalClose = document.getElementById("modalClose");
+    const modalBack  = document.getElementById("modalBack");
     const modalTitle = document.getElementById("modalTitle");
+    const modalTitleText = document.getElementById("modalTitleText");
+
     const welcomeFrame = document.getElementById("welcomeFrame");
     const missionContent = document.getElementById("missionContent");
+    const overlayPicker = document.getElementById("overlayPicker");
+    const overlaySearch = document.getElementById("overlaySearch");
+    const overlayList = document.getElementById("overlayList");
+    const chipAll = document.getElementById("chipAll");
+    const chipCore = document.getElementById("chipCore");
 
+    const stationsView = document.getElementById("stationsView");
+    const stationSearch = document.getElementById("stationSearch");
+    const stationChips = document.getElementById("stationChips");
+    const stationsList = document.getElementById("stationsList");
+    const stationsVisibleBtn = document.getElementById("stationsVisibleBtn");
+    const stationsVisHint = document.getElementById("stationsVisHint");
+    const stationsClearBtn = document.getElementById("stationsClearBtn");
+
+    const stationPreview = document.getElementById("stationPreview");
+    const previewName = document.getElementById("previewName");
+    const previewMeta = document.getElementById("previewMeta");
+    const previewViewHub = document.getElementById("previewViewHub");
+    const previewFollow = document.getElementById("previewFollow");
+    const previewJoin = document.getElementById("previewJoin");
+
+    const toastEl = document.getElementById("toast");
+
+    // ============================
+    // Toast (minimal + smart)
+    // ============================
+    let toastTimer = 0;
+    function toast(msg="Applied"){
+      if (!toastEl) return;
+      toastEl.textContent = msg;
+      toastEl.classList.add("on");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(()=> toastEl.classList.remove("on"), 950);
+    }
+
+    // ============================
+    // Quiet status system (no red panel for texture fallbacks)
+    // ============================
+    let statusBase = "Booting…";
+    const notices = new Set();
+
+    function renderStatus(){
+      if (!statusEl) return;
+      if (notices.size){
+        const list = Array.from(notices).join(", ");
+        statusEl.textContent = `${statusBase} • Texture fallback: ${list}`;
+      } else {
+        statusEl.textContent = statusBase;
+      }
+    }
+    function setStatusBase(s){ statusBase = s; renderStatus(); }
+    function addNotice(n){ notices.add(n); renderStatus(); }
+
+    // Only REAL errors get the red panel
     function showError(msg){
-      if (!errorsEl) return;
-      errorsEl.style.display = "block";
-      errorsEl.textContent += (errorsEl.textContent ? "\n\n" : "") + msg;
-      statusEl.textContent = "Error (see panel)";
+      if (errorsEl){
+        errorsEl.style.display = "block";
+        errorsEl.textContent += (errorsEl.textContent ? "\n\n" : "") + msg;
+      }
+      setStatusBase("Error (see panel)");
     }
     window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
     window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
@@ -477,39 +832,97 @@
 
     function setTopOn(btn){ btn.classList.add("on"); }
 
-    function openModal(kind){
+    // ============================
+    // Modal router (simple, smart)
+    // ============================
+    const VIEWS = {
+      welcome: "WELCOME",
+      mission: "MISSION",
+      overlays: "OVERLAYS",
+      stations: "STATIONS",
+      preview: "STATION"
+    };
+
+    let modalStack = []; // for back behavior (minimal)
+    function hideAllViews(){
+      welcomeFrame.style.display = "none";
+      missionContent.style.display = "none";
+      overlayPicker.style.display = "none";
+      stationsView.style.display = "none";
+      stationPreview.style.display = "none";
+    }
+    function setModalTitle(title, canBack=false){
+      modalTitle.classList.toggle("hasBack", !!canBack);
+      modalTitleText.textContent = title;
+    }
+    function openModalView(view, push=true){
+      if (push) modalStack.push(view);
+
       modalMask.classList.add("on");
-      if (kind === "welcome"){
-        modalTitle.textContent = "WELCOME";
-        missionContent.style.display = "none";
+      hideAllViews();
+
+      const canBack = modalStack.length > 1;
+      setModalTitle(VIEWS[view] || "MAP E.D.E.N.", canBack);
+
+      if (view === "welcome"){
         welcomeFrame.style.display = "block";
-
-        // ✅ updated to welcome6.html
         const WELCOME_FILE = "assets/welcome6.html";
-
         const u = new URL(WELCOME_FILE, window.location.href);
         u.searchParams.set("v", Date.now().toString());
         welcomeFrame.src = u.toString();
-      } else {
-        modalTitle.textContent = "MISSION";
-        welcomeFrame.style.display = "none";
+      }
+
+      if (view === "mission"){
         missionContent.style.display = "block";
       }
+
+      if (view === "overlays"){
+        overlayPicker.style.display = "block";
+        overlaySearch.value = "";
+        chipAll.classList.add("on");
+        chipCore.classList.remove("on");
+        renderOverlayPicker();
+        setTimeout(()=> overlaySearch?.focus?.(), 50);
+      }
+
+      if (view === "stations"){
+        stationsView.style.display = "block";
+        stationSearch.value = "";
+        renderStations();
+        setTimeout(()=> stationSearch?.focus?.(), 50);
+      }
+
+      if (view === "preview"){
+        stationPreview.style.display = "block";
+      }
     }
+
     function closeModal(){
       modalMask.classList.remove("on");
+      modalStack = [];
       if (welcomeFrame.style.display !== "none") welcomeFrame.src = "about:blank";
+      hideAllViews();
     }
+    function backModal(){
+      if (modalStack.length <= 1) return;
+      modalStack.pop();
+      const prev = modalStack[modalStack.length - 1];
+      openModalView(prev, false);
+    }
+
     modalClose.addEventListener("click", closeModal);
+    modalBack.addEventListener("click", backModal);
     modalMask.addEventListener("click", (e)=>{ if(e.target === modalMask) closeModal(); });
 
     welcomeBtn.addEventListener("click", ()=>{
       setTopOn(welcomeBtn);
-      openModal("welcome");
+      modalStack = [];
+      openModalView("welcome");
     });
     missionBtn.addEventListener("click", ()=>{
       setTopOn(missionBtn);
-      openModal("mission");
+      modalStack = [];
+      openModalView("mission");
     });
 
     let switchboardOn = false;
@@ -586,13 +999,13 @@
       return pts;
     }
 
-    function makeGlowTube(pointsVec3, radius, coreColor, haloColor, coreOpacity=1.0, haloOpacity=0.22){
+    function makeGlowTube(pointsVec3, radius, coreColor, haloColor, coreOpacity=1.0, haloOpacity=0.28){
       if (!pointsVec3 || pointsVec3.length < 4) return new THREE.Group();
       const curve = new THREE.CatmullRomCurve3(pointsVec3, false, "catmullrom", 0.15);
       const segs = Math.max(320, pointsVec3.length*2);
 
       const coreGeom = new THREE.TubeGeometry(curve, segs, radius, 10, false);
-      const haloGeom = new THREE.TubeGeometry(curve, segs, radius*2.4, 10, false);
+      const haloGeom = new THREE.TubeGeometry(curve, segs, radius*2.6, 10, false);
 
       const coreMat = new THREE.MeshBasicMaterial({ color: coreColor, transparent: coreOpacity<1, opacity: coreOpacity, depthWrite:false });
       const haloMat = new THREE.MeshBasicMaterial({ color: haloColor, transparent:true, opacity: haloOpacity, blending: THREE.AdditiveBlending, depthWrite:false });
@@ -603,12 +1016,11 @@
       return g;
     }
 
-    // ✅ reduced glow for text sprites (settled)
     function makeTextSprite(text, {
       fontSize=22,
-      color="rgba(255,255,255,0.90)",
-      glow="rgba(255,255,255,0.12)",
-      glowBlur=4,
+      color="rgba(255,255,255,0.92)",
+      glow="rgba(255,255,255,0.16)",
+      glowBlur=5,
       padding=8,
       scale=0.0048
     } = {}){
@@ -722,16 +1134,6 @@
       return t;
     }
 
-    // ✅ no big red error panel for texture fallback (keeps things clean)
-    const fallbackNotes = new Set();
-    function noteFallback(label){
-      fallbackNotes.add(label);
-      if (fallbackNotes.size > 0){
-        statusEl.textContent = "Running";
-      }
-      console.warn("Texture fallback used for:", label);
-    }
-
     async function loadTextureWithFallback(urls, fallbackTex, label){
       const loader = new THREE.TextureLoader();
       loader.setCrossOrigin("anonymous");
@@ -747,7 +1149,7 @@
         } catch { /* try next */ }
       }
 
-      noteFallback(label);
+      addNotice(label);
       return fallbackTex;
     }
 
@@ -756,28 +1158,377 @@
     let rafId = 0;
     let running = true;
 
+    // ============================
+    // State + SMART controls
+    // ============================
+    const state = {
+      rhumb222: true,
+      rhumb42:  false,
+      gc222:    true,
+      gc42:     false,
+      names222: false,
+      names42:  false,
+      perpLine: false,
+      perpName: false,
+      continents:false,
+      stations: true,     // separate
+      corridors:false,
+      magField: false,
+      aurora:   false,
+      nightLights: true
+    };
+
+    const CORE_PRESET = {
+      rhumb222: true,
+      rhumb42:  true,
+      gc222:    true,
+      gc42:     true,
+      names222: true,
+      names42:  true,
+      continents:true,
+      // Everything else off (Stations excluded)
+      perpLine: false,
+      perpName: false,
+      corridors:false,
+      magField: false,
+      aurora:   false,
+      nightLights: false
+    };
+
+    const NON_STATION_KEYS = Object.keys(state).filter(k => k !== "stations");
+
+    function setPill(key, on){
+      const b = document.querySelector(`.pill[data-key="${key}"]`);
+      if (b) b.classList.toggle("on", !!on);
+      // keep stations button dot synced too
+      if (key === "stations" && stationsBtn) stationsBtn.classList.toggle("on", !!on);
+    }
+
+    function pulse(btn){
+      if (!btn) return;
+      btn.classList.add("on");
+      setTimeout(()=> btn.classList.remove("on"), 420);
+    }
+
+    function isAllNonStationsOn(){
+      return NON_STATION_KEYS.every(k => !!state[k]);
+    }
+
+    function applyCore(){
+      for (const k of NON_STATION_KEYS){
+        if (k in CORE_PRESET) state[k] = CORE_PRESET[k];
+      }
+      // Stations untouched
+      syncUIFromState();
+      toast("Applied");
+      pulse(coreBtn);
+    }
+
+    function clearOverlays(){
+      for (const k of NON_STATION_KEYS) state[k] = false;
+      // Stations untouched
+      syncUIFromState();
+      toast("Applied");
+      pulse(clearBtn);
+    }
+
+    function toggleStack(){
+      const allOn = isAllNonStationsOn();
+      for (const k of NON_STATION_KEYS) state[k] = !allOn;
+      syncUIFromState();
+      toast("Applied");
+      // Show Stack "on" if now all on
+      stackBtn.classList.toggle("on", isAllNonStationsOn());
+      if (!isAllNonStationsOn()) stackBtn.classList.remove("on");
+    }
+
+    function syncUtilityButtons(){
+      // Stack shows ON only when all non-station overlays are ON
+      stackBtn.classList.toggle("on", isAllNonStationsOn());
+      // Core/Clear are momentary (pulse), so no persistent logic needed
+    }
+
+    // Stations dataset (minimal placeholders; add/replace anytime)
+    const STATIONS = [
+      {
+        name: "Exit 222 • Station 1",
+        node: "ST-0001",
+        axis: "222",
+        trust: "Verified",
+        status: "Active",
+        lat: 38.1608333333,
+        lon: -79.0733333333
+      },
+      {
+        name: "Shenandoah Ridge • Station 2",
+        node: "ST-0002",
+        axis: "42",
+        trust: "Trusted",
+        status: "Active",
+        lat: 38.521,
+        lon: -78.435
+      },
+      {
+        name: "Bethesda • Station 3",
+        node: "ST-0003",
+        axis: "42",
+        trust: "Open",
+        status: "Offline",
+        lat: 38.9847,
+        lon: -77.0947
+      }
+    ];
+
+    // Station modal filter state (simple)
+    const stationFilter = { near:true, "42":false, "222":false, active:false, verified:false };
+
+    function stationMatches(s, q){
+      const t = (q||"").trim().toLowerCase();
+      if (t){
+        const hay = `${s.name} ${s.node} ${s.axis} ${s.trust} ${s.status}`.toLowerCase();
+        if (!hay.includes(t)) return false;
+      }
+      if (stationFilter["42"] && s.axis !== "42") return false;
+      if (stationFilter["222"] && s.axis !== "222") return false;
+      if (stationFilter.active && s.status !== "Active") return false;
+      if (stationFilter.verified && s.trust !== "Verified") return false;
+      return true;
+    }
+
+    function renderStations(){
+      // chips
+      stationChips.querySelectorAll(".chip").forEach(ch=>{
+        const k = ch.dataset.chip;
+        if (!k) return;
+        ch.classList.toggle("on", !!stationFilter[k]);
+      });
+
+      // show stations toggle
+      stationsVisibleBtn.classList.toggle("on", !!state.stations);
+      stationsVisHint.textContent = state.stations ? "On" : "Off";
+
+      // list
+      const q = stationSearch.value || "";
+      const items = STATIONS.filter(s=> stationMatches(s, q));
+
+      stationsList.innerHTML = items.map(s=>{
+        return `
+          <div class="stationCard" data-node="${s.node}">
+            <div class="meta">
+              <div class="name">${escapeHtml(s.name)}</div>
+              <div class="sub">${escapeHtml(s.node)} • Axis ${escapeHtml(s.axis)} • ${escapeHtml(s.trust)} • ${escapeHtml(s.status)}</div>
+            </div>
+            <div class="badge">${escapeHtml(s.axis)}</div>
+          </div>
+        `;
+      }).join("") || `<div style="color:rgba(255,255,255,0.55);font:800 12px/1.4 -apple-system,system-ui,Segoe UI,Roboto,Arial;padding:8px 4px;">No stations found.</div>`;
+
+      stationsList.querySelectorAll(".stationCard").forEach(card=>{
+        card.addEventListener("click", ()=>{
+          const node = card.dataset.node;
+          const s = STATIONS.find(x=> x.node === node);
+          if (!s) return;
+          openStationPreview(s);
+        });
+      });
+    }
+
+    let currentPreviewStation = null;
+    function openStationPreview(s){
+      currentPreviewStation = s;
+      previewName.textContent = s.name;
+      previewMeta.textContent = `${s.node} • Axis ${s.axis} • ${s.trust} • ${s.status}`;
+      openModalView("preview"); // pushes to stack
+    }
+
+    // Overlay picker (Stations excluded)
+    const OVERLAY_DEFS = [
+      { key:"rhumb222",  label:"Rhumb 222 SW" },
+      { key:"rhumb42",   label:"Rhumb 42 NE" },
+      { key:"gc222",     label:"Great Circle 222 SW" },
+      { key:"gc42",      label:"Great Circle 42 NE" },
+      { key:"names222",  label:"Names 222 SW" },
+      { key:"names42",   label:"Names 42 NE" },
+      { key:"perpLine",  label:"Perpendiculars" },
+      { key:"perpName",  label:"Perp Name" },
+      { key:"continents",label:"Continents" },
+      { key:"corridors", label:"Corridors" },
+      { key:"magField",  label:"Magnetic Field" },
+      { key:"aurora",    label:"Aurora" },
+      { key:"nightLights", label:"Night Lights" }
+    ];
+
+    function renderOverlayPicker(){
+      const q = (overlaySearch.value||"").trim().toLowerCase();
+      const showingCore = chipCore.classList.contains("on");
+
+      const rows = OVERLAY_DEFS.filter(d=>{
+        if (q && !d.label.toLowerCase().includes(q)) return false;
+        if (showingCore){
+          return (d.key in CORE_PRESET) && CORE_PRESET[d.key] === true;
+        }
+        return true;
+      });
+
+      overlayList.innerHTML = rows.map(d=>{
+        const on = !!state[d.key];
+        return `
+          <button class="pill ${on ? "on" : ""}" data-key="${d.key}" style="justify-content:space-between;">
+            <span class="left"><span class="dot"></span><span class="label">${escapeHtml(d.label)}</span></span>
+          </button>
+        `;
+      }).join("") || `<div style="color:rgba(255,255,255,0.55);font:800 12px/1.4 -apple-system,system-ui,Segoe UI,Roboto,Arial;padding:8px 4px;">No overlays found.</div>`;
+
+      overlayList.querySelectorAll(".pill[data-key]").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const key = btn.dataset.key;
+          if (!key || !(key in state)) return;
+          // Stations excluded from picker by design
+          state[key] = !state[key];
+          syncUIFromState();
+        });
+      });
+    }
+
+    function escapeHtml(s){
+      return (s||"").replace(/[&<>"']/g, (m)=>({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[m]));
+    }
+
+    // Hook picker UI
+    overlaySearch.addEventListener("input", renderOverlayPicker);
+    chipAll.addEventListener("click", ()=>{
+      chipAll.classList.add("on");
+      chipCore.classList.remove("on");
+      renderOverlayPicker();
+    });
+    chipCore.addEventListener("click", ()=>{
+      chipCore.classList.add("on");
+      chipAll.classList.remove("on");
+      renderOverlayPicker();
+    });
+
+    // Stations modal hooks
+    stationSearch.addEventListener("input", renderStations);
+    stationChips.addEventListener("click", (e)=>{
+      const ch = e.target.closest(".chip");
+      if (!ch) return;
+      const k = ch.dataset.chip;
+      if (!k) return;
+
+      // simple toggles; keep "near" optional but default on
+      stationFilter[k] = !stationFilter[k];
+      ch.classList.toggle("on", stationFilter[k]);
+      renderStations();
+    });
+
+    stationsVisibleBtn.addEventListener("click", ()=>{
+      state.stations = !state.stations;
+      syncUIFromState();
+      renderStations();
+    });
+
+    stationsClearBtn.addEventListener("click", ()=>{
+      stationSearch.value = "";
+      Object.keys(stationFilter).forEach(k => stationFilter[k] = (k === "near"));
+      renderStations();
+      toast("Applied");
+    });
+
+    // Preview actions (simple but smart)
+    previewViewHub.addEventListener("click", ()=> toast("Applied"));
+    previewFollow.addEventListener("click", ()=> toast("Applied"));
+    previewJoin.addEventListener("click", ()=> toast("Applied"));
+
+    // Open Stations modal from Stations button
+    stationsBtn.addEventListener("click", ()=>{
+      modalStack = [];
+      openModalView("stations");
+    });
+
+    // Utility buttons
+    stackBtn.addEventListener("click", toggleStack);
+    coreBtn.addEventListener("click", applyCore);
+    clearBtn.addEventListener("click", clearOverlays);
+    overlayPlusBtn.addEventListener("click", ()=>{
+      modalStack = [];
+      openModalView("overlays");
+    });
+
+    // ============================
+    // Three.js setup
+    // ============================
+    let rendererRef, cameraRef, sceneRef, globeRef;
+    let overlaysRef = null;
+    let nightLightsRef = null;
+
+    function applyVisibility(){
+      if (!overlaysRef) return;
+
+      overlaysRef.rhumb222.visible = state.rhumb222;
+      overlaysRef.rhumb42.visible  = state.rhumb42;
+      overlaysRef.gc222.visible    = state.gc222;
+      overlaysRef.gc42.visible     = state.gc42;
+      overlaysRef.names222.visible = state.names222;
+      overlaysRef.names42.visible  = state.names42;
+      overlaysRef.perpLine.visible = state.perpLine;
+      overlaysRef.perpName.visible = state.perpName;
+      overlaysRef.continents.visible = state.continents;
+      overlaysRef.stations.visible = state.stations;
+      overlaysRef.corridors.visible = state.corridors;
+      overlaysRef.magField.visible = state.magField;
+      overlaysRef.aurora.visible = state.aurora;
+
+      if (nightLightsRef) nightLightsRef.visible = state.nightLights;
+    }
+
+    function syncUIFromState(){
+      Object.keys(state).forEach(k => setPill(k, state[k]));
+      applyVisibility();
+      syncUtilityButtons();
+      // keep Overlay Picker in sync if open
+      if (overlayPicker.style.display !== "none") renderOverlayPicker();
+      // keep Stations UI in sync if open
+      if (stationsView.style.display !== "none") renderStations();
+    }
+
+    // Regular overlay toggles (Stations is modal-only now)
+    document.querySelectorAll(".pill[data-key]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const key = btn.dataset.key;
+        if (!key || !(key in state)) return;
+
+        // Stations handled separately by modal; block direct toggle here
+        if (key === "stations") return;
+
+        state[key] = !state[key];
+        syncUIFromState();
+      });
+    });
+
     (async ()=>{
       try{
-        statusEl.textContent = "Starting…";
-        scene = new THREE.Scene();
+        setStatusBase("Starting…");
+        sceneRef = new THREE.Scene();
 
-        camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 5000);
-        camera.position.set(0, 0, 4.15);
+        cameraRef = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 5000);
+        cameraRef.position.set(0, 0, 4.15);
 
-        renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false, powerPreference: "high-performance" });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-        renderer.setSize(innerWidth, innerHeight);
-        renderer.outputColorSpace = THREE.SRGBColorSpace;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.15;
-        document.body.appendChild(renderer.domElement);
+        rendererRef = new THREE.WebGLRenderer({ antialias:true, alpha:false, powerPreference: "high-performance" });
+        rendererRef.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        rendererRef.setSize(innerWidth, innerHeight);
+        rendererRef.outputColorSpace = THREE.SRGBColorSpace;
+        rendererRef.toneMapping = THREE.ACESFilmicToneMapping;
+        rendererRef.toneMappingExposure = 1.15;
+        document.body.appendChild(rendererRef.domElement);
 
         const ambient = new THREE.AmbientLight(0xffffff, 0.18);
-        scene.add(ambient);
+        sceneRef.add(ambient);
 
         const sunLight = new THREE.DirectionalLight(0xffffff, 1.40);
         sunLight.position.set(5, 1.5, 2.5);
-        scene.add(sunLight);
+        sceneRef.add(sunLight);
 
         const BASES = [
           "https://threejs.org/examples/textures/",
@@ -786,7 +1537,7 @@
         ];
         const urls = (path)=>BASES.map(b=>b+path);
 
-        statusEl.textContent = "Loading textures…";
+        setStatusBase("Loading textures…");
 
         const dayMap   = await loadTextureWithFallback(urls("planets/earth_atmos_2048.jpg"), makeFallbackEarthDay(), "earth day");
         const nightMap = await loadTextureWithFallback(urls("planets/earth_lights_2048.png"), makeFallbackNight(), "earth night lights");
@@ -794,17 +1545,17 @@
         const cloudMap = await loadTextureWithFallback(urls("planets/earth_clouds_1024.png"), makeFallbackClouds(), "earth clouds");
         const starMap  = await loadTextureWithFallback(urls("galaxy_starfield.png"), makeFallbackStars(), "stars");
 
-        const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
+        const maxAniso = rendererRef.capabilities.getMaxAnisotropy ? rendererRef.capabilities.getMaxAnisotropy() : 1;
         [dayMap, nightMap, specMap, cloudMap, starMap].forEach((t)=>{
           t.anisotropy = maxAniso;
           t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
         });
 
-        statusEl.textContent = "Running";
+        setStatusBase("Running");
 
         const starGeo = new THREE.SphereGeometry(90, 64, 64);
         const starMat = new THREE.MeshBasicMaterial({ map: starMap, side: THREE.BackSide });
-        scene.add(new THREE.Mesh(starGeo, starMat));
+        sceneRef.add(new THREE.Mesh(starGeo, starMat));
 
         const earthRadius = 1.0;
         const SEG = 96;
@@ -881,7 +1632,7 @@
           gain:     { value: 2.8 }
         };
 
-        const nightLights = new THREE.Mesh(
+        nightLightsRef = new THREE.Mesh(
           new THREE.SphereGeometry(earthRadius * 1.001, SEG, SEG),
           new THREE.ShaderMaterial({
             uniforms: lightsUniforms,
@@ -995,11 +1746,11 @@
           })
         );
 
-        globe = new THREE.Group();
-        globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
-        scene.add(globe);
+        globeRef = new THREE.Group();
+        globeRef.add(earth, nightLightsRef, cloudShadow, clouds, atmosphere);
+        sceneRef.add(globeRef);
 
-        const overlays = {
+        overlaysRef = {
           rhumb222: new THREE.Group(),
           rhumb42:  new THREE.Group(),
           gc222:    new THREE.Group(),
@@ -1014,7 +1765,7 @@
           magField: new THREE.Group(),
           aurora: new THREE.Group()
         };
-        Object.values(overlays).forEach(g => globe.add(g));
+        Object.values(overlaysRef).forEach(g => globeRef.add(g));
 
         const ANCHOR = { name: "Exit 222 • Station 1", lat: 38.1608333333, lon: -79.0733333333 };
         const BEAR_222 = 222;
@@ -1030,32 +1781,31 @@
         const rh42 = rhumbPoints(ANCHOR.lat, ANCHOR.lon, BEAR_42, 240)
           .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
 
-        overlays.gc222.add(makeGlowTube(gc222, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.24));
-        overlays.rhumb222.add(makeGlowTube(rh222, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.22));
+        overlaysRef.gc222.add(makeGlowTube(gc222, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.28));
+        overlaysRef.rhumb222.add(makeGlowTube(rh222, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.26));
 
-        overlays.gc42.add(makeGlowTube(gc42, 0.0032, 0x5bbcff, 0x5bbcff, 0.55, 0.18));
-        overlays.rhumb42.add(makeGlowTube(rh42, 0.0032, 0xf6c24a, 0xf6c24a, 0.55, 0.16));
+        overlaysRef.gc42.add(makeGlowTube(gc42, 0.0032, 0x5bbcff, 0x5bbcff, 0.55, 0.20));
+        overlaysRef.rhumb42.add(makeGlowTube(rh42, 0.0032, 0xf6c24a, 0xf6c24a, 0.55, 0.18));
 
         function arcFromBearing(bearingDeg){
           const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, bearingDeg, 1.2)
             .filter((_, i) => i > 40 && i < 260)
             .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
-          return makeGlowTube(pts, 0.0026, 0x5bbcff, 0x5bbcff, 1.0, 0.14);
+          return makeGlowTube(pts, 0.0026, 0x5bbcff, 0x5bbcff, 1.0, 0.18);
         }
-        overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
+        overlaysRef.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
-        // ✅ settled text glow
-        const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 3, glow:"rgba(246,194,74,0.10)" });
+        const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 4, glow:"rgba(246,194,74,0.10)" });
         n222.position.copy(latLonToVec3(18, -18, earthRadius*1.10));
-        overlays.names222.add(n222);
+        overlaysRef.names222.add(n222);
 
-        const n42 = makeTextSprite("42 NE", { fontSize: 20, glowBlur: 3, glow:"rgba(91,188,255,0.10)" });
+        const n42 = makeTextSprite("42 NE", { fontSize: 20, glowBlur: 4, glow:"rgba(91,188,255,0.10)" });
         n42.position.copy(latLonToVec3(-6, 62, earthRadius*1.10));
-        overlays.names42.add(n42);
+        overlaysRef.names42.add(n42);
 
-        const pLabel = makeTextSprite("132° / 312°", { fontSize: 18, glowBlur: 3, glow:"rgba(91,188,255,0.08)" });
+        const pLabel = makeTextSprite("132° / 312°", { fontSize: 18, glowBlur: 4, glow:"rgba(91,188,255,0.09)" });
         pLabel.position.copy(latLonToVec3(52, 105, earthRadius*1.11));
-        overlays.perpName.add(pLabel);
+        overlaysRef.perpName.add(pLabel);
 
         const CONT = [
           { name:"North America", lat: 45,  lon:-102 },
@@ -1067,22 +1817,22 @@
           { name:"Antarctica",    lat:-80,  lon:  0 }
         ];
         for (const c of CONT){
-          const s = makeTextSprite(c.name, { fontSize: 18, glowBlur: 3, glow:"rgba(255,255,255,0.08)" });
+          const s = makeTextSprite(c.name, { fontSize: 18, glowBlur: 4, glow:"rgba(255,255,255,0.08)" });
           s.position.copy(latLonToVec3(c.lat, c.lon, earthRadius*1.10));
-          overlays.continents.add(s);
+          overlaysRef.continents.add(s);
         }
 
         const kmToUnit = (km)=> (km/6371)*earthRadius;
         const corridorRadii = [
-          { km: 1,  r: kmToUnit(1),  o: 0.14 },
-          { km: 5,  r: kmToUnit(5),  o: 0.08 },
-          { km: 10, r: kmToUnit(10), o: 0.05 }
+          { km: 1,  r: kmToUnit(1),  o: 0.16 },
+          { km: 5,  r: kmToUnit(5),  o: 0.09 },
+          { km: 10, r: kmToUnit(10), o: 0.06 }
         ];
         for (const c of corridorRadii){
-          overlays.corridors.add(makeGlowTube(gc222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
-          overlays.corridors.add(makeGlowTube(rh222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
-          overlays.corridors.add(makeGlowTube(gc42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.8));
-          overlays.corridors.add(makeGlowTube(rh42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.75));
+          overlaysRef.corridors.add(makeGlowTube(gc222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
+          overlaysRef.corridors.add(makeGlowTube(rh222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
+          overlaysRef.corridors.add(makeGlowTube(gc42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.8));
+          overlaysRef.corridors.add(makeGlowTube(rh42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.75));
         }
 
         function makeStationMarker(label, lat, lon, color=0x7fffd4){
@@ -1090,22 +1840,22 @@
           const p = latLonToVec3(lat, lon, earthRadius*1.02);
 
           const pin = new THREE.Mesh(new THREE.SphereGeometry(0.010, 18, 18),
-            new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.92 })
+            new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.95 })
           );
           pin.position.copy(p);
 
           const glow = new THREE.Mesh(new THREE.SphereGeometry(0.020, 18, 18),
-            new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.12, blending:THREE.AdditiveBlending, depthWrite:false })
+            new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.16, blending:THREE.AdditiveBlending, depthWrite:false })
           );
           glow.position.copy(p);
 
-          const tag = makeTextSprite(label, { fontSize: 18, glowBlur: 3, glow:"rgba(255,255,255,0.10)" });
+          const tag = makeTextSprite(label, { fontSize: 18, glowBlur: 4, glow:"rgba(255,255,255,0.10)" });
           tag.position.copy(latLonToVec3(lat, lon, earthRadius*1.12));
 
           g.add(glow, pin, tag);
           return g;
         }
-        overlays.stations.add(makeStationMarker(ANCHOR.name, ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
+        overlaysRef.stations.add(makeStationMarker(ANCHOR.name, ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
 
         function makeDipoleFieldLines(){
           const g = new THREE.Group();
@@ -1134,30 +1884,31 @@
                 return v.normalize().multiplyScalar(len);
               });
               const ringClamped = ring.filter(v => v.length() < earthRadius*7.5);
-              g.add(makeGlowTube(ringClamped, 0.0014, col, col, 0.0, 0.045));
+              g.add(makeGlowTube(ringClamped, 0.0014, col, col, 0.0, 0.055));
             }
           }
           return g;
         }
-        overlays.magField.add(makeDipoleFieldLines());
+        overlaysRef.magField.add(makeDipoleFieldLines());
 
         function makeAuroraBelt(latDeg=67, color=0xa078ff){
           const g = new THREE.Group();
           for (const lat of [latDeg, -latDeg]){
             const pts = [];
             for (let lon=-180; lon<=180; lon+=2) pts.push(latLonToVec3(lat, lon, earthRadius*1.05));
-            g.add(makeGlowTube(pts, 0.0026, color, color, 0.0, 0.09));
+            g.add(makeGlowTube(pts, 0.0026, color, color, 0.0, 0.11));
           }
           return g;
         }
-        overlays.aurora.add(makeAuroraBelt(67));
+        overlaysRef.aurora.add(makeAuroraBelt(67));
 
+        // Post FX
         const BLOOM_LAYER = 1;
         const bloomLayer = new THREE.Layers(); bloomLayer.set(BLOOM_LAYER);
 
-        nightLights.layers.enable(BLOOM_LAYER);
+        nightLightsRef.layers.enable(BLOOM_LAYER);
         atmosphere.layers.enable(BLOOM_LAYER);
-        Object.values(overlays).forEach(g=>{
+        Object.values(overlaysRef).forEach(g=>{
           g.traverse(o => o.layers && o.layers.enable(BLOOM_LAYER));
         });
 
@@ -1176,11 +1927,10 @@
           }
         }
 
-        const renderScene = new RenderPass(scene, camera);
+        const renderScene = new RenderPass(sceneRef, cameraRef);
 
-        // ✅ slightly reduced bloom intensity (settled)
-        bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.85, 0.78, 0.12);
-        bloomComposer = new EffectComposer(renderer);
+        bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.10, 0.85, 0.10);
+        bloomComposer = new EffectComposer(rendererRef);
         bloomComposer.renderToScreen = false;
         bloomComposer.addPass(renderScene);
         bloomComposer.addPass(bloomPass);
@@ -1192,73 +1942,28 @@
             void main(){ gl_FragColor = texture2D(tDiffuse,vUv) + texture2D(bloomTexture,vUv); }`
         });
 
-        finalComposer = new EffectComposer(renderer);
+        finalComposer = new EffectComposer(rendererRef);
         finalComposer.addPass(renderScene);
         finalComposer.addPass(finalPass);
         finalComposer.addPass(new OutputPass());
 
         function renderBloom(){
-          scene.traverse(darkenNonBloom);
+          sceneRef.traverse(darkenNonBloom);
           bloomComposer.render();
           finalPass.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
-          scene.traverse(restoreMaterial);
+          sceneRef.traverse(restoreMaterial);
         }
 
-        const state = {
-          rhumb222: true,
-          rhumb42:  false,
-          gc222:    true,
-          gc42:     false,
-          names222: false,
-          names42:  false,
-          perpLine: false,
-          perpName: false,
-          continents:false,
-          stations: true,
-          corridors:false,
-          magField: false,
-          aurora:   false,
-          nightLights: true
-        };
+        // Initial UI sync
+        syncUIFromState();
+        // Ensure switchboard utility row correct on load
+        syncUtilityButtons();
 
-        function applyVisibility(){
-          overlays.rhumb222.visible = state.rhumb222;
-          overlays.rhumb42.visible  = state.rhumb42;
-          overlays.gc222.visible    = state.gc222;
-          overlays.gc42.visible     = state.gc42;
-          overlays.names222.visible = state.names222;
-          overlays.names42.visible  = state.names42;
-          overlays.perpLine.visible = state.perpLine;
-          overlays.perpName.visible = state.perpName;
-          overlays.continents.visible = state.continents;
-          overlays.stations.visible = state.stations;
-          overlays.corridors.visible = state.corridors;
-          overlays.magField.visible = state.magField;
-          overlays.aurora.visible = state.aurora;
-          nightLights.visible = state.nightLights;
-        }
-
-        function setPill(key, on){
-          const b = document.querySelector(`.pill[data-key="${key}"]`);
-          if (b) b.classList.toggle("on", !!on);
-        }
-        Object.keys(state).forEach(k => setPill(k, state[k]));
-        applyVisibility();
-
-        document.querySelectorAll(".pill[data-key]").forEach(btn=>{
-          btn.addEventListener("click", ()=>{
-            const key = btn.dataset.key;
-            if (!(key in state)) return;
-            state[key] = !state[key];
-            setPill(key, state[key]);
-            applyVisibility();
-          });
-        });
-
+        // Input controls
         let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
         const AUTO_SPIN=0.0012, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
 
-        let pinching=false, pinchStartDist=0, pinchStartZ=camera.position.z;
+        let pinching=false, pinchStartDist=0, pinchStartZ=cameraRef.position.z;
         const Z_MIN=2.2, Z_MAX=8.0;
 
         function getPoint(e){
@@ -1270,7 +1975,7 @@
           return Math.sqrt(dx*dx+dy*dy);
         }
 
-        const el = renderer.domElement;
+        const el = rendererRef.domElement;
 
         function down(e){
           if (isUIEventTarget(e.target)) return;
@@ -1278,7 +1983,7 @@
           if (e.touches && e.touches.length === 2){
             pinching=true;
             pinchStartDist = dist2(e.touches[0], e.touches[1]);
-            pinchStartZ = camera.position.z;
+            pinchStartZ = cameraRef.position.z;
             return;
           }
           dragging=true;
@@ -1292,7 +1997,7 @@
           if (pinching && e.touches && e.touches.length === 2){
             const d = dist2(e.touches[0], e.touches[1]);
             const ratio = pinchStartDist > 0 ? (pinchStartDist / d) : 1.0;
-            camera.position.z = clamp(pinchStartZ * ratio, Z_MIN, Z_MAX);
+            cameraRef.position.z = clamp(pinchStartZ * ratio, Z_MIN, Z_MAX);
             return;
           }
 
@@ -1301,8 +2006,8 @@
           const dx=p.x-lastX, dy=p.y-lastY;
           lastX=p.x; lastY=p.y;
 
-          globe.rotation.y += dx*DRAG_SENS;
-          globe.rotation.x = clamp(globe.rotation.x + dy*PITCH_SENS, -MAX_PITCH, MAX_PITCH);
+          globeRef.rotation.y += dx*DRAG_SENS;
+          globeRef.rotation.x = clamp(globeRef.rotation.x + dy*PITCH_SENS, -MAX_PITCH, MAX_PITCH);
 
           velY = dx*DRAG_SENS;
           velX = dy*PITCH_SENS;
@@ -1319,21 +2024,21 @@
 
         window.addEventListener("wheel", (e)=>{
           if (isUIEventTarget(e.target)) return;
-          camera.position.z = clamp(camera.position.z + (e.deltaY * 0.0025), Z_MIN, Z_MAX);
+          cameraRef.position.z = clamp(cameraRef.position.z + (e.deltaY * 0.0025), Z_MIN, Z_MAX);
         }, { passive:true });
 
         let resizeTimer = 0;
         function doResize(){
-          if (!renderer || !camera) return;
+          if (!rendererRef || !cameraRef) return;
 
           const w = Math.max(1, window.innerWidth);
           const h = Math.max(1, window.innerHeight);
 
-          camera.aspect = w/h;
-          camera.updateProjectionMatrix();
+          cameraRef.aspect = w/h;
+          cameraRef.updateProjectionMatrix();
 
-          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-          renderer.setSize(w, h, false);
+          rendererRef.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          rendererRef.setSize(w, h, false);
 
           bloomComposer.setSize(w, h);
           finalComposer.setSize(w, h);
@@ -1364,8 +2069,8 @@
           cloudShadow.rotation.y += cloudSpin + 0.00015;
 
           if(!dragging && !pinching){
-            globe.rotation.y += AUTO_SPIN + velY;
-            globe.rotation.x = clamp(globe.rotation.x + velX, -MAX_PITCH, MAX_PITCH);
+            globeRef.rotation.y += AUTO_SPIN + velY;
+            globeRef.rotation.x = clamp(globeRef.rotation.x + velX, -MAX_PITCH, MAX_PITCH);
             velY *= DAMPING;
             velX *= DAMPING;
           }
@@ -1374,12 +2079,16 @@
           const sunDir = sunLight.position.clone().normalize();
 
           earthUniforms.sunDir.value.copy(sunDir);
-          earthUniforms.cameraPos.value.copy(camera.position);
+          earthUniforms.cameraPos.value.copy(cameraRef.position);
           lightsUniforms.sunDir.value.copy(sunDir);
           atmoUniforms.sunDir.value.copy(sunDir);
-          atmoUniforms.cameraPos.value.copy(camera.position);
+          atmoUniforms.cameraPos.value.copy(cameraRef.position);
 
-          renderBloom();
+          // Bloom + final
+          sceneRef.traverse(darkenNonBloom);
+          bloomComposer.render();
+          finalPass.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
+          sceneRef.traverse(restoreMaterial);
           finalComposer.render();
         }
         animate();
