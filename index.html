@@ -33,6 +33,7 @@
       --warn: rgba(246,194,74,0.92);
     }
 
+    *{ box-sizing:border-box; }
     html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
     canvas { display:block; width:100vw !important; height:100vh !important; }
 
@@ -345,6 +346,9 @@
       padding: 14px;
       color: rgba(255,255,255,0.88);
       box-shadow: 0 12px 34px rgba(0,0,0,0.18) inset;
+
+      /* ✅ LOCK: prevent “input bubble” from visually leaking outside rounded card on iOS */
+      overflow: hidden;
     }
     .row{ display:flex; gap:10px; align-items:center; }
     .rowBetween{ display:flex; gap:10px; align-items:center; justify-content:space-between; }
@@ -353,6 +357,10 @@
 
     .input, .textarea{
       width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      display: block;
+
       border-radius: 16px;
       border: 1px solid rgba(255,255,255,0.14);
       background: rgba(0,0,0,0.14);
@@ -361,9 +369,10 @@
       font: 800 14px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       outline: none;
     }
-    .textarea{ min-height: 92px; resize: vertical; font-weight: 750; }
 
-    /* ===== Button ===== */
+    /* ✅ LOCK: stop iOS textarea inner overflow/resize glitches */
+    .textarea{ min-height: 92px; resize: none; font-weight: 750; }
+
     .btn{
       display:inline-flex;
       align-items:center;
@@ -379,6 +388,7 @@
       -webkit-tap-highlight-color: transparent;
       user-select:none;
       min-width: 120px;
+      white-space: nowrap;
     }
     .btn:active{ transform: translateY(1px); }
     .btn.good{ background: rgba(120,255,200,0.12); border-color: rgba(120,255,200,0.20); }
@@ -386,12 +396,12 @@
     .btn.ghost{ background: rgba(255,255,255,0.04); }
     .btn[disabled]{ opacity:0.55; cursor:not-allowed; }
 
-    /* ✅ Compact button style (match Overlay look) */
+    /* ✅ Compact buttons (match Overlay Quick Actions perfectly) */
     .btn.compact{
-      min-width: 0;
       padding: 10px 12px;
       border-radius: 14px;
-      font: 900 13px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      min-width: 0;
+      font-size: 13px;
       letter-spacing: 0.15px;
     }
 
@@ -469,6 +479,7 @@
       .pill .hint{ display:none; }
       #modal{ border-radius: 20px; }
       .hubMain{ padding: 14px 14px 22px; }
+      .btn.compact{ padding: 10px 12px; }
     }
     @media (max-width: 380px){
       .gridTop{ grid-template-columns: 1fr; }
@@ -486,7 +497,8 @@
     .page,.card,.hubMain,.rail,.railBtn,
     #drawer,#modal,#modalTitle,#statusBar,#stationText,
     #distanceText,#accessText,#previewDistanceTiny,#hubAccessTiny,
-    #joinRulesTiny,#locStateText,#profileCounts {
+    #joinRulesTiny,#locStateText,#profileCounts,
+    #stationSearchResults,#overlaySearchCount {
       color: rgba(255,255,255,0.92) !important;
     }
 
@@ -605,6 +617,13 @@
           <h2>Overlay Library</h2>
           <p class="muted">Add or remove overlays for your Station view. (Prototype-local settings.)</p>
 
+          <!-- ✅ NEW: Overlay search bar (locked + full width) -->
+          <div class="card" style="margin-top:12px;">
+            <div class="tiny" style="margin-bottom:6px;">SEARCH OVERLAYS</div>
+            <input class="input" id="overlaySearch" placeholder="Search overlays (e.g., rhumb, aurora, stations, magnetic)..." />
+            <div class="tiny" id="overlaySearchCount" style="margin-top:10px;">Showing all overlays</div>
+          </div>
+
           <div class="card" style="margin-top:12px;">
             <div class="rowBetween">
               <div>
@@ -630,16 +649,29 @@
           </p>
 
           <div class="card" style="margin-top:12px;">
-            <input class="input" id="stationSearch" placeholder="Search stations…" />
-            <div class="rowBetween" style="margin-top:12px;">
-              <!-- ✅ MATCH OVERLAY LOOK (compact) -->
-              <button class="btn compact good" id="stationCreateBtn">+ Create</button>
-              <button class="btn compact danger" id="stationDeleteBtn">− Delete</button>
+            <div class="tiny" style="margin-bottom:6px;">SEARCH</div>
+            <!-- ✅ LOCK: no leak + role search -->
+            <input class="input" id="stationSearch" placeholder="Search stations or roles (Owner / Operator / Analyst / Observer)..." />
+            <div class="tiny" style="margin-top:10px;">
+              Tip: try “owner”, “operator”, “analyst”, “observer” to search people/roles inside the station.
             </div>
+
+            <!-- ✅ Compact Create/Delete (match Overlay Quick Actions) -->
+            <div class="rowBetween" style="margin-top:12px;">
+              <div class="row" style="gap:8px;">
+                <button class="btn compact good" id="stationCreateBtn">+ Create</button>
+                <button class="btn compact danger" id="stationDeleteBtn">− Delete</button>
+              </div>
+              <div class="tiny" id="stationSearchModeTiny">Mode: Stations</div>
+            </div>
+
             <div class="row" style="margin-top:12px;">
-              <button class="btn" id="enableLocationBtn">Enable Location</button>
+              <button class="btn compact" id="enableLocationBtn">Enable Location</button>
               <div class="tiny" id="locStateText">Location: Off</div>
             </div>
+
+            <!-- ✅ Results (stations + people/roles) -->
+            <div id="stationSearchResults" style="display:grid; gap:10px; margin-top:12px;"></div>
           </div>
 
           <div class="card" style="margin-top:14px;">
@@ -778,8 +810,8 @@
             <div class="rowBetween" style="margin-top:12px;">
               <div class="row">
                 <input type="file" id="photoInput" accept="image/*" style="display:none;" />
-                <button class="btn" id="uploadPhotoBtn">Upload photo</button>
-                <button class="btn danger" id="removePhotoBtn">Remove</button>
+                <button class="btn compact" id="uploadPhotoBtn">Upload photo</button>
+                <button class="btn compact danger" id="removePhotoBtn">Remove</button>
               </div>
             </div>
 
@@ -797,7 +829,10 @@
           <div class="card" style="margin-top:14px;">
             <div style="font-weight:900; color: rgba(255,255,255,0.92);">Micro-Post (Field Note)</div>
             <div class="muted" style="margin-top:6px;">Post a scientific note. (Local-only prototype.)</div>
+
+            <!-- ✅ LOCK: textarea cannot leak + full width -->
             <textarea class="textarea" id="fieldNote" placeholder="Write a field note…" style="margin-top:10px;"></textarea>
+
             <div class="rowBetween" style="margin-top:12px;">
               <button class="btn good" id="postBtn">Post</button>
               <div class="tiny" id="profileCounts">Posts: 0 • Likes: 0 • Messages: 0</div>
@@ -876,7 +911,6 @@
     const modalMask  = document.getElementById("modalMask");
     const modalClose = document.getElementById("modalClose");
     const modalTitle = document.getElementById("modalTitle");
-    const modalBody  = document.getElementById("modalBody");
 
     const welcomeFrame   = document.getElementById("welcomeFrame");
     const missionContent = document.getElementById("missionContent");
@@ -884,8 +918,14 @@
     const overlayList    = document.getElementById("overlayList");
     const overlayAllOnBtn = document.getElementById("overlayAllOnBtn");
     const overlayAllOffBtn = document.getElementById("overlayAllOffBtn");
+    const overlaySearch = document.getElementById("overlaySearch");
+    const overlaySearchCount = document.getElementById("overlaySearchCount");
 
     const stationsContent = document.getElementById("stationsContent");
+    const stationSearch = document.getElementById("stationSearch");
+    const stationSearchResults = document.getElementById("stationSearchResults");
+    const stationSearchModeTiny = document.getElementById("stationSearchModeTiny");
+
     const distanceText = document.getElementById("distanceText");
     const accessText   = document.getElementById("accessText");
     const enableLocationBtn = document.getElementById("enableLocationBtn");
@@ -960,8 +1000,6 @@
       stationOpen = !!on;
       stationGroup.classList.toggle("on", stationOpen);
       stationBtn.classList.toggle("on", stationOpen);
-
-      // ✅ Your request
       stationHint.textContent  = stationOpen ? "Close" : "Start";
       stationLabel.textContent = stationOpen ? "Close" : "Start";
     }
@@ -1007,12 +1045,13 @@
       } else if (kind === "overlay"){
         modalTitle.textContent = "OVERLAY +";
         overlayContent.style.display = "block";
-        renderOverlayList();
+        renderOverlayList(overlaySearch?.value || "");
 
       } else if (kind === "stations"){
         modalTitle.textContent = "STATIONS";
         stationsContent.style.display = "block";
         refreshStationUI();
+        renderStationSearchResults(stationSearch?.value || "");
 
       } else if (kind === "preview"){
         modalTitle.textContent = "STATION PREVIEW";
@@ -1173,6 +1212,98 @@
 
       refreshStationUI();
     });
+
+    // ============================
+    // ✅ Stations search: stations + owners/operators/analysts/observers
+    // ============================
+    const STATIONS = [
+      { type:"station", name:"Exit222•Station1", desc:"Axis 42/222 • 38°9′39″ N, 79°4′24″ W" }
+    ];
+
+    // Prototype local directory (role-search requested)
+    const STATION_DIRECTORY = [
+      { type:"person", name:"Owner", role:"Owner", symbol:"⊙", note:"Owner approval required" },
+      { type:"person", name:"Operator-01", role:"Operator", symbol:"✶", note:"Field capture / instruments" },
+      { type:"person", name:"Analyst-01", role:"Analyst", symbol:"Σ", note:"Review / compare datasets" },
+      { type:"person", name:"Observer-01", role:"Observer", symbol:"◌", note:"Read-only / follow" }
+    ];
+
+    function renderStationSearchResults(qRaw){
+      if (!stationSearchResults) return;
+
+      const q = (qRaw || "").trim().toLowerCase();
+      stationSearchResults.innerHTML = "";
+
+      // Determine mode
+      const roleWords = ["owner","operator","analyst","observer","observers","operators","analysts","owners"];
+      const roleMode = roleWords.some(w => q.includes(w));
+
+      stationSearchModeTiny.textContent = q
+        ? (roleMode ? "Mode: People/Roles" : "Mode: Stations")
+        : "Mode: Stations";
+
+      const pool = roleMode ? STATION_DIRECTORY : STATIONS;
+
+      const filtered = !q ? pool : pool.filter(item=>{
+        const hay = `${item.name} ${item.role || ""} ${item.desc || ""} ${item.note || ""}`.toLowerCase();
+        return hay.includes(q);
+      });
+
+      if (!q){
+        // Default: show station card as “quick”
+        const s = STATIONS[0];
+        const card = document.createElement("div");
+        card.className = "card";
+        card.style.padding = "12px 12px";
+        card.innerHTML = `
+          <div style="font-weight:900;">${s.name}</div>
+          <div class="tiny" style="margin-top:6px;">${s.desc}</div>
+        `;
+        stationSearchResults.appendChild(card);
+
+        const hint = document.createElement("div");
+        hint.className = "tiny";
+        hint.style.marginTop = "10px";
+        hint.textContent = "Type a role (owner/operator/analyst/observer) to search station members.";
+        stationSearchResults.appendChild(hint);
+        return;
+      }
+
+      if (!filtered.length){
+        const empty = document.createElement("div");
+        empty.className = "card";
+        empty.style.padding = "12px 12px";
+        empty.innerHTML = `<div style="font-weight:900;">No results</div><div class="tiny" style="margin-top:6px;">Try: owner, operator, analyst, observer, Exit222</div>`;
+        stationSearchResults.appendChild(empty);
+        return;
+      }
+
+      for (const item of filtered){
+        const card = document.createElement("div");
+        card.className = "card";
+        card.style.padding = "12px 12px";
+
+        if (item.type === "station"){
+          card.innerHTML = `
+            <div style="font-weight:900;">${item.name}</div>
+            <div class="tiny" style="margin-top:6px;">${item.desc}</div>
+          `;
+        } else {
+          card.innerHTML = `
+            <div class="rowBetween">
+              <div style="min-width:0;">
+                <div style="font-weight:900;">${item.symbol} ${item.name}</div>
+                <div class="tiny" style="margin-top:6px;">Role: ${item.role} • ${item.note}</div>
+              </div>
+              <button class="btn compact ghost" type="button" disabled>View</button>
+            </div>
+          `;
+        }
+        stationSearchResults.appendChild(card);
+      }
+    }
+
+    stationSearch?.addEventListener("input", ()=> renderStationSearchResults(stationSearch.value));
 
     // ============================
     // Profile
@@ -1544,14 +1675,36 @@
       }
       applyVisibility();
       saveState();
-      renderOverlayList();
+      renderOverlayList(overlaySearch?.value || "");
     }
 
-    function renderOverlayList(){
+    // ✅ overlay search filter (new)
+    function renderOverlayList(queryRaw=""){
       if (!overlayList) return;
       overlayList.innerHTML = "";
 
-      for (const o of overlayMeta){
+      const q = (queryRaw || "").trim().toLowerCase();
+      const filtered = !q ? overlayMeta : overlayMeta.filter(o=>{
+        const hay = `${o.label} ${o.key}`.toLowerCase();
+        return hay.includes(q);
+      });
+
+      if (overlaySearchCount){
+        overlaySearchCount.textContent = q
+          ? `Showing ${filtered.length} / ${overlayMeta.length} overlays`
+          : "Showing all overlays";
+      }
+
+      if (q && !filtered.length){
+        const empty = document.createElement("div");
+        empty.className = "card";
+        empty.style.padding = "12px 12px";
+        empty.innerHTML = `<div style="font-weight:900;">No overlays found</div><div class="tiny" style="margin-top:6px;">Try: rhumb, great circle, aurora, stations, magnetic, corridors</div>`;
+        overlayList.appendChild(empty);
+        return;
+      }
+
+      for (const o of filtered){
         const on = !!state[o.key];
         const row = document.createElement("div");
         row.className = "card";
@@ -1572,19 +1725,21 @@
           state[k] = !state[k];
           applyVisibility();
           saveState();
-          renderOverlayList();
+          renderOverlayList(overlaySearch?.value || "");
         });
         overlayList.appendChild(row);
       }
     }
 
+    overlaySearch?.addEventListener("input", ()=> renderOverlayList(overlaySearch.value));
+
     overlayAllOnBtn?.addEventListener("click", ()=>{
       Object.keys(state).forEach(k=> state[k]=true);
-      applyVisibility(); saveState(); renderOverlayList();
+      applyVisibility(); saveState(); renderOverlayList(overlaySearch?.value || "");
     });
     overlayAllOffBtn?.addEventListener("click", ()=>{
       Object.keys(state).forEach(k=> state[k]=false);
-      applyVisibility(); saveState(); renderOverlayList();
+      applyVisibility(); saveState(); renderOverlayList(overlaySearch?.value || "");
     });
 
     (async ()=>{
@@ -2184,9 +2339,10 @@
         animate();
 
         // initial overlay modal render
-        renderOverlayList();
+        renderOverlayList("");
         refreshStationUI();
         refreshProfileUI();
+        renderStationSearchResults("");
 
       } catch (err){
         showError("Top-level error:\n" + (err?.stack || err?.message || err));
