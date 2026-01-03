@@ -23,10 +23,14 @@
       --text: rgba(255,255,255,0.92);
       --muted: rgba(255,255,255,0.70);
       --muted2: rgba(255,255,255,0.46);
+
       --gold: #f6c24a;
       --blue: #5bbcff;
       --aqua: #7fffd4;
       --violet:#a078ff;
+
+      --good: rgba(120,255,200,0.88);
+      --warn: rgba(246,194,74,0.95);
     }
 
     html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
@@ -113,7 +117,7 @@
     #subtitle{
       font: 650 12px/1.25 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       color: var(--muted);
-      max-width: 540px;
+      max-width: 560px;
     }
 
     #closeBtn{
@@ -143,14 +147,6 @@
     .gridTop{
       display:grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    /* NEW: 4-button utility row (minimal) */
-    .grid4{
-      display:grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
       margin-bottom: 10px;
     }
@@ -206,16 +202,13 @@
       flex: 0 0 auto;
     }
 
-    /* “Lights turn green” when a button is ON */
-    .pill.on .dot{ background: rgba(120,255,200,0.88); box-shadow: 0 0 16px rgba(120,255,200,0.24); }
+    /* “Lights turn green” when a primary button is pressed */
+    .pill.on .dot{ background: var(--good); box-shadow: 0 0 16px rgba(120,255,200,0.24); }
+
+    /* Overlay color hints (only when ON) */
     .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
     .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 16px rgba(91,188,255,0.22); }
-
-    .pill.on[data-key="rhumb42"] .dot{ background: rgba(246,194,74,0.55); box-shadow:0 0 16px rgba(246,194,74,0.16); }
-    .pill.on[data-key="gc42"]    .dot{ background: rgba(91,188,255,0.55); box-shadow:0 0 16px rgba(91,188,255,0.16); }
-
-    .pill.on[data-key="stations"]   .dot{ background: rgba(127,255,212,0.90); box-shadow:0 0 16px rgba(127,255,212,0.18); }
-    .pill.on[data-key="aurora"]     .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 16px rgba(160,120,255,0.18); }
+    .pill.on[data-key="stations"] .dot{ background: rgba(127,255,212,0.90); box-shadow:0 0 16px rgba(127,255,212,0.18); }
     .pill.on[data-key="nightLights"].dot{ background: rgba(140,255,200,0.92); box-shadow:0 0 16px rgba(140,255,200,0.18); }
 
     #statusBar{
@@ -248,10 +241,78 @@
     #drawer.collapsed #errors { display:none; }
     #drawer.collapsed { padding-bottom: 12px; }
 
-    #switchboardGroup{ display:none; }
-    #switchboardGroup.on{ display:block; }
+    /* Station panel (previously Switchboard) */
+    #stationGroup{ display:none; }
+    #stationGroup.on{ display:block; }
 
-    /* Modal system */
+    /* Minimal station card */
+    .card{
+      margin-top: 10px;
+      padding: 12px 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.14);
+      color: rgba(255,255,255,0.82);
+    }
+    .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      font: 800 12px/1.3 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+    }
+    .row + .row{ margin-top: 8px; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-weight: 650; }
+
+    .btnMini{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: 9px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.92);
+      cursor:pointer;
+      font: 900 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btnMini:active{ transform: translateY(1px); }
+
+    #overlayManager{ display:none; }
+    #overlayManager.on{ display:block; }
+
+    .overlayItem{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding: 10px 10px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+    }
+    .overlayItem .name{
+      font: 900 13px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.1px;
+      color: rgba(255,255,255,0.90);
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .overlayItem .meta{
+      font: 750 11px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      color: rgba(255,255,255,0.55);
+      margin-top: 3px;
+    }
+    .overlayItem .actions{
+      display:flex;
+      gap:8px;
+      flex: 0 0 auto;
+    }
+    .actionPlus{ border-color: rgba(120,255,200,0.22); }
+    .actionMinus{ border-color: rgba(246,194,74,0.22); }
+
     #modalMask{
       position: fixed;
       inset: 0;
@@ -284,36 +345,13 @@
       justify-content: space-between;
       padding: 12px 12px 10px;
       border-bottom: 1px solid rgba(255,255,255,0.10);
-      gap: 10px;
     }
     #modalTitle{
       font: 900 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       letter-spacing: 0.3px;
       color: rgba(255,255,255,0.92);
       padding-left: 6px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      min-width: 0;
     }
-    #modalTitle .backBtn{
-      display:none;
-      width: 34px;
-      height: 34px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.92);
-      cursor:pointer;
-      flex: 0 0 auto;
-    }
-    #modalTitle.hasBack .backBtn{ display:inline-flex; align-items:center; justify-content:center; }
-    #modalTitleText{
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
     #modalClose{
       width: 40px;
       height: 40px;
@@ -322,7 +360,6 @@
       background: rgba(255,255,255,0.06);
       color: rgba(255,255,255,0.92);
       cursor:pointer;
-      flex: 0 0 auto;
     }
 
     #modalBody{
@@ -354,187 +391,15 @@
     }
     #missionContent p{ margin: 0 0 12px; color: rgba(255,255,255,0.80); }
 
-    /* Overlay Picker (minimal) */
-    #overlayPicker{
-      display:none;
-      padding: 14px 14px 18px;
-      max-width: 920px;
-      margin: 0 auto;
-    }
-    .searchRow{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      margin-bottom: 12px;
-    }
-    .searchRow input{
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.92);
-      outline: none;
-      font: 800 13px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      letter-spacing: 0.15px;
-    }
-
-    .chipRow{
-      display:flex;
-      gap:10px;
-      overflow:auto;
-      padding-bottom: 8px;
-      margin-bottom: 10px;
-      -webkit-overflow-scrolling: touch;
-    }
-    .chip{
-      flex: 0 0 auto;
-      padding: 10px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.88);
-      font: 900 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      letter-spacing: 0.12px;
-      cursor:pointer;
-      -webkit-tap-highlight-color: transparent;
-      user-select:none;
-    }
-    .chip.on{
-      border-color: rgba(120,255,200,0.30);
-      background: rgba(120,255,200,0.08);
-      color: rgba(255,255,255,0.92);
-    }
-
-    .list{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      padding-bottom: 8px;
-    }
-
-    /* Stations Modal */
-    #stationsView{
-      display:none;
-      padding: 14px 14px 18px;
-      max-width: 920px;
-      margin: 0 auto;
-    }
-    .stationCard{
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap:12px;
-      padding: 12px 14px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      cursor:pointer;
-      -webkit-tap-highlight-color: transparent;
-      user-select:none;
-    }
-    .stationCard:active{ transform: translateY(1px); }
-    .stationCard .meta{
-      min-width:0;
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-    }
-    .stationCard .name{
-      font: 900 14px/1.1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.92);
-      white-space: nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .stationCard .sub{
-      font: 800 11px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.55);
-      letter-spacing: 0.08px;
-      white-space: nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .stationCard .badge{
-      flex: 0 0 auto;
-      font: 900 11px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.88);
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      letter-spacing: 0.12px;
-    }
-
-    /* Station Preview */
-    #stationPreview{
-      display:none;
-      padding: 14px 14px 18px;
-      max-width: 920px;
-      margin: 0 auto;
-    }
-    .previewTop{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      margin-bottom: 12px;
-    }
-    .previewTitle{
-      font: 900 18px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.92);
-      letter-spacing: 0.2px;
-    }
-    .previewSub{
-      font: 800 12px/1.25 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.60);
-      letter-spacing: 0.10px;
-    }
-    .previewActions{
-      display:grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap:10px;
-      margin-top: 10px;
-    }
-
-    /* Toast */
-    #toast{
-      position: fixed;
-      left: 50%;
-      bottom: 92px;
-      transform: translateX(-50%) translateY(8px);
-      z-index: 25000;
-      padding: 10px 12px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(12,14,18,0.72);
-      color: rgba(255,255,255,0.92);
-      font: 900 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      letter-spacing: 0.16px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 14px 44px rgba(0,0,0,0.42);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 180ms ease, transform 180ms ease;
-      user-select:none;
-    }
-    #toast.on{
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
     @media (max-width: 520px){
       .gridTop{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .grid4{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .pill{ padding: 12px 12px; border-radius: 16px; font-size: 13px; }
       #drawerBody{ max-height: calc(100vh - 200px); }
-      #subtitle{ max-width: 310px; }
+      #subtitle{ max-width: 320px; }
       .pill .hint{ display:none; }
-      .previewActions{ grid-template-columns: 1fr; }
     }
     @media (max-width: 380px){
       .gridTop{ grid-template-columns: 1fr; }
-      .grid4{ grid-template-columns: 1fr; }
     }
   </style>
 
@@ -557,7 +422,7 @@
     <div id="drawerTop">
       <div id="titleBlock">
         <div id="title">MAP E.D.E.N.</div>
-        <div id="subtitle">Earth Diametric Energy Network • Tap Switchboard to open layers</div>
+        <div id="subtitle">Tap Station to manage Core + your local station.</div>
       </div>
       <button id="closeBtn" aria-label="Close drawer" title="Close">✕</button>
     </div>
@@ -572,55 +437,72 @@
           <span class="left"><span class="dot"></span><span class="label">Mission</span></span>
         </button>
 
-        <button class="pill switch" id="switchboardBtn">
-          <span class="left"><span class="dot"></span><span class="label">Switchboard</span></span>
-          <span class="hint" id="switchHint">Tap to open</span>
+        <!-- ✅ Renamed: Switchboard -> Station -->
+        <button class="pill" id="stationBtn">
+          <span class="left"><span class="dot"></span><span class="label">Station</span></span>
+          <span class="hint" id="stationHint">Tap to open</span>
         </button>
       </div>
 
-      <div id="switchboardGroup">
-        <!-- NEW: Minimal smart controls -->
-        <div class="grid4">
-          <button class="pill" id="stackBtn">
-            <span class="left"><span class="dot"></span><span class="label">Stack</span></span>
-          </button>
-          <button class="pill" id="coreBtn">
-            <span class="left"><span class="dot"></span><span class="label">Core</span></span>
-          </button>
-          <button class="pill" id="clearBtn">
-            <span class="left"><span class="dot"></span><span class="label">Clear</span></span>
-          </button>
-          <button class="pill" id="overlayPlusBtn">
-            <span class="left"><span class="dot"></span><span class="label">Overlay +</span></span>
-          </button>
+      <!-- ✅ Station panel (minimal by default): Core, Stack, Stations, Overlay +, Clear -->
+      <div id="stationGroup">
+        <div class="grid2">
+          <button class="pill" id="coreBtn" data-ui="primary"><span class="left"><span class="dot"></span><span class="label">Core</span></span></button>
+          <button class="pill" id="stackBtn" data-ui="primary"><span class="left"><span class="dot"></span><span class="label">Stack</span></span></button>
+
+          <button class="pill" id="stationsBtn" data-key="stations"><span class="left"><span class="dot"></span><span class="label">Stations</span></span></button>
+          <button class="pill" id="overlayPlusBtn"><span class="left"><span class="dot"></span><span class="label">Overlay +</span></span></button>
+
+          <button class="pill" id="clearBtn"><span class="left"><span class="dot"></span><span class="label">Clear</span></span></button>
+          <button class="pill" id="locateBtn"><span class="left"><span class="dot"></span><span class="label">Locate</span></span><span class="hint">Nearby</span></button>
         </div>
 
-        <div class="grid2">
-          <button class="pill on" data-key="rhumb222"><span class="left"><span class="dot"></span><span class="label">Rhumb 222 SW</span></span></button>
-          <button class="pill" data-key="rhumb42"><span class="left"><span class="dot"></span><span class="label">Rhumb 42 NE</span></span></button>
+        <!-- Station info + join/create/delete (localStorage) -->
+        <div class="card" id="stationCard">
+          <div class="row">
+            <span>Active</span>
+            <span class="mono" id="activeStationText">Exit222•Station1</span>
+          </div>
+          <div class="row">
+            <span>Range</span>
+            <span class="mono" id="rangeText">Locating…</span>
+          </div>
+          <div class="row">
+            <span>Your role</span>
+            <span class="mono" id="roleText">N/A</span>
+          </div>
+          <div class="row" style="gap:8px;">
+            <button class="btnMini" id="joinBtn">Join</button>
+            <button class="btnMini" id="leaveBtn">Leave</button>
+            <button class="btnMini" id="createStationBtn">Create</button>
+            <button class="btnMini" id="deleteStationBtn">Delete</button>
+          </div>
+          <div class="row" style="color:rgba(255,255,255,0.55); font-weight:750;">
+            <span id="stationNote">Stations are local (this device). Join is limited to nearby stations.</span>
+          </div>
+        </div>
 
-          <button class="pill on" data-key="gc222"><span class="left"><span class="dot"></span><span class="label">Great Circle 222 SW</span></span></button>
-          <button class="pill" data-key="gc42"><span class="left"><span class="dot"></span><span class="label">Great Circle 42 NE</span></span></button>
+        <!-- User-selected overlays appear here (only after added) -->
+        <div id="userOverlaysWrap" class="card" style="display:none;">
+          <div class="row"><span>Overlays</span><span class="mono" id="overlayCount">0</span></div>
+          <div id="userOverlays" class="grid2" style="margin-top:10px;"></div>
+        </div>
 
-          <button class="pill" data-key="names222"><span class="left"><span class="dot"></span><span class="label">Names 222 SW</span></span></button>
-          <button class="pill" data-key="names42"><span class="left"><span class="dot"></span><span class="label">Names 42 NE</span></span></button>
+        <!-- Overlay manager -->
+        <div id="overlayManager" class="card">
+          <div class="row">
+            <span>Overlay Manager</span>
+            <span class="mono" id="overlayManagerHint">Owner/Operator only</span>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <button class="btnMini actionPlus" id="closeOverlayMgrBtn">Done</button>
+            <button class="btnMini actionMinus" id="overlayMinusBtn" title="Remove overlays from your Station">Overlay -</button>
+          </div>
 
-          <button class="pill" data-key="perpLine"><span class="left"><span class="dot"></span><span class="label">Perpendiculars</span></span></button>
-          <button class="pill" data-key="continents"><span class="left"><span class="dot"></span><span class="label">Continents</span></span></button>
-
-          <!-- Stations is separate: tap opens Stations modal (visibility toggled inside modal) -->
-          <button class="pill on" id="stationsBtn" data-key="stations">
-            <span class="left"><span class="dot"></span><span class="label">Stations</span></span>
-            <span class="hint">Search</span>
-          </button>
-
-          <button class="pill" data-key="corridors"><span class="left"><span class="dot"></span><span class="label">Corridors</span></span></button>
-
-          <button class="pill" data-key="magField"><span class="left"><span class="dot"></span><span class="label">Magnetic Field</span></span></button>
-          <button class="pill" data-key="aurora"><span class="left"><span class="dot"></span><span class="label">Aurora</span></span></button>
-
-          <button class="pill on" data-key="nightLights"><span class="left"><span class="dot"></span><span class="label">Night Lights</span></span></button>
-          <button class="pill" data-key="perpName"><span class="left"><span class="dot"></span><span class="label">Perp Name</span></span></button>
+          <div id="overlayList" class="grid2" style="margin-top:10px;"></div>
+          <div class="row" style="margin-top:10px; color:rgba(255,255,255,0.55); font-weight:750;">
+            <span>Adding/removing here controls what appears on your Station.</span>
+          </div>
         </div>
 
         <div id="errors"></div>
@@ -629,25 +511,19 @@
 
     <div id="statusBar">
       <span id="status">Booting…</span>
-      <span id="stationText">Exit 222 • Station 1 @ 38°9′39″ N, 79°4′24″ W</span>
+      <span id="stationText">Exit222•Station1 @ 38°9′39″ N, 79°4′24″ W</span>
     </div>
   </div>
 
   <div id="modalMask" role="dialog" aria-modal="true" aria-label="MAP E.D.E.N. Modal">
     <div id="modal">
       <div id="modalTop">
-        <div id="modalTitle">
-          <button class="backBtn" id="modalBack" aria-label="Back">‹</button>
-          <span id="modalTitleText">WELCOME</span>
-        </div>
+        <div id="modalTitle">WELCOME</div>
         <button id="modalClose" aria-label="Close modal">✕</button>
       </div>
-
       <div id="modalBody">
-        <!-- Welcome -->
         <iframe id="welcomeFrame" title="MAP E.D.E.N. Welcome" loading="lazy"></iframe>
 
-        <!-- Mission -->
         <div id="missionContent" style="display:none;">
           <h2>MAP E.D.E.N. Mission</h2>
           <p>
@@ -655,70 +531,12 @@
             that are repeatable, controlled, and comparable across stations and time.
           </p>
           <p>
-            This globe is a visual switchboard for the core overlays (Rhumb, Great Circle, Corridors, Field previews) while keeping the Earth render clean.
+            This globe is a visual station interface: Core stays clean; operators add overlays only when needed.
           </p>
         </div>
-
-        <!-- Overlay Picker -->
-        <div id="overlayPicker">
-          <div class="searchRow">
-            <input id="overlaySearch" type="text" placeholder="Search overlays…" autocomplete="off" />
-          </div>
-          <div class="chipRow">
-            <div class="chip on" id="chipAll">All</div>
-            <div class="chip" id="chipCore">Core</div>
-          </div>
-          <div class="list" id="overlayList"></div>
-        </div>
-
-        <!-- Stations -->
-        <div id="stationsView">
-          <div class="searchRow">
-            <input id="stationSearch" type="text" placeholder="Search stations…" autocomplete="off" />
-          </div>
-          <div class="chipRow" id="stationChips">
-            <div class="chip on" data-chip="near">Near</div>
-            <div class="chip" data-chip="42">42</div>
-            <div class="chip" data-chip="222">222</div>
-            <div class="chip" data-chip="active">Active</div>
-            <div class="chip" data-chip="verified">Verified</div>
-          </div>
-
-          <!-- Simple station visibility toggle -->
-          <div class="grid4" style="margin: 6px 0 10px;">
-            <button class="pill" id="stationsVisibleBtn">
-              <span class="left"><span class="dot"></span><span class="label">Show Stations</span></span>
-              <span class="hint" id="stationsVisHint">On</span>
-            </button>
-            <button class="pill" id="stationsClearBtn">
-              <span class="left"><span class="dot"></span><span class="label">Clear</span></span>
-            </button>
-            <div style="display:none;"></div>
-            <div style="display:none;"></div>
-          </div>
-
-          <div class="list" id="stationsList"></div>
-        </div>
-
-        <!-- Station Preview -->
-        <div id="stationPreview">
-          <div class="previewTop">
-            <div class="previewTitle" id="previewName">Station</div>
-            <div class="previewSub" id="previewMeta">Node • Axis • Trust • Status</div>
-          </div>
-
-          <div class="previewActions">
-            <button class="pill" id="previewViewHub"><span class="left"><span class="dot"></span><span class="label">View Hub</span></span></button>
-            <button class="pill" id="previewFollow"><span class="left"><span class="dot"></span><span class="label">Follow</span></span></button>
-            <button class="pill" id="previewJoin"><span class="left"><span class="dot"></span><span class="label">Join</span></span></button>
-          </div>
-        </div>
-
       </div>
     </div>
   </div>
-
-  <div id="toast">Applied</div>
 
   <script type="module">
     import * as THREE from "three";
@@ -728,6 +546,9 @@
     import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
     import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 
+    // ============================
+    // Elements
+    // ============================
     const statusEl   = document.getElementById("status");
     const errorsEl   = document.getElementById("errors");
     const drawerEl   = document.getElementById("drawer");
@@ -737,60 +558,45 @@
 
     const welcomeBtn = document.getElementById("welcomeBtn");
     const missionBtn = document.getElementById("missionBtn");
-    const switchBtn  = document.getElementById("switchboardBtn");
-    const switchHint = document.getElementById("switchHint");
-    const switchGrp  = document.getElementById("switchboardGroup");
 
-    // NEW controls
-    const stackBtn = document.getElementById("stackBtn");
+    const stationBtn  = document.getElementById("stationBtn");
+    const stationHint = document.getElementById("stationHint");
+    const stationGrp  = document.getElementById("stationGroup");
+
     const coreBtn = document.getElementById("coreBtn");
-    const clearBtn = document.getElementById("clearBtn");
-    const overlayPlusBtn = document.getElementById("overlayPlusBtn");
+    const stackBtn = document.getElementById("stackBtn");
     const stationsBtn = document.getElementById("stationsBtn");
+    const overlayPlusBtn = document.getElementById("overlayPlusBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const locateBtn = document.getElementById("locateBtn");
 
-    // Modal + views
+    const stationText = document.getElementById("stationText");
+
+    const activeStationText = document.getElementById("activeStationText");
+    const rangeText = document.getElementById("rangeText");
+    const roleText = document.getElementById("roleText");
+    const stationNote = document.getElementById("stationNote");
+
+    const joinBtn = document.getElementById("joinBtn");
+    const leaveBtn = document.getElementById("leaveBtn");
+    const createStationBtn = document.getElementById("createStationBtn");
+    const deleteStationBtn = document.getElementById("deleteStationBtn");
+
+    const userOverlaysWrap = document.getElementById("userOverlaysWrap");
+    const userOverlays = document.getElementById("userOverlays");
+    const overlayCount = document.getElementById("overlayCount");
+
+    const overlayManager = document.getElementById("overlayManager");
+    const overlayManagerHint = document.getElementById("overlayManagerHint");
+    const overlayList = document.getElementById("overlayList");
+    const closeOverlayMgrBtn = document.getElementById("closeOverlayMgrBtn");
+    const overlayMinusBtn = document.getElementById("overlayMinusBtn");
+
     const modalMask  = document.getElementById("modalMask");
     const modalClose = document.getElementById("modalClose");
-    const modalBack  = document.getElementById("modalBack");
     const modalTitle = document.getElementById("modalTitle");
-    const modalTitleText = document.getElementById("modalTitleText");
-
     const welcomeFrame = document.getElementById("welcomeFrame");
     const missionContent = document.getElementById("missionContent");
-    const overlayPicker = document.getElementById("overlayPicker");
-    const overlaySearch = document.getElementById("overlaySearch");
-    const overlayList = document.getElementById("overlayList");
-    const chipAll = document.getElementById("chipAll");
-    const chipCore = document.getElementById("chipCore");
-
-    const stationsView = document.getElementById("stationsView");
-    const stationSearch = document.getElementById("stationSearch");
-    const stationChips = document.getElementById("stationChips");
-    const stationsList = document.getElementById("stationsList");
-    const stationsVisibleBtn = document.getElementById("stationsVisibleBtn");
-    const stationsVisHint = document.getElementById("stationsVisHint");
-    const stationsClearBtn = document.getElementById("stationsClearBtn");
-
-    const stationPreview = document.getElementById("stationPreview");
-    const previewName = document.getElementById("previewName");
-    const previewMeta = document.getElementById("previewMeta");
-    const previewViewHub = document.getElementById("previewViewHub");
-    const previewFollow = document.getElementById("previewFollow");
-    const previewJoin = document.getElementById("previewJoin");
-
-    const toastEl = document.getElementById("toast");
-
-    // ============================
-    // Toast (minimal + smart)
-    // ============================
-    let toastTimer = 0;
-    function toast(msg="Applied"){
-      if (!toastEl) return;
-      toastEl.textContent = msg;
-      toastEl.classList.add("on");
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(()=> toastEl.classList.remove("on"), 950);
-    }
 
     // ============================
     // Quiet status system (no red panel for texture fallbacks)
@@ -810,7 +616,6 @@
     function setStatusBase(s){ statusBase = s; renderStatus(); }
     function addNotice(n){ notices.add(n); renderStatus(); }
 
-    // Only REAL errors get the red panel
     function showError(msg){
       if (errorsEl){
         errorsEl.style.display = "block";
@@ -821,6 +626,9 @@
     window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
     window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
 
+    // ============================
+    // Drawer controls
+    // ============================
     function setDrawerClosed(isClosed){
       drawerEl.classList.toggle("closed", !!isClosed);
       openBtn.style.display = isClosed ? "inline-flex" : "none";
@@ -833,108 +641,170 @@
     function setTopOn(btn){ btn.classList.add("on"); }
 
     // ============================
-    // Modal router (simple, smart)
+    // Modal
     // ============================
-    const VIEWS = {
-      welcome: "WELCOME",
-      mission: "MISSION",
-      overlays: "OVERLAYS",
-      stations: "STATIONS",
-      preview: "STATION"
-    };
-
-    let modalStack = []; // for back behavior (minimal)
-    function hideAllViews(){
-      welcomeFrame.style.display = "none";
-      missionContent.style.display = "none";
-      overlayPicker.style.display = "none";
-      stationsView.style.display = "none";
-      stationPreview.style.display = "none";
-    }
-    function setModalTitle(title, canBack=false){
-      modalTitle.classList.toggle("hasBack", !!canBack);
-      modalTitleText.textContent = title;
-    }
-    function openModalView(view, push=true){
-      if (push) modalStack.push(view);
-
+    function openModal(kind){
       modalMask.classList.add("on");
-      hideAllViews();
-
-      const canBack = modalStack.length > 1;
-      setModalTitle(VIEWS[view] || "MAP E.D.E.N.", canBack);
-
-      if (view === "welcome"){
+      if (kind === "welcome"){
+        modalTitle.textContent = "WELCOME";
+        missionContent.style.display = "none";
         welcomeFrame.style.display = "block";
+
         const WELCOME_FILE = "assets/welcome6.html";
         const u = new URL(WELCOME_FILE, window.location.href);
         u.searchParams.set("v", Date.now().toString());
         welcomeFrame.src = u.toString();
-      }
 
-      if (view === "mission"){
+      } else {
+        modalTitle.textContent = "MISSION";
+        welcomeFrame.style.display = "none";
         missionContent.style.display = "block";
       }
-
-      if (view === "overlays"){
-        overlayPicker.style.display = "block";
-        overlaySearch.value = "";
-        chipAll.classList.add("on");
-        chipCore.classList.remove("on");
-        renderOverlayPicker();
-        setTimeout(()=> overlaySearch?.focus?.(), 50);
-      }
-
-      if (view === "stations"){
-        stationsView.style.display = "block";
-        stationSearch.value = "";
-        renderStations();
-        setTimeout(()=> stationSearch?.focus?.(), 50);
-      }
-
-      if (view === "preview"){
-        stationPreview.style.display = "block";
-      }
     }
-
     function closeModal(){
       modalMask.classList.remove("on");
-      modalStack = [];
       if (welcomeFrame.style.display !== "none") welcomeFrame.src = "about:blank";
-      hideAllViews();
     }
-    function backModal(){
-      if (modalStack.length <= 1) return;
-      modalStack.pop();
-      const prev = modalStack[modalStack.length - 1];
-      openModalView(prev, false);
-    }
-
     modalClose.addEventListener("click", closeModal);
-    modalBack.addEventListener("click", backModal);
     modalMask.addEventListener("click", (e)=>{ if(e.target === modalMask) closeModal(); });
 
     welcomeBtn.addEventListener("click", ()=>{
       setTopOn(welcomeBtn);
-      modalStack = [];
-      openModalView("welcome");
+      openModal("welcome");
     });
     missionBtn.addEventListener("click", ()=>{
       setTopOn(missionBtn);
-      modalStack = [];
-      openModalView("mission");
+      openModal("mission");
     });
 
-    let switchboardOn = false;
-    function setSwitchboard(on){
-      switchboardOn = !!on;
-      switchBtn.classList.toggle("on", switchboardOn);
-      switchGrp.classList.toggle("on", switchboardOn);
-      switchHint.textContent = switchboardOn ? "Tap to close" : "Tap to open";
+    // ============================
+    // Station panel toggle (renamed from Switchboard)
+    // ============================
+    let stationPanelOn = false;
+    function setStationPanel(on){
+      stationPanelOn = !!on;
+      stationBtn.classList.toggle("on", stationPanelOn);
+      stationGrp.classList.toggle("on", stationPanelOn);
+      stationHint.textContent = stationPanelOn ? "Tap to close" : "Tap to open";
+      if (!stationPanelOn){
+        overlayManager.classList.remove("on");
+      }
     }
-    switchBtn.addEventListener("click", ()=> setSwitchboard(!switchboardOn));
-    setSwitchboard(false);
+    stationBtn.addEventListener("click", ()=> setStationPanel(!stationPanelOn));
+    setStationPanel(false);
 
+    // ============================
+    // Geo + Stations (local-only, minimal + smart)
+    // ============================
+    const LS = {
+      deviceId: "eden_device_id_v1",
+      stations: "eden_stations_v1",
+      membership: "eden_membership_v1",
+      activeStation: "eden_active_station_v1",
+      stationOverlays: "eden_station_overlays_v1"
+    };
+
+    function uid(){
+      return Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2);
+    }
+    function getDeviceId(){
+      let id = localStorage.getItem(LS.deviceId);
+      if (!id){ id = "dev_" + uid(); localStorage.setItem(LS.deviceId, id); }
+      return id;
+    }
+    const DEVICE_ID = getDeviceId();
+
+    // ✅ Only active base station now:
+    const BASE_STATION = {
+      id: "exit222_station1",
+      name: "Exit222•Station1",
+      lat: 38.1608333333,
+      lon: -79.0733333333,
+      axis: "42/222",
+      locked: true,
+      ownerId: "system"
+    };
+
+    function loadStations(){
+      const raw = localStorage.getItem(LS.stations);
+      let arr = [];
+      try { arr = raw ? JSON.parse(raw) : []; } catch { arr = []; }
+      // ensure base exists
+      const hasBase = arr.some(s => s.id === BASE_STATION.id);
+      if (!hasBase) arr.unshift(BASE_STATION);
+      // Keep base locked first
+      arr = [
+        BASE_STATION,
+        ...arr.filter(s => s.id !== BASE_STATION.id)
+      ];
+      localStorage.setItem(LS.stations, JSON.stringify(arr));
+      return arr;
+    }
+
+    function saveStations(stations){
+      localStorage.setItem(LS.stations, JSON.stringify(stations));
+    }
+
+    function loadMembership(){
+      const raw = localStorage.getItem(LS.membership);
+      try { return raw ? JSON.parse(raw) : {}; } catch { return {}; }
+    }
+    function saveMembership(m){
+      localStorage.setItem(LS.membership, JSON.stringify(m));
+    }
+
+    function getActiveStationId(){
+      return localStorage.getItem(LS.activeStation) || BASE_STATION.id;
+    }
+    function setActiveStationId(id){
+      localStorage.setItem(LS.activeStation, id);
+    }
+
+    // distance in km (haversine)
+    function haversineKm(lat1, lon1, lat2, lon2){
+      const R = 6371;
+      const dLat = (lat2-lat1) * Math.PI/180;
+      const dLon = (lon2-lon1) * Math.PI/180;
+      const a =
+        Math.sin(dLat/2)**2 +
+        Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+      return 2*R*Math.asin(Math.min(1, Math.sqrt(a)));
+    }
+
+    let userLoc = null; // {lat, lon, accM}
+    const JOIN_RADIUS_KM = 75; // “near your location” (adjust anytime)
+
+    async function locate(){
+      rangeText.textContent = "Locating…";
+      return new Promise((resolve)=>{
+        if (!navigator.geolocation){
+          rangeText.textContent = "No GPS";
+          userLoc = null;
+          resolve(null);
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (pos)=>{
+            userLoc = {
+              lat: pos.coords.latitude,
+              lon: pos.coords.longitude,
+              accM: pos.coords.accuracy
+            };
+            resolve(userLoc);
+          },
+          ()=>{
+            userLoc = null;
+            rangeText.textContent = "Location blocked";
+            resolve(null);
+          },
+          { enableHighAccuracy:true, timeout:8000, maximumAge:15000 }
+        );
+      });
+    }
+
+    // ============================
+    // Overlays: Core + Stack + User overlays
+    // ============================
     const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
     const DEG = Math.PI/180;
     const RAD = 180/Math.PI;
@@ -943,6 +813,66 @@
       return !!(target && (target.closest?.("#drawer") || target.closest?.("#openBtn") || target.closest?.("#modalMask")));
     }
 
+    // keys that exist in rendering state
+    const OVERLAY_LIBRARY = [
+      { key:"rhumb222", label:"Rhumb 222 SW", meta:"Core axis (rhumb)", tier:"core" },
+      { key:"gc222", label:"Great Circle 222 SW", meta:"Core axis (geodesic)", tier:"core" },
+      { key:"nightLights", label:"Night Lights", meta:"Urban glow", tier:"core" },
+
+      { key:"rhumb42", label:"Rhumb 42 NE", meta:"Opposite bearing", tier:"stack" },
+      { key:"gc42", label:"Great Circle 42 NE", meta:"Opposite bearing", tier:"stack" },
+      { key:"names222", label:"Names 222 SW", meta:"Labels", tier:"stack" },
+      { key:"names42", label:"Names 42 NE", meta:"Labels", tier:"stack" },
+      { key:"perpLine", label:"Perpendiculars", meta:"132° / 312°", tier:"stack" },
+      { key:"perpName", label:"Perp Name", meta:"Label", tier:"stack" },
+      { key:"continents", label:"Continents", meta:"Light labels", tier:"stack" },
+      { key:"corridors", label:"Corridors", meta:"±1/±5/±10 km", tier:"stack" },
+      { key:"magField", label:"Magnetic Field", meta:"Dipole preview", tier:"stack" },
+      { key:"aurora", label:"Aurora", meta:"Belt preview", tier:"stack" }
+    ];
+
+    // Default station overlay list is minimal per your rule:
+    // Station shows only: Core, Stack, Stations, Overlay +, Clear
+    // (no extra overlays appear until user adds them)
+    function loadStationOverlays(){
+      const raw = localStorage.getItem(LS.stationOverlays);
+      try { return raw ? JSON.parse(raw) : {}; } catch { return {}; }
+    }
+    function saveStationOverlays(map){
+      localStorage.setItem(LS.stationOverlays, JSON.stringify(map));
+    }
+
+    function getOverlaySetForStation(stationId){
+      const m = loadStationOverlays();
+      return new Set(Array.isArray(m[stationId]) ? m[stationId] : []);
+    }
+    function setOverlaySetForStation(stationId, set){
+      const m = loadStationOverlays();
+      m[stationId] = Array.from(set);
+      saveStationOverlays(m);
+    }
+
+    // Membership + roles: Observer / Analyst / Operator / Owner
+    const ROLES = ["Observer","Analyst","Operator","Owner"];
+    function getRoleForStation(stationId){
+      const mem = loadMembership();
+      const r = mem?.[stationId]?.role;
+      return (ROLES.includes(r) ? r : null);
+    }
+    function setRoleForStation(stationId, role){
+      const mem = loadMembership();
+      mem[stationId] = mem[stationId] || {};
+      mem[stationId].role = role;
+      saveMembership(mem);
+    }
+    function isOwnerOrOperator(stationId){
+      const r = getRoleForStation(stationId);
+      return r === "Owner" || r === "Operator";
+    }
+
+    // ============================
+    // Rendering helpers
+    // ============================
     function latLonToVec3(latDeg, lonDeg, radius=1.0){
       const lat = latDeg * DEG;
       const lon = lonDeg * DEG;
@@ -1153,382 +1083,489 @@
       return fallbackTex;
     }
 
+    // ============================
+    // Three.js globals
+    // ============================
     let renderer, camera, scene, globe;
     let bloomComposer, finalComposer, bloomPass, finalPass;
     let rafId = 0;
     let running = true;
 
-    // ============================
-    // State + SMART controls
-    // ============================
+    // Runtime overlay groups (three.js)
+    let overlays = null;
+    let nightLightsMesh = null;
+
+    // Overlay state (visibility toggles)
     const state = {
+      // Core
       rhumb222: true,
-      rhumb42:  false,
       gc222:    true,
+      nightLights: true,
+
+      // Stack candidates
+      rhumb42:  false,
       gc42:     false,
       names222: false,
       names42:  false,
       perpLine: false,
       perpName: false,
       continents:false,
-      stations: true,     // separate
       corridors:false,
       magField: false,
       aurora:   false,
-      nightLights: true
+
+      // Stations
+      stations: true
     };
 
-    const CORE_PRESET = {
-      rhumb222: true,
-      rhumb42:  true,
-      gc222:    true,
-      gc42:     true,
-      names222: true,
-      names42:  true,
-      continents:true,
-      // Everything else off (Stations excluded)
-      perpLine: false,
-      perpName: false,
-      corridors:false,
-      magField: false,
-      aurora:   false,
-      nightLights: false
-    };
-
-    const NON_STATION_KEYS = Object.keys(state).filter(k => k !== "stations");
-
-    function setPill(key, on){
-      const b = document.querySelector(`.pill[data-key="${key}"]`);
-      if (b) b.classList.toggle("on", !!on);
-      // keep stations button dot synced too
-      if (key === "stations" && stationsBtn) stationsBtn.classList.toggle("on", !!on);
-    }
-
-    function pulse(btn){
-      if (!btn) return;
-      btn.classList.add("on");
-      setTimeout(()=> btn.classList.remove("on"), 420);
-    }
-
-    function isAllNonStationsOn(){
-      return NON_STATION_KEYS.every(k => !!state[k]);
-    }
-
-    function applyCore(){
-      for (const k of NON_STATION_KEYS){
-        if (k in CORE_PRESET) state[k] = CORE_PRESET[k];
-      }
-      // Stations untouched
-      syncUIFromState();
-      toast("Applied");
-      pulse(coreBtn);
-    }
-
-    function clearOverlays(){
-      for (const k of NON_STATION_KEYS) state[k] = false;
-      // Stations untouched
-      syncUIFromState();
-      toast("Applied");
-      pulse(clearBtn);
-    }
-
-    function toggleStack(){
-      const allOn = isAllNonStationsOn();
-      for (const k of NON_STATION_KEYS) state[k] = !allOn;
-      syncUIFromState();
-      toast("Applied");
-      // Show Stack "on" if now all on
-      stackBtn.classList.toggle("on", isAllNonStationsOn());
-      if (!isAllNonStationsOn()) stackBtn.classList.remove("on");
-    }
-
-    function syncUtilityButtons(){
-      // Stack shows ON only when all non-station overlays are ON
-      stackBtn.classList.toggle("on", isAllNonStationsOn());
-      // Core/Clear are momentary (pulse), so no persistent logic needed
-    }
-
-    // Stations dataset (minimal placeholders; add/replace anytime)
-    const STATIONS = [
-      {
-        name: "Exit 222 • Station 1",
-        node: "ST-0001",
-        axis: "222",
-        trust: "Verified",
-        status: "Active",
-        lat: 38.1608333333,
-        lon: -79.0733333333
-      },
-      {
-        name: "Shenandoah Ridge • Station 2",
-        node: "ST-0002",
-        axis: "42",
-        trust: "Trusted",
-        status: "Active",
-        lat: 38.521,
-        lon: -78.435
-      },
-      {
-        name: "Bethesda • Station 3",
-        node: "ST-0003",
-        axis: "42",
-        trust: "Open",
-        status: "Offline",
-        lat: 38.9847,
-        lon: -77.0947
-      }
-    ];
-
-    // Station modal filter state (simple)
-    const stationFilter = { near:true, "42":false, "222":false, active:false, verified:false };
-
-    function stationMatches(s, q){
-      const t = (q||"").trim().toLowerCase();
-      if (t){
-        const hay = `${s.name} ${s.node} ${s.axis} ${s.trust} ${s.status}`.toLowerCase();
-        if (!hay.includes(t)) return false;
-      }
-      if (stationFilter["42"] && s.axis !== "42") return false;
-      if (stationFilter["222"] && s.axis !== "222") return false;
-      if (stationFilter.active && s.status !== "Active") return false;
-      if (stationFilter.verified && s.trust !== "Verified") return false;
-      return true;
-    }
-
-    function renderStations(){
-      // chips
-      stationChips.querySelectorAll(".chip").forEach(ch=>{
-        const k = ch.dataset.chip;
-        if (!k) return;
-        ch.classList.toggle("on", !!stationFilter[k]);
-      });
-
-      // show stations toggle
-      stationsVisibleBtn.classList.toggle("on", !!state.stations);
-      stationsVisHint.textContent = state.stations ? "On" : "Off";
-
-      // list
-      const q = stationSearch.value || "";
-      const items = STATIONS.filter(s=> stationMatches(s, q));
-
-      stationsList.innerHTML = items.map(s=>{
-        return `
-          <div class="stationCard" data-node="${s.node}">
-            <div class="meta">
-              <div class="name">${escapeHtml(s.name)}</div>
-              <div class="sub">${escapeHtml(s.node)} • Axis ${escapeHtml(s.axis)} • ${escapeHtml(s.trust)} • ${escapeHtml(s.status)}</div>
-            </div>
-            <div class="badge">${escapeHtml(s.axis)}</div>
-          </div>
-        `;
-      }).join("") || `<div style="color:rgba(255,255,255,0.55);font:800 12px/1.4 -apple-system,system-ui,Segoe UI,Roboto,Arial;padding:8px 4px;">No stations found.</div>`;
-
-      stationsList.querySelectorAll(".stationCard").forEach(card=>{
-        card.addEventListener("click", ()=>{
-          const node = card.dataset.node;
-          const s = STATIONS.find(x=> x.node === node);
-          if (!s) return;
-          openStationPreview(s);
-        });
-      });
-    }
-
-    let currentPreviewStation = null;
-    function openStationPreview(s){
-      currentPreviewStation = s;
-      previewName.textContent = s.name;
-      previewMeta.textContent = `${s.node} • Axis ${s.axis} • ${s.trust} • ${s.status}`;
-      openModalView("preview"); // pushes to stack
-    }
-
-    // Overlay picker (Stations excluded)
-    const OVERLAY_DEFS = [
-      { key:"rhumb222",  label:"Rhumb 222 SW" },
-      { key:"rhumb42",   label:"Rhumb 42 NE" },
-      { key:"gc222",     label:"Great Circle 222 SW" },
-      { key:"gc42",      label:"Great Circle 42 NE" },
-      { key:"names222",  label:"Names 222 SW" },
-      { key:"names42",   label:"Names 42 NE" },
-      { key:"perpLine",  label:"Perpendiculars" },
-      { key:"perpName",  label:"Perp Name" },
-      { key:"continents",label:"Continents" },
-      { key:"corridors", label:"Corridors" },
-      { key:"magField",  label:"Magnetic Field" },
-      { key:"aurora",    label:"Aurora" },
-      { key:"nightLights", label:"Night Lights" }
-    ];
-
-    function renderOverlayPicker(){
-      const q = (overlaySearch.value||"").trim().toLowerCase();
-      const showingCore = chipCore.classList.contains("on");
-
-      const rows = OVERLAY_DEFS.filter(d=>{
-        if (q && !d.label.toLowerCase().includes(q)) return false;
-        if (showingCore){
-          return (d.key in CORE_PRESET) && CORE_PRESET[d.key] === true;
-        }
-        return true;
-      });
-
-      overlayList.innerHTML = rows.map(d=>{
-        const on = !!state[d.key];
-        return `
-          <button class="pill ${on ? "on" : ""}" data-key="${d.key}" style="justify-content:space-between;">
-            <span class="left"><span class="dot"></span><span class="label">${escapeHtml(d.label)}</span></span>
-          </button>
-        `;
-      }).join("") || `<div style="color:rgba(255,255,255,0.55);font:800 12px/1.4 -apple-system,system-ui,Segoe UI,Roboto,Arial;padding:8px 4px;">No overlays found.</div>`;
-
-      overlayList.querySelectorAll(".pill[data-key]").forEach(btn=>{
-        btn.addEventListener("click", ()=>{
-          const key = btn.dataset.key;
-          if (!key || !(key in state)) return;
-          // Stations excluded from picker by design
-          state[key] = !state[key];
-          syncUIFromState();
-        });
-      });
-    }
-
-    function escapeHtml(s){
-      return (s||"").replace(/[&<>"']/g, (m)=>({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-      }[m]));
-    }
-
-    // Hook picker UI
-    overlaySearch.addEventListener("input", renderOverlayPicker);
-    chipAll.addEventListener("click", ()=>{
-      chipAll.classList.add("on");
-      chipCore.classList.remove("on");
-      renderOverlayPicker();
-    });
-    chipCore.addEventListener("click", ()=>{
-      chipCore.classList.add("on");
-      chipAll.classList.remove("on");
-      renderOverlayPicker();
-    });
-
-    // Stations modal hooks
-    stationSearch.addEventListener("input", renderStations);
-    stationChips.addEventListener("click", (e)=>{
-      const ch = e.target.closest(".chip");
-      if (!ch) return;
-      const k = ch.dataset.chip;
-      if (!k) return;
-
-      // simple toggles; keep "near" optional but default on
-      stationFilter[k] = !stationFilter[k];
-      ch.classList.toggle("on", stationFilter[k]);
-      renderStations();
-    });
-
-    stationsVisibleBtn.addEventListener("click", ()=>{
-      state.stations = !state.stations;
-      syncUIFromState();
-      renderStations();
-    });
-
-    stationsClearBtn.addEventListener("click", ()=>{
-      stationSearch.value = "";
-      Object.keys(stationFilter).forEach(k => stationFilter[k] = (k === "near"));
-      renderStations();
-      toast("Applied");
-    });
-
-    // Preview actions (simple but smart)
-    previewViewHub.addEventListener("click", ()=> toast("Applied"));
-    previewFollow.addEventListener("click", ()=> toast("Applied"));
-    previewJoin.addEventListener("click", ()=> toast("Applied"));
-
-    // Open Stations modal from Stations button
-    stationsBtn.addEventListener("click", ()=>{
-      modalStack = [];
-      openModalView("stations");
-    });
-
-    // Utility buttons
-    stackBtn.addEventListener("click", toggleStack);
-    coreBtn.addEventListener("click", applyCore);
-    clearBtn.addEventListener("click", clearOverlays);
-    overlayPlusBtn.addEventListener("click", ()=>{
-      modalStack = [];
-      openModalView("overlays");
-    });
+    function setPillOn(el, on){ el?.classList.toggle("on", !!on); }
 
     // ============================
-    // Three.js setup
+    // Core / Stack buttons (Just “Core”)
     // ============================
-    let rendererRef, cameraRef, sceneRef, globeRef;
-    let overlaysRef = null;
-    let nightLightsRef = null;
+    let coreOn = true;
+    let stackOn = false;
 
     function applyVisibility(){
-      if (!overlaysRef) return;
+      if (!overlays) return;
 
-      overlaysRef.rhumb222.visible = state.rhumb222;
-      overlaysRef.rhumb42.visible  = state.rhumb42;
-      overlaysRef.gc222.visible    = state.gc222;
-      overlaysRef.gc42.visible     = state.gc42;
-      overlaysRef.names222.visible = state.names222;
-      overlaysRef.names42.visible  = state.names42;
-      overlaysRef.perpLine.visible = state.perpLine;
-      overlaysRef.perpName.visible = state.perpName;
-      overlaysRef.continents.visible = state.continents;
-      overlaysRef.stations.visible = state.stations;
-      overlaysRef.corridors.visible = state.corridors;
-      overlaysRef.magField.visible = state.magField;
-      overlaysRef.aurora.visible = state.aurora;
+      overlays.rhumb222.visible = coreOn && state.rhumb222;
+      overlays.gc222.visible    = coreOn && state.gc222;
+      if (nightLightsMesh) nightLightsMesh.visible = coreOn && state.nightLights;
 
-      if (nightLightsRef) nightLightsRef.visible = state.nightLights;
+      // stack bundle toggles
+      overlays.rhumb42.visible    = stackOn && state.rhumb42;
+      overlays.gc42.visible       = stackOn && state.gc42;
+      overlays.names222.visible   = stackOn && state.names222;
+      overlays.names42.visible    = stackOn && state.names42;
+      overlays.perpLine.visible   = stackOn && state.perpLine;
+      overlays.perpName.visible   = stackOn && state.perpName;
+      overlays.continents.visible = stackOn && state.continents;
+      overlays.corridors.visible  = stackOn && state.corridors;
+      overlays.magField.visible   = stackOn && state.magField;
+      overlays.aurora.visible     = stackOn && state.aurora;
+
+      overlays.stations.visible   = state.stations;
     }
 
-    function syncUIFromState(){
-      Object.keys(state).forEach(k => setPill(k, state[k]));
+    function setCore(on){
+      coreOn = !!on;
+      setPillOn(coreBtn, coreOn);
       applyVisibility();
-      syncUtilityButtons();
-      // keep Overlay Picker in sync if open
-      if (overlayPicker.style.display !== "none") renderOverlayPicker();
-      // keep Stations UI in sync if open
-      if (stationsView.style.display !== "none") renderStations();
+    }
+    function setStack(on){
+      stackOn = !!on;
+      setPillOn(stackBtn, stackOn);
+      applyVisibility();
     }
 
-    // Regular overlay toggles (Stations is modal-only now)
-    document.querySelectorAll(".pill[data-key]").forEach(btn=>{
-      btn.addEventListener("click", ()=>{
-        const key = btn.dataset.key;
-        if (!key || !(key in state)) return;
+    function clearAll(){
+      // Keep Core + Stations as your minimal “smart” default
+      coreOn = true;
+      stackOn = false;
 
-        // Stations handled separately by modal; block direct toggle here
-        if (key === "stations") return;
-
-        state[key] = !state[key];
-        syncUIFromState();
+      Object.keys(state).forEach(k=>{
+        if (["rhumb222","gc222","nightLights","stations"].includes(k)) return;
+        state[k] = false;
       });
+
+      // Core always on by default (clean)
+      state.rhumb222 = true;
+      state.gc222 = true;
+      state.nightLights = true;
+      state.stations = true;
+
+      setCore(true);
+      setStack(false);
+      setPillOn(stationsBtn, state.stations);
+      refreshUserOverlayUI(); // also re-sync overlay toggles
+      applyVisibility();
+    }
+
+    coreBtn.addEventListener("click", ()=> setCore(!coreOn));
+    stackBtn.addEventListener("click", ()=> setStack(!stackOn));
+    stationsBtn.addEventListener("click", ()=>{
+      state.stations = !state.stations;
+      setPillOn(stationsBtn, state.stations);
+      applyVisibility();
+    });
+    clearBtn.addEventListener("click", clearAll);
+
+    // ============================
+    // Station + Overlay UI logic
+    // ============================
+    function getActiveStation(){
+      const stations = loadStations();
+      const id = getActiveStationId();
+      return stations.find(s=>s.id===id) || BASE_STATION;
+    }
+
+    function setActiveStation(stationId){
+      setActiveStationId(stationId);
+      const st = getActiveStation();
+      activeStationText.textContent = st.name;
+      stationText.textContent = `${st.name} @ ${st.lat.toFixed(4)}, ${st.lon.toFixed(4)}`;
+      roleText.textContent = getRoleForStation(st.id) || "N/A";
+      refreshUserOverlayUI();
+      updateOverlayManagerAccess();
+    }
+
+    function updateRange(){
+      const st = getActiveStation();
+      if (!userLoc){
+        rangeText.textContent = "Unknown";
+        stationNote.textContent = "Stations are local (this device). Join is limited to nearby stations.";
+        return;
+      }
+      const d = haversineKm(userLoc.lat, userLoc.lon, st.lat, st.lon);
+      const ok = d <= JOIN_RADIUS_KM;
+      rangeText.textContent = `${d.toFixed(1)} km • ${ok ? "Nearby" : "Too far"}`;
+      stationNote.textContent = ok
+        ? "You can join this station from your location."
+        : `Join is limited to nearby stations (≤ ${JOIN_RADIUS_KM} km).`;
+    }
+
+    async function locateAndRefresh(){
+      await locate();
+      updateRange();
+      refreshJoinButtons();
+    }
+
+    locateBtn.addEventListener("click", locateAndRefresh);
+
+    function refreshJoinButtons(){
+      const st = getActiveStation();
+      const mem = loadMembership();
+      const joined = !!mem?.[st.id]?.joined;
+
+      const near = (userLoc)
+        ? (haversineKm(userLoc.lat, userLoc.lon, st.lat, st.lon) <= JOIN_RADIUS_KM)
+        : false;
+
+      joinBtn.disabled = !(near && !joined);
+      leaveBtn.disabled = !joined;
+
+      // Create always allowed (creates at your location)
+      createStationBtn.disabled = !userLoc;
+
+      // Delete allowed only if you own the station AND it's not locked
+      const stations = loadStations();
+      const s = stations.find(x=>x.id===st.id);
+      const owned = s && s.ownerId === DEVICE_ID;
+      deleteStationBtn.disabled = !(owned && !s.locked);
+
+      // Overlay editing is Owner/Operator
+      overlayPlusBtn.disabled = !isOwnerOrOperator(st.id);
+      overlayMinusBtn.disabled = !isOwnerOrOperator(st.id);
+      overlayManagerHint.textContent = isOwnerOrOperator(st.id) ? "Owner/Operator" : "Owner/Operator only";
+    }
+
+    function joinActiveStation(){
+      const st = getActiveStation();
+      if (!userLoc){
+        alert("Location is required to join nearby stations.");
+        return;
+      }
+      const d = haversineKm(userLoc.lat, userLoc.lon, st.lat, st.lon);
+      if (d > JOIN_RADIUS_KM){
+        alert(`Too far to join. You are ${d.toFixed(1)} km away (limit ${JOIN_RADIUS_KM} km).`);
+        return;
+      }
+
+      const role = (prompt(`Choose role for ${st.name}:\n${ROLES.join(", ")}`, "Observer") || "Observer").trim();
+      const safeRole = ROLES.includes(role) ? role : "Observer";
+
+      const mem = loadMembership();
+      mem[st.id] = mem[st.id] || {};
+      mem[st.id].joined = true;
+      mem[st.id].role = safeRole;
+      saveMembership(mem);
+
+      roleText.textContent = safeRole;
+      refreshJoinButtons();
+      updateOverlayManagerAccess();
+    }
+
+    function leaveActiveStation(){
+      const st = getActiveStation();
+      const mem = loadMembership();
+      if (mem?.[st.id]){
+        mem[st.id].joined = false;
+        // keep role on device for convenience, but no longer joined
+        saveMembership(mem);
+      }
+      refreshJoinButtons();
+      updateOverlayManagerAccess();
+    }
+
+    function createStation(){
+      if (!userLoc){
+        alert("Tap Locate first to create a station at your location.");
+        return;
+      }
+      const name = (prompt("Station name (example: Ridge•Station2)", "My•Station") || "").trim();
+      if (!name) return;
+
+      const stations = loadStations();
+      const id = "st_" + uid();
+
+      stations.push({
+        id,
+        name,
+        lat: userLoc.lat,
+        lon: userLoc.lon,
+        axis: "local",
+        locked: false,
+        ownerId: DEVICE_ID
+      });
+      saveStations(stations);
+
+      // auto-join as Owner
+      const mem = loadMembership();
+      mem[id] = { joined:true, role:"Owner" };
+      saveMembership(mem);
+
+      // overlays default empty for new station
+      setOverlaySetForStation(id, new Set());
+
+      setActiveStation(id);
+      updateRange();
+      refreshJoinButtons();
+    }
+
+    function deleteStation(){
+      const st = getActiveStation();
+      const stations = loadStations();
+      const s = stations.find(x=>x.id===st.id);
+      if (!s || s.locked){
+        alert("This station is locked.");
+        return;
+      }
+      if (s.ownerId !== DEVICE_ID){
+        alert("Only the Owner can delete this station.");
+        return;
+      }
+      const ok = confirm(`Delete station "${s.name}"?`);
+      if (!ok) return;
+
+      const next = stations.filter(x=>x.id!==s.id);
+      saveStations(next);
+
+      // remove membership + overlay config
+      const mem = loadMembership();
+      delete mem[s.id];
+      saveMembership(mem);
+
+      const ov = loadStationOverlays();
+      delete ov[s.id];
+      saveStationOverlays(ov);
+
+      setActiveStation(BASE_STATION.id);
+      updateRange();
+      refreshJoinButtons();
+    }
+
+    joinBtn.addEventListener("click", joinActiveStation);
+    leaveBtn.addEventListener("click", leaveActiveStation);
+    createStationBtn.addEventListener("click", createStation);
+    deleteStationBtn.addEventListener("click", deleteStation);
+
+    // Overlay manager open/close
+    function updateOverlayManagerAccess(){
+      const st = getActiveStation();
+      const allowed = isOwnerOrOperator(st.id);
+      overlayPlusBtn.disabled = !allowed;
+      overlayManagerHint.textContent = allowed ? "Owner/Operator" : "Owner/Operator only";
+      if (!allowed) overlayManager.classList.remove("on");
+    }
+
+    function openOverlayManager(){
+      const st = getActiveStation();
+      if (!isOwnerOrOperator(st.id)){
+        alert("Only Owners / Operators can modify overlays for this station.");
+        return;
+      }
+      overlayManager.classList.add("on");
+      renderOverlayManagerList();
+    }
+    function closeOverlayManager(){
+      overlayManager.classList.remove("on");
+    }
+
+    overlayPlusBtn.addEventListener("click", openOverlayManager);
+    closeOverlayMgrBtn.addEventListener("click", closeOverlayManager);
+
+    // Overlay - (bulk remove mode: remove selected overlays from station)
+    // Minimal: prompt for comma-separated overlay names and remove those.
+    overlayMinusBtn.addEventListener("click", ()=>{
+      const st = getActiveStation();
+      if (!isOwnerOrOperator(st.id)) return;
+
+      const set = getOverlaySetForStation(st.id);
+      if (!set.size){
+        alert("No overlays to remove.");
+        return;
+      }
+      const list = Array.from(set).join(", ");
+      const raw = (prompt(`Overlay - (remove)\nCurrent: ${list}\nType keys to remove (comma-separated):`, list) || "").trim();
+      if (!raw) return;
+      const keys = raw.split(",").map(s=>s.trim()).filter(Boolean);
+      keys.forEach(k=>set.delete(k));
+      setOverlaySetForStation(st.id, set);
+      refreshUserOverlayUI();
+      renderOverlayManagerList();
     });
 
+    // Render overlay manager list with Add/Remove
+    function renderOverlayManagerList(){
+      overlayList.innerHTML = "";
+      const st = getActiveStation();
+      const set = getOverlaySetForStation(st.id);
+
+      // Only manage “stack” overlays here (Core is fixed + smart)
+      const manageable = OVERLAY_LIBRARY.filter(o => o.tier === "stack");
+
+      for (const o of manageable){
+        const wrap = document.createElement("div");
+        wrap.className = "overlayItem";
+
+        const left = document.createElement("div");
+        left.style.minWidth = "0";
+
+        const name = document.createElement("div");
+        name.className = "name";
+        name.textContent = o.label;
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = o.meta;
+
+        left.appendChild(name);
+        left.appendChild(meta);
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const plus = document.createElement("button");
+        plus.className = "btnMini actionPlus";
+        plus.textContent = "+";
+        plus.title = "Add overlay to Station";
+        plus.disabled = set.has(o.key);
+        plus.addEventListener("click", ()=>{
+          set.add(o.key);
+          setOverlaySetForStation(st.id, set);
+          refreshUserOverlayUI();
+          renderOverlayManagerList();
+        });
+
+        const minus = document.createElement("button");
+        minus.className = "btnMini actionMinus";
+        minus.textContent = "−";
+        minus.title = "Remove overlay from Station";
+        minus.disabled = !set.has(o.key);
+        minus.addEventListener("click", ()=>{
+          set.delete(o.key);
+          setOverlaySetForStation(st.id, set);
+          // also ensure visibility turns off when removed
+          if (o.key in state) state[o.key] = false;
+          refreshUserOverlayUI();
+          renderOverlayManagerList();
+          applyVisibility();
+        });
+
+        actions.appendChild(plus);
+        actions.appendChild(minus);
+
+        wrap.appendChild(left);
+        wrap.appendChild(actions);
+        overlayList.appendChild(wrap);
+      }
+    }
+
+    // Build the “Overlays” section that appears on Station after adding
+    function refreshUserOverlayUI(){
+      const st = getActiveStation();
+      const set = getOverlaySetForStation(st.id);
+      const keys = Array.from(set);
+
+      overlayCount.textContent = String(keys.length);
+      userOverlays.innerHTML = "";
+
+      if (!keys.length){
+        userOverlaysWrap.style.display = "none";
+        return;
+      }
+      userOverlaysWrap.style.display = "block";
+
+      for (const key of keys){
+        const meta = OVERLAY_LIBRARY.find(o=>o.key===key);
+        const label = meta ? meta.label : key;
+
+        const btn = document.createElement("button");
+        btn.className = "pill";
+        btn.dataset.key = key;
+
+        // keep toggle memory per station: default off until tapped
+        if (state[key]) btn.classList.add("on");
+
+        btn.innerHTML = `
+          <span class="left"><span class="dot"></span><span class="label">${label}</span></span>
+        `;
+
+        btn.addEventListener("click", ()=>{
+          // turning on any overlay implies stack is relevant (smart)
+          if (!stackOn) setStack(true);
+
+          if (!(key in state)) return;
+          state[key] = !state[key];
+          btn.classList.toggle("on", !!state[key]);
+          applyVisibility();
+        });
+
+        userOverlays.appendChild(btn);
+      }
+
+      // Ensure pills reflect current state
+      requestAnimationFrame(()=>{
+        userOverlays.querySelectorAll(".pill[data-key]").forEach(b=>{
+          const k = b.dataset.key;
+          b.classList.toggle("on", !!state[k]);
+        });
+      });
+    }
+
+    // ============================
+    // Init: make Station controls minimal by default
+    // ============================
+    setCore(true);
+    setStack(false);
+    setPillOn(stationsBtn, state.stations);
+
+    // ============================
+    // Three.js boot
+    // ============================
     (async ()=>{
       try{
         setStatusBase("Starting…");
-        sceneRef = new THREE.Scene();
+        scene = new THREE.Scene();
 
-        cameraRef = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 5000);
-        cameraRef.position.set(0, 0, 4.15);
+        camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 5000);
+        camera.position.set(0, 0, 4.15);
 
-        rendererRef = new THREE.WebGLRenderer({ antialias:true, alpha:false, powerPreference: "high-performance" });
-        rendererRef.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-        rendererRef.setSize(innerWidth, innerHeight);
-        rendererRef.outputColorSpace = THREE.SRGBColorSpace;
-        rendererRef.toneMapping = THREE.ACESFilmicToneMapping;
-        rendererRef.toneMappingExposure = 1.15;
-        document.body.appendChild(rendererRef.domElement);
+        renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false, powerPreference: "high-performance" });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setSize(innerWidth, innerHeight);
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.15;
+        document.body.appendChild(renderer.domElement);
 
         const ambient = new THREE.AmbientLight(0xffffff, 0.18);
-        sceneRef.add(ambient);
+        scene.add(ambient);
 
         const sunLight = new THREE.DirectionalLight(0xffffff, 1.40);
         sunLight.position.set(5, 1.5, 2.5);
-        sceneRef.add(sunLight);
+        scene.add(sunLight);
 
         const BASES = [
           "https://threejs.org/examples/textures/",
@@ -1545,7 +1582,7 @@
         const cloudMap = await loadTextureWithFallback(urls("planets/earth_clouds_1024.png"), makeFallbackClouds(), "earth clouds");
         const starMap  = await loadTextureWithFallback(urls("galaxy_starfield.png"), makeFallbackStars(), "stars");
 
-        const maxAniso = rendererRef.capabilities.getMaxAnisotropy ? rendererRef.capabilities.getMaxAnisotropy() : 1;
+        const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
         [dayMap, nightMap, specMap, cloudMap, starMap].forEach((t)=>{
           t.anisotropy = maxAniso;
           t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
@@ -1555,7 +1592,7 @@
 
         const starGeo = new THREE.SphereGeometry(90, 64, 64);
         const starMat = new THREE.MeshBasicMaterial({ map: starMap, side: THREE.BackSide });
-        sceneRef.add(new THREE.Mesh(starGeo, starMat));
+        scene.add(new THREE.Mesh(starGeo, starMat));
 
         const earthRadius = 1.0;
         const SEG = 96;
@@ -1632,7 +1669,7 @@
           gain:     { value: 2.8 }
         };
 
-        nightLightsRef = new THREE.Mesh(
+        nightLightsMesh = new THREE.Mesh(
           new THREE.SphereGeometry(earthRadius * 1.001, SEG, SEG),
           new THREE.ShaderMaterial({
             uniforms: lightsUniforms,
@@ -1746,11 +1783,11 @@
           })
         );
 
-        globeRef = new THREE.Group();
-        globeRef.add(earth, nightLightsRef, cloudShadow, clouds, atmosphere);
-        sceneRef.add(globeRef);
+        globe = new THREE.Group();
+        globe.add(earth, nightLightsMesh, cloudShadow, clouds, atmosphere);
+        scene.add(globe);
 
-        overlaysRef = {
+        overlays = {
           rhumb222: new THREE.Group(),
           rhumb42:  new THREE.Group(),
           gc222:    new THREE.Group(),
@@ -1765,9 +1802,10 @@
           magField: new THREE.Group(),
           aurora: new THREE.Group()
         };
-        Object.values(overlaysRef).forEach(g => globeRef.add(g));
+        Object.values(overlays).forEach(g => globe.add(g));
 
-        const ANCHOR = { name: "Exit 222 • Station 1", lat: 38.1608333333, lon: -79.0733333333 };
+        // Core anchor
+        const ANCHOR = { name: "Exit222•Station1", lat: BASE_STATION.lat, lon: BASE_STATION.lon };
         const BEAR_222 = 222;
         const BEAR_42  = 42;
 
@@ -1781,11 +1819,11 @@
         const rh42 = rhumbPoints(ANCHOR.lat, ANCHOR.lon, BEAR_42, 240)
           .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
 
-        overlaysRef.gc222.add(makeGlowTube(gc222, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.28));
-        overlaysRef.rhumb222.add(makeGlowTube(rh222, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.26));
+        overlays.gc222.add(makeGlowTube(gc222, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.28));
+        overlays.rhumb222.add(makeGlowTube(rh222, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.26));
 
-        overlaysRef.gc42.add(makeGlowTube(gc42, 0.0032, 0x5bbcff, 0x5bbcff, 0.55, 0.20));
-        overlaysRef.rhumb42.add(makeGlowTube(rh42, 0.0032, 0xf6c24a, 0xf6c24a, 0.55, 0.18));
+        overlays.gc42.add(makeGlowTube(gc42, 0.0032, 0x5bbcff, 0x5bbcff, 0.55, 0.20));
+        overlays.rhumb42.add(makeGlowTube(rh42, 0.0032, 0xf6c24a, 0xf6c24a, 0.55, 0.18));
 
         function arcFromBearing(bearingDeg){
           const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, bearingDeg, 1.2)
@@ -1793,19 +1831,20 @@
             .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
           return makeGlowTube(pts, 0.0026, 0x5bbcff, 0x5bbcff, 1.0, 0.18);
         }
-        overlaysRef.perpLine.add(arcFromBearing(132), arcFromBearing(312));
+        overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
+        // Reduced glow labels
         const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 4, glow:"rgba(246,194,74,0.10)" });
         n222.position.copy(latLonToVec3(18, -18, earthRadius*1.10));
-        overlaysRef.names222.add(n222);
+        overlays.names222.add(n222);
 
         const n42 = makeTextSprite("42 NE", { fontSize: 20, glowBlur: 4, glow:"rgba(91,188,255,0.10)" });
         n42.position.copy(latLonToVec3(-6, 62, earthRadius*1.10));
-        overlaysRef.names42.add(n42);
+        overlays.names42.add(n42);
 
         const pLabel = makeTextSprite("132° / 312°", { fontSize: 18, glowBlur: 4, glow:"rgba(91,188,255,0.09)" });
         pLabel.position.copy(latLonToVec3(52, 105, earthRadius*1.11));
-        overlaysRef.perpName.add(pLabel);
+        overlays.perpName.add(pLabel);
 
         const CONT = [
           { name:"North America", lat: 45,  lon:-102 },
@@ -1819,7 +1858,7 @@
         for (const c of CONT){
           const s = makeTextSprite(c.name, { fontSize: 18, glowBlur: 4, glow:"rgba(255,255,255,0.08)" });
           s.position.copy(latLonToVec3(c.lat, c.lon, earthRadius*1.10));
-          overlaysRef.continents.add(s);
+          overlays.continents.add(s);
         }
 
         const kmToUnit = (km)=> (km/6371)*earthRadius;
@@ -1829,10 +1868,10 @@
           { km: 10, r: kmToUnit(10), o: 0.06 }
         ];
         for (const c of corridorRadii){
-          overlaysRef.corridors.add(makeGlowTube(gc222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
-          overlaysRef.corridors.add(makeGlowTube(rh222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
-          overlaysRef.corridors.add(makeGlowTube(gc42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.8));
-          overlaysRef.corridors.add(makeGlowTube(rh42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.75));
+          overlays.corridors.add(makeGlowTube(gc222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
+          overlays.corridors.add(makeGlowTube(rh222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
+          overlays.corridors.add(makeGlowTube(gc42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.8));
+          overlays.corridors.add(makeGlowTube(rh42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.75));
         }
 
         function makeStationMarker(label, lat, lon, color=0x7fffd4){
@@ -1855,7 +1894,7 @@
           g.add(glow, pin, tag);
           return g;
         }
-        overlaysRef.stations.add(makeStationMarker(ANCHOR.name, ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
+        overlays.stations.add(makeStationMarker("Exit222•Station1", ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
 
         function makeDipoleFieldLines(){
           const g = new THREE.Group();
@@ -1889,7 +1928,7 @@
           }
           return g;
         }
-        overlaysRef.magField.add(makeDipoleFieldLines());
+        overlays.magField.add(makeDipoleFieldLines());
 
         function makeAuroraBelt(latDeg=67, color=0xa078ff){
           const g = new THREE.Group();
@@ -1900,15 +1939,15 @@
           }
           return g;
         }
-        overlaysRef.aurora.add(makeAuroraBelt(67));
+        overlays.aurora.add(makeAuroraBelt(67));
 
-        // Post FX
+        // Bloom setup
         const BLOOM_LAYER = 1;
         const bloomLayer = new THREE.Layers(); bloomLayer.set(BLOOM_LAYER);
 
-        nightLightsRef.layers.enable(BLOOM_LAYER);
+        nightLightsMesh.layers.enable(BLOOM_LAYER);
         atmosphere.layers.enable(BLOOM_LAYER);
-        Object.values(overlaysRef).forEach(g=>{
+        Object.values(overlays).forEach(g=>{
           g.traverse(o => o.layers && o.layers.enable(BLOOM_LAYER));
         });
 
@@ -1927,10 +1966,10 @@
           }
         }
 
-        const renderScene = new RenderPass(sceneRef, cameraRef);
+        const renderScene = new RenderPass(scene, camera);
 
         bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.10, 0.85, 0.10);
-        bloomComposer = new EffectComposer(rendererRef);
+        bloomComposer = new EffectComposer(renderer);
         bloomComposer.renderToScreen = false;
         bloomComposer.addPass(renderScene);
         bloomComposer.addPass(bloomPass);
@@ -1942,28 +1981,29 @@
             void main(){ gl_FragColor = texture2D(tDiffuse,vUv) + texture2D(bloomTexture,vUv); }`
         });
 
-        finalComposer = new EffectComposer(rendererRef);
+        finalComposer = new EffectComposer(renderer);
         finalComposer.addPass(renderScene);
         finalComposer.addPass(finalPass);
         finalComposer.addPass(new OutputPass());
 
         function renderBloom(){
-          sceneRef.traverse(darkenNonBloom);
+          scene.traverse(darkenNonBloom);
           bloomComposer.render();
           finalPass.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
-          sceneRef.traverse(restoreMaterial);
+          scene.traverse(restoreMaterial);
         }
 
-        // Initial UI sync
-        syncUIFromState();
-        // Ensure switchboard utility row correct on load
-        syncUtilityButtons();
+        // Apply initial visibility (minimal / smart)
+        applyVisibility();
+        setStatusBase("Running");
 
-        // Input controls
+        // ============================
+        // Input (drag + pinch)
+        // ============================
         let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
         const AUTO_SPIN=0.0012, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
 
-        let pinching=false, pinchStartDist=0, pinchStartZ=cameraRef.position.z;
+        let pinching=false, pinchStartDist=0, pinchStartZ=camera.position.z;
         const Z_MIN=2.2, Z_MAX=8.0;
 
         function getPoint(e){
@@ -1975,7 +2015,7 @@
           return Math.sqrt(dx*dx+dy*dy);
         }
 
-        const el = rendererRef.domElement;
+        const el = renderer.domElement;
 
         function down(e){
           if (isUIEventTarget(e.target)) return;
@@ -1983,7 +2023,7 @@
           if (e.touches && e.touches.length === 2){
             pinching=true;
             pinchStartDist = dist2(e.touches[0], e.touches[1]);
-            pinchStartZ = cameraRef.position.z;
+            pinchStartZ = camera.position.z;
             return;
           }
           dragging=true;
@@ -1997,7 +2037,7 @@
           if (pinching && e.touches && e.touches.length === 2){
             const d = dist2(e.touches[0], e.touches[1]);
             const ratio = pinchStartDist > 0 ? (pinchStartDist / d) : 1.0;
-            cameraRef.position.z = clamp(pinchStartZ * ratio, Z_MIN, Z_MAX);
+            camera.position.z = clamp(pinchStartZ * ratio, Z_MIN, Z_MAX);
             return;
           }
 
@@ -2006,8 +2046,8 @@
           const dx=p.x-lastX, dy=p.y-lastY;
           lastX=p.x; lastY=p.y;
 
-          globeRef.rotation.y += dx*DRAG_SENS;
-          globeRef.rotation.x = clamp(globeRef.rotation.x + dy*PITCH_SENS, -MAX_PITCH, MAX_PITCH);
+          globe.rotation.y += dx*DRAG_SENS;
+          globe.rotation.x = clamp(globe.rotation.x + dy*PITCH_SENS, -MAX_PITCH, MAX_PITCH);
 
           velY = dx*DRAG_SENS;
           velX = dy*PITCH_SENS;
@@ -2024,21 +2064,22 @@
 
         window.addEventListener("wheel", (e)=>{
           if (isUIEventTarget(e.target)) return;
-          cameraRef.position.z = clamp(cameraRef.position.z + (e.deltaY * 0.0025), Z_MIN, Z_MAX);
+          camera.position.z = clamp(camera.position.z + (e.deltaY * 0.0025), Z_MIN, Z_MAX);
         }, { passive:true });
 
+        // Resize
         let resizeTimer = 0;
         function doResize(){
-          if (!rendererRef || !cameraRef) return;
+          if (!renderer || !camera) return;
 
           const w = Math.max(1, window.innerWidth);
           const h = Math.max(1, window.innerHeight);
 
-          cameraRef.aspect = w/h;
-          cameraRef.updateProjectionMatrix();
+          camera.aspect = w/h;
+          camera.updateProjectionMatrix();
 
-          rendererRef.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-          rendererRef.setSize(w, h, false);
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          renderer.setSize(w, h, false);
 
           bloomComposer.setSize(w, h);
           finalComposer.setSize(w, h);
@@ -2069,8 +2110,8 @@
           cloudShadow.rotation.y += cloudSpin + 0.00015;
 
           if(!dragging && !pinching){
-            globeRef.rotation.y += AUTO_SPIN + velY;
-            globeRef.rotation.x = clamp(globeRef.rotation.x + velX, -MAX_PITCH, MAX_PITCH);
+            globe.rotation.y += AUTO_SPIN + velY;
+            globe.rotation.x = clamp(globe.rotation.x + velX, -MAX_PITCH, MAX_PITCH);
             velY *= DAMPING;
             velX *= DAMPING;
           }
@@ -2079,19 +2120,26 @@
           const sunDir = sunLight.position.clone().normalize();
 
           earthUniforms.sunDir.value.copy(sunDir);
-          earthUniforms.cameraPos.value.copy(cameraRef.position);
+          earthUniforms.cameraPos.value.copy(camera.position);
           lightsUniforms.sunDir.value.copy(sunDir);
           atmoUniforms.sunDir.value.copy(sunDir);
-          atmoUniforms.cameraPos.value.copy(cameraRef.position);
+          atmoUniforms.cameraPos.value.copy(camera.position);
 
-          // Bloom + final
-          sceneRef.traverse(darkenNonBloom);
-          bloomComposer.render();
-          finalPass.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
-          sceneRef.traverse(restoreMaterial);
+          renderBloom();
           finalComposer.render();
         }
         animate();
+
+        // ============================
+        // Final UI sync (smart defaults)
+        // ============================
+        // Station panel initial station + overlays
+        loadStations();
+        setActiveStation(getActiveStationId());
+        await locateAndRefresh(); // try to auto-locate once
+        refreshUserOverlayUI();
+        renderOverlayManagerList();
+        refreshJoinButtons();
 
       } catch (err){
         showError("Top-level error:\n" + (err?.stack || err?.message || err));
