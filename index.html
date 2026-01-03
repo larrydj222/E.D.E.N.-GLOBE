@@ -459,33 +459,66 @@
       color: rgba(255,255,255,0.62);
       margin-top: 6px;
     }
-    .tabRow{
+
+    /* ✅ Left mini-rail layout */
+    .hubLayout{
+      display:grid;
+      grid-template-columns: 64px 1fr;
+      gap: 12px;
+      align-items: stretch;
+      margin-top: 10px;
+    }
+    .hubRail{
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      border-radius: 18px;
+      padding: 8px;
       display:flex;
-      gap:10px;
-      flex-wrap: wrap;
-      margin: 10px 0 12px;
+      flex-direction: column;
+      gap: 10px;
+      height: 100%;
+      min-height: 280px;
     }
-    .tabBtn{
-      padding: 10px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.92);
-      cursor:pointer;
-      font: 900 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      letter-spacing: 0.2px;
+    .railBtn{
+      width: 100%;
+      height: 52px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.90);
+      cursor: pointer;
+      display:flex;
+      flex-direction: column;
+      align-items:center;
+      justify-content:center;
+      gap: 6px;
       -webkit-tap-highlight-color: transparent;
+      user-select:none;
     }
-    .tabBtn.on{
-      border-color: rgba(120,255,200,0.24);
+    .railBtn:active{ transform: translateY(1px); }
+    .railBtn.on{
+      border-color: rgba(120,255,200,0.22);
       box-shadow: 0 0 18px rgba(120,255,200,0.10);
+      background: rgba(120,255,200,0.08);
     }
+    .railIcon{
+      font: 900 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      opacity: 0.95;
+      letter-spacing: 0.2px;
+    }
+    .railLabel{
+      font: 900 10px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      color: rgba(255,255,255,0.62);
+      letter-spacing: 0.25px;
+      text-transform: uppercase;
+    }
+
     .hubPanel{
       border: 1px solid rgba(255,255,255,0.12);
       background: rgba(255,255,255,0.04);
       border-radius: 18px;
       padding: 12px;
-      min-height: 240px;
+      min-height: 280px;
     }
     .hubItem{
       border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -586,6 +619,8 @@
       .pill{ padding: 12px 12px; border-radius: 16px; font-size: 13px; }
       #drawerBody{ max-height: calc(100vh - 200px); }
       #subtitle{ max-width: 310px; }
+      .hubLayout{ grid-template-columns: 60px 1fr; }
+      .railBtn{ height: 50px; border-radius: 14px; }
     }
     @media (max-width: 380px){
       .gridTop{ grid-template-columns: 1fr; }
@@ -707,7 +742,7 @@
           <div id="stationsList"></div>
         </div>
 
-        <!-- ✅ Hub (View Hub) -->
+        <!-- ✅ Hub (with left mini-rail) -->
         <div id="hubContent">
           <div class="hubHeader">
             <div>
@@ -716,14 +751,28 @@
             </div>
           </div>
 
-          <div class="tabRow">
-            <button class="tabBtn on" data-tab="feed">Feed</button>
-            <button class="tabBtn" data-tab="data">Data</button>
-            <button class="tabBtn" data-tab="chat">Chat</button>
-            <button class="tabBtn" data-tab="files">Files</button>
-          </div>
+          <div class="hubLayout">
+            <div class="hubRail" id="hubRail">
+              <button class="railBtn on" data-tab="feed">
+                <div class="railIcon">F</div>
+                <div class="railLabel">Feed</div>
+              </button>
+              <button class="railBtn" data-tab="data">
+                <div class="railIcon">D</div>
+                <div class="railLabel">Data</div>
+              </button>
+              <button class="railBtn" data-tab="chat">
+                <div class="railIcon">C</div>
+                <div class="railLabel">Chat</div>
+              </button>
+              <button class="railBtn" data-tab="files">
+                <div class="railIcon">⧉</div>
+                <div class="railLabel">Files</div>
+              </button>
+            </div>
 
-          <div class="hubPanel" id="hubPanel"></div>
+            <div class="hubPanel" id="hubPanel"></div>
+          </div>
         </div>
 
       </div>
@@ -810,6 +859,7 @@
     const hubTitleText = document.getElementById("hubTitleText");
     const hubMetaText  = document.getElementById("hubMetaText");
     const hubPanel     = document.getElementById("hubPanel");
+    const hubRail      = document.getElementById("hubRail");
 
     const toastEl = document.getElementById("toast");
 
@@ -855,7 +905,10 @@
     // Drawer
     function setDrawerClosed(isClosed){
       drawerEl.classList.toggle("closed", !!isClosed);
-      openBtn.style.display = isClosed ? "inline-flex" : "none";
+      recallOpenBtn();
+    }
+    function recallOpenBtn(){
+      openBtn.style.display = drawerEl.classList.contains("closed") ? "inline-flex" : "none";
     }
     setDrawerClosed(false);
     openBtn.addEventListener("click", () => setDrawerClosed(false));
@@ -961,7 +1014,6 @@
     ];
 
     const state = {
-      // overlays
       rhumb222: true,
       rhumb42:  false,
       gc222:    true,
@@ -975,8 +1027,6 @@
       aurora:   false,
       nightLights: true,
       perpName: false,
-
-      // stations (separate and always available)
       stations: true
     };
 
@@ -1010,7 +1060,6 @@
     }
 
     function applyPresetStack(){
-      // ✅ Stack = ALL overlays ON
       for (const o of overlayKeys) state[o.key] = true;
       state.stations = true;
       setPresetButtons("stack");
@@ -1019,7 +1068,6 @@
     }
 
     function applyPresetClear(){
-      // ✅ Clear = all overlays OFF (stations remain)
       for (const o of overlayKeys) state[o.key] = false;
       state.stations = true;
       setPresetButtons("clear");
@@ -1031,7 +1079,6 @@
     stackBtn.addEventListener("click", applyPresetStack);
     clearBtn.addEventListener("click", applyPresetClear);
 
-    // Overlay+ UI (Add / Overlay −)
     function pillHintFor(key){
       return state[key] ? "Overlay −" : "Add";
     }
@@ -1079,8 +1126,11 @@
 
     // ============================
     // Stations system (single active station)
+    // Updated rules:
+    // - must be within join radius to do ANY station membership OR hub view
+    // - Owner permission required for ALL roles (Observer/Analyst/Operator)
     // ============================
-    const JOIN_RADIUS_KM = 100; // adjust whenever you want stricter “near”
+    const JOIN_RADIUS_KM = 100; // adjust as needed
     const stationData = [
       {
         id: "exit222_station1",
@@ -1089,16 +1139,20 @@
         lat: 38.1608333333,
         lon: -79.0733333333,
         coordsText: "38°9′39″ N, 79°4′24″ W",
-        ownerExists: true,  // ✅ already created by Owner
+        ownerExists: true,
         active: true
       }
     ];
 
+    // Permissions (simulated). Real app: server-driven.
+    // All roles require Owner permission (including Observer).
+    const permissionsByStation = {
+      // [stationId]: { observer:true/false, analyst:true/false, operator:true/false }
+      "exit222_station1": { observer:false, analyst:false, operator:false }
+    };
+
     let userDistanceKm = null;
     let geoAllowed = false;
-
-    // ✅ Permission gate for Analyst/Operator
-    let approvalGranted = false;
 
     function haversineKm(lat1, lon1, lat2, lon2){
       const R = 6371;
@@ -1138,9 +1192,18 @@
       );
     }
 
-    function canJoinStation(st){
+    function isNearStation(st){
       if (!geoAllowed || userDistanceKm == null) return false;
       return userDistanceKm <= JOIN_RADIUS_KM;
+    }
+
+    function stationPermission(st){
+      return permissionsByStation[st.id] || { observer:false, analyst:false, operator:false };
+    }
+
+    function hasAnyAccess(st){
+      const p = stationPermission(st);
+      return !!(p.observer || p.analyst || p.operator);
     }
 
     function renderStations(){
@@ -1154,10 +1217,13 @@
       }
 
       for (const st of list){
-        const joinAllowed = canJoinStation(st);
+        const near = isNearStation(st);
+
         const distText = (geoAllowed && userDistanceKm != null)
           ? `${userDistanceKm.toFixed(1)} km away`
-          : "Location required to join";
+          : "Location required";
+
+        const canJoinOrView = near; // strict: only near location can join OR view hub
 
         const card = document.createElement("div");
         card.className = "card";
@@ -1166,20 +1232,20 @@
             <div>
               <div class="cardTitle">${st.name}</div>
               <div class="cardMeta">${st.axis} • ${st.coordsText}</div>
-              <div class="cardMeta">${distText} • Join radius ${JOIN_RADIUS_KM} km</div>
+              <div class="cardMeta">${distText} • Join/View radius ${JOIN_RADIUS_KM} km</div>
             </div>
           </div>
 
           <div class="actionsRow">
-            <button class="miniPill ${joinAllowed ? "" : "disabled"}" data-act="join">Join</button>
+            <button class="miniPill ${canJoinOrView ? "" : "disabled"}" data-act="join">Join</button>
             <button class="miniPill" data-act="follow">Follow</button>
-            <button class="miniPill" data-act="hub">View Hub</button>
+            <button class="miniPill ${canJoinOrView ? "" : "disabled"}" data-act="hub">View Hub</button>
           </div>
         `;
 
         card.querySelector('[data-act="join"]').addEventListener("click", ()=>{
-          if (!joinAllowed){
-            toast("Join requires being near this Station");
+          if (!canJoinOrView){
+            toast("Station access requires being near your location");
             return;
           }
           openRoleSheet(st);
@@ -1190,6 +1256,16 @@
         });
 
         card.querySelector('[data-act="hub"]').addEventListener("click", ()=>{
+          if (!canJoinOrView){
+            toast("Hub view requires being near this Station");
+            return;
+          }
+          // Hub view requires Owner permission (any role)
+          if (!hasAnyAccess(st)){
+            toast("Owner permission required to view");
+            openRoleSheet(st);
+            return;
+          }
           openModal("hub", st);
         });
 
@@ -1208,24 +1284,35 @@
 
     // ============================
     // Role sheet (ONLY Observer/Analyst/Operator/Owner)
-    // Rules:
-    // - If ownerExists: Observer open; Analyst/Operator require approval; Owner blocked
+    // Updated rules:
+    // - If ownerExists: Owner not available
+    // - Observer ALSO requires permission
+    // - Analyst/Operator require permission
     // ============================
     function openRoleSheet(st){
       roleTitle.textContent = `Choose role for ${st.name}`;
+
+      // Must be near for any role
+      if (!isNearStation(st)){
+        toast("Must be near Station to request roles");
+        return;
+      }
+
       roleSheetMask.classList.add("on");
 
       const ownerExists = !!st.ownerExists;
-      roleNote.textContent = ownerExists
-        ? "Station already has an Owner. Observer is open. Analyst/Operator require Owner permission."
-        : "No Owner yet. You may claim Owner or join as Observer/Analyst/Operator.";
+      roleNote.textContent =
+        "Owner permission is required for Observer, Analyst, and Operator. " +
+        (ownerExists ? "Station already has an Owner. Owner role is unavailable." : "No Owner yet.");
 
       roleGrid.innerHTML = "";
 
+      const p = stationPermission(st);
+
       const roles = [
-        { key:"Observer", allow:true, note:"Open" },
-        { key:"Analyst",  allow: !ownerExists || approvalGranted, note: ownerExists ? "Permission" : "Open" },
-        { key:"Operator", allow: !ownerExists || approvalGranted, note: ownerExists ? "Permission" : "Open" },
+        { key:"Observer", allow: !!p.observer, note: "Permission" },
+        { key:"Analyst",  allow: !!p.analyst,  note: "Permission" },
+        { key:"Operator", allow: !!p.operator, note: "Permission" },
         { key:"Owner",    allow: !ownerExists, note: ownerExists ? "Not available" : "Claim" }
       ];
 
@@ -1234,7 +1321,7 @@
         b.className = "pill";
         b.innerHTML = `
           <span class="left"><span class="dot"></span><span class="label">${r.key}</span></span>
-          <span class="hint">${r.allow ? r.note : "Locked"}</span>
+          <span class="hint">${r.allow ? "Allowed" : (r.key==="Owner" && !ownerExists ? "Claim" : "Locked")}</span>
         `;
 
         if (!r.allow) b.classList.add("disabled");
@@ -1250,31 +1337,27 @@
 
         roleGrid.appendChild(b);
       }
+
+      requestAccessBtn.onclick = ()=>{
+        // Simulated approval: Owner grants Observer + Analyst (+ Operator) permissions
+        permissionsByStation[st.id] = { observer:true, analyst:true, operator:true };
+        toast("Owner approval granted (simulated)");
+        openRoleSheet(st);
+      };
     }
 
-    function closeRoleSheet(){
-      roleSheetMask.classList.remove("on");
-    }
+    function closeRoleSheet(){ roleSheetMask.classList.remove("on"); }
     roleClose.addEventListener("click", closeRoleSheet);
     roleSheetMask.addEventListener("click", (e)=>{ if(e.target === roleSheetMask) closeRoleSheet(); });
 
-    requestAccessBtn.addEventListener("click", ()=>{
-      approvalGranted = true; // simulated
-      toast("Owner permission granted (simulated)");
-      // refresh role sheet UI
-      const st = stationData[0];
-      openRoleSheet(st);
-    });
-
     // ============================
-    // Hub (X + Discord minimal)
+    // Hub (left mini-rail)
     // ============================
     function setHubTab(tab){
-      document.querySelectorAll(".tabBtn").forEach(b=>{
+      hubRail.querySelectorAll(".railBtn").forEach(b=>{
         b.classList.toggle("on", b.dataset.tab === tab);
       });
 
-      // Minimal + scientific panels
       if (tab === "feed"){
         hubPanel.innerHTML = `
           <div class="hubItem">
@@ -1283,11 +1366,11 @@
           </div>
           <div class="hubItem">
             <div class="hubItemTitle">Protocol reminder</div>
-            <div class="hubItemMeta">Capture raw exports + controls • UTC tagging • compare across sessions</div>
+            <div class="hubItemMeta">Raw exports + controls • UTC tagging • replication notes</div>
           </div>
           <div class="hubItem">
             <div class="hubItemTitle">Activity</div>
-            <div class="hubItemMeta">No new events yet. Feed will show joined operators, uploads, notes, and anomaly flags.</div>
+            <div class="hubItemMeta">No events yet. Feed will show joins, uploads, notes, anomaly flags.</div>
           </div>
         `;
       }
@@ -1299,12 +1382,12 @@
             <div class="hubItemMeta">Magnetometer • GNSS • RF scan • Environmental logs (placeholders)</div>
           </div>
           <div class="hubItem">
-            <div class="hubItemTitle">Summary</div>
-            <div class="hubItemMeta">No datasets uploaded. When data exists, this tab shows time-series, deltas, and session comparisons.</div>
+            <div class="hubItemTitle">Comparisons</div>
+            <div class="hubItemMeta">Time-series deltas + station-to-station baselines (placeholder)</div>
           </div>
           <div class="hubItem">
             <div class="hubItemTitle">Integrity</div>
-            <div class="hubItemMeta">Evidence quality + controls checklist will be shown here per session.</div>
+            <div class="hubItemMeta">Evidence quality + controls checklist per session</div>
           </div>
         `;
       }
@@ -1313,11 +1396,11 @@
         hubPanel.innerHTML = `
           <div class="hubItem">
             <div class="hubItemTitle">Station Chat</div>
-            <div class="hubItemMeta">Minimal discussion channel (scientific only). Coming next: pinned protocol + role-gated messaging.</div>
+            <div class="hubItemMeta">Scientific only. Share methods, controls, and replication notes.</div>
           </div>
           <div class="hubItem">
             <div class="hubItemTitle">Rules</div>
-            <div class="hubItemMeta">No claims of causality. Share raw data, methods, controls, and replication notes.</div>
+            <div class="hubItemMeta">No claims of causality. Post raw data + experimental constraints.</div>
           </div>
         `;
       }
@@ -1326,11 +1409,11 @@
         hubPanel.innerHTML = `
           <div class="hubItem">
             <div class="hubItemTitle">Files</div>
-            <div class="hubItemMeta">Exports • Screenshots • CSV • JSON • Notes (placeholders)</div>
+            <div class="hubItemMeta">Exports • CSV • JSON • screenshots • notes (placeholders)</div>
           </div>
           <div class="hubItem">
-            <div class="hubItemTitle">Upload format</div>
-            <div class="hubItemMeta">Prefer UTC timestamps + sensor metadata + device model + environment context.</div>
+            <div class="hubItemTitle">Naming standard</div>
+            <div class="hubItemMeta">UTC timestamp + device + sensor + environment tags</div>
           </div>
         `;
       }
@@ -1341,13 +1424,13 @@
       hubMetaText.textContent = `${st.axis} • ${st.coordsText} • Minimal scientific interface`;
       setHubTab("feed");
 
-      document.querySelectorAll(".tabBtn").forEach(b=>{
+      hubRail.querySelectorAll(".railBtn").forEach(b=>{
         b.onclick = ()=> setHubTab(b.dataset.tab);
       });
     }
 
     // ============================
-    // UI helpers for globe input
+    // Globe code (unchanged from your last version)
     // ============================
     const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
     const DEG = Math.PI/180;
@@ -1560,7 +1643,7 @@
           const tex = await tryOne(u);
           tex.colorSpace = THREE.SRGBColorSpace;
           return tex;
-        } catch { /* try next */ }
+        } catch {}
       }
       addNotice(label);
       return fallbackTex;
@@ -1840,7 +1923,7 @@
         globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
         scene.add(globe);
 
-        // Overlays container
+        // Overlays container (unchanged build + visibility)
         Object.assign(overlays, {
           rhumb222: new THREE.Group(),
           rhumb42:  new THREE.Group(),
@@ -2045,7 +2128,6 @@
           scene.traverse(restoreMaterial);
         }
 
-        // Apply initial Core visibility
         applyVisibility();
 
         // Interaction
@@ -2119,26 +2201,20 @@
         let resizeTimer = 0;
         function doResize(){
           if (!renderer || !camera) return;
-
           const w = Math.max(1, window.innerWidth);
           const h = Math.max(1, window.innerHeight);
-
           camera.aspect = w/h;
           camera.updateProjectionMatrix();
-
           renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
           renderer.setSize(w, h, false);
-
           bloomComposer.setSize(w, h);
           finalComposer.setSize(w, h);
           bloomPass.setSize(w, h);
         }
-
         function scheduleResize(){
           clearTimeout(resizeTimer);
           resizeTimer = setTimeout(()=> requestAnimationFrame(doResize), 160);
         }
-
         window.addEventListener("resize", scheduleResize, { passive:true });
         window.addEventListener("orientationchange", scheduleResize, { passive:true });
 
