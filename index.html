@@ -326,11 +326,11 @@
       padding: 18px 18px 24px;
       max-width: 920px;
       margin: 0 auto;
-      color: rgba(255,255,255,0.88); /* ✅ force white */
+      color: rgba(255,255,255,0.88);
       font: 650 14px/1.55 -apple-system, system-ui, Segoe UI, Roboto, Arial;
     }
     .page h2{
-      color: rgba(255,255,255,0.92); /* ✅ force white */
+      color: rgba(255,255,255,0.92);
       font: 900 18px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       margin: 0 0 10px;
       letter-spacing: 0.2px;
@@ -343,7 +343,7 @@
       border: 1px solid rgba(255,255,255,0.14);
       background: rgba(255,255,255,0.06);
       padding: 14px;
-      color: rgba(255,255,255,0.88); /* ✅ force white */
+      color: rgba(255,255,255,0.88);
       box-shadow: 0 12px 34px rgba(0,0,0,0.18) inset;
     }
     .row{ display:flex; gap:10px; align-items:center; }
@@ -445,7 +445,7 @@
     .hubMain{
       flex: 1 1 auto;
       padding: 16px 16px 24px;
-      color: rgba(255,255,255,0.88); /* ✅ force white */
+      color: rgba(255,255,255,0.88);
     }
 
     .divider{ height:1px; background: rgba(255,255,255,0.10); margin: 12px 0; }
@@ -462,6 +462,45 @@
     }
     @media (max-width: 380px){
       .gridTop{ grid-template-columns: 1fr; }
+    }
+
+    /* =========================
+       LOCK: NEVER BLACK TEXT
+       ========================= */
+    html, body,
+    h1,h2,h3,h4,h5,h6,
+    p,span,small,strong,em,
+    label,legend,
+    a,button,
+    li,dt,dd,
+    .page,.card,.hubMain,.rail,.railBtn,
+    #drawer,#modal,#modalTitle,#statusBar,#stationText,
+    #distanceText,#accessText,#previewDistanceTiny,#hubAccessTiny,
+    #joinRulesTiny,#locStateText,#profileCounts {
+      color: rgba(255,255,255,0.92) !important;
+    }
+
+    input, textarea, select {
+      color: rgba(255,255,255,0.92) !important;
+      -webkit-text-fill-color: rgba(255,255,255,0.92) !important;
+      caret-color: rgba(255,255,255,0.92) !important;
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: rgba(255,255,255,0.55) !important;
+      -webkit-text-fill-color: rgba(255,255,255,0.55) !important;
+    }
+
+    input:-webkit-autofill,
+    textarea:-webkit-autofill,
+    select:-webkit-autofill {
+      -webkit-text-fill-color: rgba(255,255,255,0.92) !important;
+      transition: background-color 99999s ease-out 0s;
+    }
+
+    [style*="color: #000"], [style*="color:#000"],
+    [style*="color: black"], [style*="color:black"]{
+      color: rgba(255,255,255,0.92) !important;
     }
   </style>
 
@@ -484,7 +523,7 @@
     <div id="drawerTop">
       <div id="titleBlock">
         <div id="title">MAP E.D.E.N.</div>
-        <div id="subtitle">Earth Diametric Energy Network • Tap Station to begin</div>
+        <div id="subtitle">Earth Diametric Energy Network • Tap Station to Start</div>
       </div>
       <button id="closeBtn" aria-label="Close drawer" title="Close">✕</button>
     </div>
@@ -500,8 +539,8 @@
         </button>
 
         <button class="pill" id="stationBtn">
-          <span class="left"><span class="dot"></span><span class="label" id="stationLabel">Tap to begin</span></span>
-          <span class="hint" id="stationHint">Tap to open</span>
+          <span class="left"><span class="dot"></span><span class="label" id="stationLabel">Start</span></span>
+          <span class="hint" id="stationHint">Start</span>
         </button>
       </div>
 
@@ -778,7 +817,7 @@
     // ============================
     const WELCOME_FILE = "assets/welcome6.html";
 
-    // ✅ Your request: show “0.0 km away” even if location unknown (Join still blocked)
+    // ✅ show “0.0 km away” even if location unknown (Join still blocked)
     const DEMO_DISTANCE_MODE = true;
 
     // Prototype join radius
@@ -903,15 +942,17 @@
     handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
 
     // ============================
-    // Station panel open/close
+    // Station panel open/close (Start / Close)
     // ============================
     let stationOpen = false;
     function setStationOpen(on){
       stationOpen = !!on;
       stationGroup.classList.toggle("on", stationOpen);
       stationBtn.classList.toggle("on", stationOpen);
-      stationHint.textContent = stationOpen ? "Tap to close" : "Tap to open";
-      stationLabel.textContent = stationOpen ? "Tap to close" : "Tap to begin";
+
+      // ✅ Your request
+      stationHint.textContent  = stationOpen ? "Close" : "Start";
+      stationLabel.textContent = stationOpen ? "Close" : "Start";
     }
     stationBtn.addEventListener("click", ()=> setStationOpen(!stationOpen));
     setStationOpen(false);
@@ -988,8 +1029,11 @@
     modalClose.addEventListener("click", closeModal);
     modalMask.addEventListener("click", (e)=>{ if(e.target === modalMask) closeModal(); });
 
-    // Top buttons
-    function setTopOn(btn){ btn.classList.add("on"); }
+    // Top buttons (single-active highlight)
+    function setTopOn(btn){
+      [welcomeBtn, missionBtn].forEach(b => b.classList.remove("on"));
+      btn.classList.add("on");
+    }
     welcomeBtn.addEventListener("click", ()=>{ setTopOn(welcomeBtn); openModal("welcome"); });
     missionBtn.addEventListener("click", ()=>{ setTopOn(missionBtn); openModal("mission"); });
 
@@ -1029,7 +1073,7 @@
       if (locEnabled && userLat!=null && userLon!=null){
         return haversineKm(userLat, userLon, ANCHOR.lat, ANCHOR.lon);
       }
-      // ✅ Per your request: show 0.0 km away even when unknown
+      // ✅ show 0.0 km away even when unknown
       return DEMO_DISTANCE_MODE ? 0.0 : null;
     }
 
@@ -1049,7 +1093,7 @@
       hubAccessTiny.textContent = `Access: ${access}`;
 
       joinStationBtn.disabled = !joinAllowedByLoc;
-      viewHubBtn.disabled = (access === "None"); // prototype rule: can't view hub unless access granted
+      viewHubBtn.disabled = (access === "None");
       joinRulesTiny.textContent = joinAllowedByLoc
         ? "Choose role: Owner / Operator / Analyst / Observer (Owner approval required)."
         : "Join is blocked until location is enabled and within radius.";
@@ -1095,7 +1139,6 @@
 
     // Join station (prototype-local request)
     joinStationBtn.addEventListener("click", ()=>{
-      // Only allow join near location (already gated)
       const role = prompt("Choose role for Exit222•Station1:\nObserver, Analyst, Operator, Owner");
       if (!role) return;
 
@@ -1106,8 +1149,7 @@
         return;
       }
 
-      // Prototype rule: if station already owned, non-owners require owner approval
-      const stationHasOwner = true; // Exit222•Station1 is owned in your model
+      const stationHasOwner = true;
       if (stationHasOwner && r !== "owner"){
         store.set("station_access", "Pending");
         alert("Request sent to Owner. Access is Pending.");
@@ -1122,7 +1164,7 @@
     });
 
     // ============================
-    // Profile (force white titles already handled in CSS)
+    // Profile
     // ============================
     function initialsFromName(n){
       const s = (n || "").trim();
@@ -1485,7 +1527,6 @@
 
       } else if (p === "stack"){
         Object.keys(state).forEach(k => state[k]=true);
-        // keep “stack” dense but still readable: names on, corridors on, etc.
 
       } else if (p === "clear"){
         Object.keys(state).forEach(k => state[k]=false);
@@ -1534,10 +1575,6 @@
       Object.keys(state).forEach(k=> state[k]=false);
       applyVisibility(); saveState(); renderOverlayList();
     });
-
-    // Start in Core (visually), but preserve local toggles if already stored
-    // (If you want to force Core on every load, uncomment next line)
-    // setPreset("core");
 
     (async ()=>{
       try{
@@ -2002,7 +2039,6 @@
           overlays.aurora.visible = !!state.aurora;
           nightLights.visible = !!state.nightLights;
         }
-        // expose for presets + overlay modal
         window.applyVisibility = applyVisibility;
         applyVisibility();
 
