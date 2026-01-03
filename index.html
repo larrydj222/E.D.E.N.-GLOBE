@@ -553,7 +553,7 @@
     <div id="drawerBody">
       <div class="gridTop">
         <button class="pill" id="welcomeBtn">
-          <span class="left"><span class="dot"></span><span class="label">Welcome</span></span>
+          <span class="left"><span class="dot"></span><span class="label">Hello</span></span>
         </button>
 
         <button class="pill" id="missionBtn">
@@ -562,7 +562,7 @@
 
         <button class="pill" id="stationBtn">
           <span class="left"><span class="dot"></span><span class="label" id="stationLabel">Start</span></span>
-          <span class="hint" id="stationHint">Start</span>
+          <span class="hint" id="stationHint">Begin</span>
         </button>
       </div>
 
@@ -593,12 +593,12 @@
   <div id="modalMask" role="dialog" aria-modal="true" aria-label="MAP E.D.E.N. Modal">
     <div id="modal">
       <div id="modalTop">
-        <div id="modalTitle">WELCOME</div>
+        <div id="modalTitle">HELLO</div>
         <button id="modalClose" aria-label="Close modal">✕</button>
       </div>
       <div id="modalBody">
-        <!-- Welcome -->
-        <iframe id="welcomeFrame" title="MAP E.D.E.N. Welcome" loading="eager" style="display:none;"></iframe>
+        <!-- Welcome / Hello -->
+        <iframe id="welcomeFrame" title="MAP E.D.E.N. Hello" loading="eager" style="display:none;"></iframe>
 
         <!-- Mission -->
         <div id="missionContent" class="page" style="display:none;">
@@ -631,8 +631,8 @@
                 <div class="tiny">Core / Stack use presets. Clear disables everything.</div>
               </div>
               <div class="row">
-                <button class="btn compact ghost" id="overlayAllOffBtn">Overlay −</button>
-                <button class="btn compact good" id="overlayAllOnBtn">Overlay +</button>
+                <button class="btn compact ghost" id="overlayAllOffBtn">−</button>
+                <button class="btn compact good" id="overlayAllOnBtn">+</button>
               </div>
             </div>
           </div>
@@ -797,10 +797,10 @@
             <div class="tiny" style="margin-bottom:6px;">DISPLAY NAME</div>
             <div class="row">
               <div id="avatarBox" class="card" style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;padding:0;">
-                <div id="avatarText" style="font:900 16px/1 -apple-system,system-ui,Segoe UI,Roboto,Arial;color:rgba(255,255,255,0.92);">ED</div>
+                <div id="avatarText" style="font:900 16px/1 -apple-system,system-ui,Segoe UI,Roboto,Arial;color:rgba(255,255,255,0.92);">M</div>
                 <img id="avatarImg" alt="profile photo" style="display:none;width:64px;height:64px;border-radius:18px;object-fit:cover;" />
               </div>
-              <input class="input" id="displayName" value="E.D.E.N. User" />
+              <input class="input" id="displayName" value="Member" />
             </div>
 
             <div class="tiny" style="margin-top:10px;">
@@ -1000,7 +1000,7 @@
       stationOpen = !!on;
       stationGroup.classList.toggle("on", stationOpen);
       stationBtn.classList.toggle("on", stationOpen);
-      stationHint.textContent  = stationOpen ? "Close" : "Start";
+      stationHint.textContent  = stationOpen ? "Close" : "Begin";
       stationLabel.textContent = stationOpen ? "Close" : "Start";
     }
     stationBtn.addEventListener("click", ()=> setStationOpen(!stationOpen));
@@ -1030,7 +1030,7 @@
       hideAllViews();
 
       if (kind === "welcome"){
-        modalTitle.textContent = "WELCOME";
+        modalTitle.textContent = "HELLO";
         welcomeFrame.style.display = "block";
 
         // robust URL resolution for GitHub Pages subpaths + cache-bust
@@ -1316,7 +1316,7 @@
     }
 
     function refreshProfileUI(){
-      const name = store.get("profile_name", "E.D.E.N. User");
+      const name = store.get("profile_name", "Member");
       const isPrivate = store.get("profile_private", false);
       const posts = store.get("profile_posts", 0);
       const likes = store.get("profile_likes", 0);
@@ -1716,7 +1716,7 @@
               <div class="tiny">Overlay</div>
             </div>
             <button class="btn compact ${on ? "danger" : "good"}" data-k="${o.key}">
-              ${on ? "Overlay −" : "Overlay +"}
+              ${on ? "−" : "+"}
             </button>
           </div>
         `;
