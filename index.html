@@ -27,13 +27,17 @@
       --blue: #5bbcff;
       --aqua: #7fffd4;
       --violet:#a078ff;
-      --ok: rgba(120,255,200,0.88);
-      --danger: rgba(255,120,120,0.92);
-      --shadow: 0 14px 44px rgba(0,0,0,0.42);
+
+      --good: rgba(120,255,200,0.88);
+      --danger: rgba(255,120,120,0.80);
+      --warn: rgba(246,194,74,0.92);
     }
 
     html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
     canvas { display:block; width:100vw !important; height:100vh !important; }
+
+    /* iOS safe vh helper */
+    body{ --vh: 1vh; }
 
     #openBtn{
       position: fixed;
@@ -49,7 +53,7 @@
       border: 1px solid rgba(255,255,255,0.14);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      box-shadow: var(--shadow);
+      box-shadow: 0 14px 44px rgba(0,0,0,0.42);
       cursor: pointer;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
@@ -64,7 +68,7 @@
       transform: translateX(-50%);
       bottom: 18px;
       width: min(820px, calc(100vw - 28px));
-      max-height: calc(100vh - 28px);
+      max-height: calc((var(--vh) * 100) - 28px);
       z-index: 9999;
       color: var(--text);
       background: var(--glass);
@@ -73,7 +77,7 @@
       padding: 14px 14px 12px;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      box-shadow: var(--shadow);
+      box-shadow: 0 14px 44px rgba(0,0,0,0.42);
       user-select: none;
       overflow: hidden;
     }
@@ -108,6 +112,7 @@
       flex-direction:column;
       gap:4px;
       padding-right: 8px;
+      min-width: 0;
     }
     #title {
       font: 900 18px/1.1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
@@ -117,6 +122,9 @@
       font: 650 12px/1.25 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       color: var(--muted);
       max-width: 540px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     #closeBtn{
@@ -139,7 +147,7 @@
       margin-top: 12px;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-      max-height: calc(100vh - 190px);
+      max-height: calc((var(--vh) * 100) - 190px);
       padding-bottom: 6px;
     }
 
@@ -174,8 +182,7 @@
       -webkit-tap-highlight-color: transparent;
     }
     .pill:active { transform: translateY(1px); }
-    .pill[disabled]{ opacity:0.55; cursor: not-allowed; }
-
+    .pill[disabled]{ opacity:0.55; cursor:not-allowed; }
     .pill .left{
       display:inline-flex;
       align-items:center;
@@ -202,17 +209,15 @@
       flex: 0 0 auto;
     }
 
-    /* “Lights turn green” when a TOP button is pressed (Welcome/Mission/Station) */
-    .pill.on .dot{ background: var(--ok); box-shadow: 0 0 16px rgba(120,255,200,0.24); }
-
-    /* Overlay color accents (library) */
+    /* “Lights turn green” when pressed */
+    .pill.on .dot{ background: var(--good); box-shadow: 0 0 16px rgba(120,255,200,0.24); }
     .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
     .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 16px rgba(91,188,255,0.22); }
-    .pill.on[data-key="rhumb42"] .dot{ background: rgba(246,194,74,0.55); box-shadow:0 0 16px rgba(246,194,74,0.16); }
-    .pill.on[data-key="gc42"]    .dot{ background: rgba(91,188,255,0.55); box-shadow:0 0 16px rgba(91,188,255,0.16); }
-    .pill.on[data-key="stations"]   .dot{ background: rgba(127,255,212,0.90); box-shadow:0 0 16px rgba(127,255,212,0.18); }
-    .pill.on[data-key="aurora"]     .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 16px rgba(160,120,255,0.18); }
-    .pill.on[data-key="nightLights"].dot{ background: rgba(140,255,200,0.92); box-shadow:0 0 16px rgba(140,255,200,0.18); }
+    .pill.on[data-key="rhumb42"]  .dot{ background: rgba(246,194,74,0.55); box-shadow:0 0 16px rgba(246,194,74,0.16); }
+    .pill.on[data-key="gc42"]     .dot{ background: rgba(91,188,255,0.55); box-shadow:0 0 16px rgba(91,188,255,0.16); }
+    .pill.on[data-key="stations"] .dot{ background: rgba(127,255,212,0.90); box-shadow:0 0 16px rgba(127,255,212,0.18); }
+    .pill.on[data-key="aurora"]   .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 16px rgba(160,120,255,0.18); }
+    .pill.on[data-key="nightLights"] .dot{ background: rgba(140,255,200,0.92); box-shadow:0 0 16px rgba(140,255,200,0.18); }
 
     #statusBar{
       margin-top: 10px;
@@ -244,11 +249,10 @@
     #drawer.collapsed #errors { display:none; }
     #drawer.collapsed { padding-bottom: 12px; }
 
-    /* Station group (your “Switchboard” replacement) */
     #stationGroup{ display:none; }
     #stationGroup.on{ display:block; }
 
-    /* Full-screen modal system */
+    /* ===== Modal (full-screen feel, fixes iOS sizing + welcome scaling) ===== */
     #modalMask{
       position: fixed;
       inset: 0;
@@ -259,13 +263,13 @@
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 18px;
+      padding: 14px;
     }
     #modalMask.on{ display:flex; }
 
     #modal{
-      width: min(980px, calc(100vw - 24px));
-      height: min(86vh, 820px);
+      width: min(980px, calc(100vw - 16px));
+      height: min(calc(var(--vh) * 92), 860px);
       background: rgba(12,14,18,0.78);
       border: 1px solid rgba(255,255,255,0.16);
       border-radius: 22px;
@@ -281,12 +285,14 @@
       justify-content: space-between;
       padding: 12px 12px 10px;
       border-bottom: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.10);
     }
     #modalTitle{
       font: 900 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       letter-spacing: 0.3px;
       color: rgba(255,255,255,0.92);
       padding-left: 6px;
+      text-transform: uppercase;
     }
     #modalClose{
       width: 40px;
@@ -305,67 +311,63 @@
       background: rgba(0,0,0,0.15);
     }
 
-    .panel{ display:none; padding: 18px 18px 24px; }
-    .panel.on{ display:block; }
-
+    /* ✅ Welcome scaling fix (true top-to-bottom inside modal) */
     #welcomeFrame{
       width: 100%;
       height: 100%;
+      min-height: calc(var(--vh) * 92 - 56px);
       border: 0;
       display:block;
       background: #000;
     }
 
-    /* Mission */
-    #missionContent{
-      color: rgba(255,255,255,0.88);
-      font: 650 14px/1.55 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+    /* ===== Content blocks (force white headings) ===== */
+    .page{
+      padding: 18px 18px 24px;
       max-width: 920px;
       margin: 0 auto;
-      padding: 18px 18px 24px;
+      color: rgba(255,255,255,0.88); /* ✅ force white */
+      font: 650 14px/1.55 -apple-system, system-ui, Segoe UI, Roboto, Arial;
     }
-    #missionContent h2{
+    .page h2{
+      color: rgba(255,255,255,0.92); /* ✅ force white */
       font: 900 18px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       margin: 0 0 10px;
       letter-spacing: 0.2px;
     }
-    #missionContent p{ margin: 0 0 12px; color: rgba(255,255,255,0.80); }
+    .page p{ margin: 0 0 12px; color: rgba(255,255,255,0.80); }
 
-    /* Stations UI */
-    .h1{
-      font: 950 20px/1.15 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      letter-spacing: 0.25px;
-      margin: 2px 0 8px;
-    }
-    .sub{
-      font: 650 13px/1.35 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.72);
-      margin: 0 0 14px;
-    }
-    .input{
-      width: 100%;
-      padding: 14px 14px;
-      border-radius: 16px;
+    /* ===== Cards / inputs ===== */
+    .card{
+      border-radius: 18px;
       border: 1px solid rgba(255,255,255,0.14);
       background: rgba(255,255,255,0.06);
+      padding: 14px;
+      color: rgba(255,255,255,0.88); /* ✅ force white */
+      box-shadow: 0 12px 34px rgba(0,0,0,0.18) inset;
+    }
+    .row{ display:flex; gap:10px; align-items:center; }
+    .rowBetween{ display:flex; gap:10px; align-items:center; justify-content:space-between; }
+    .muted{ color: rgba(255,255,255,0.62); }
+    .tiny{ font: 700 11px/1.3 -apple-system, system-ui, Segoe UI, Roboto, Arial; color: rgba(255,255,255,0.55); }
+
+    .input, .textarea{
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.14);
       color: rgba(255,255,255,0.92);
+      padding: 12px 12px;
+      font: 800 14px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       outline: none;
-      font: 750 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      letter-spacing: 0.1px;
     }
-    .row{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      justify-content: space-between;
-      margin-top: 10px;
-      flex-wrap: wrap;
-    }
+    .textarea{ min-height: 92px; resize: vertical; font-weight: 750; }
+
     .btn{
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      gap:10px;
+      gap:8px;
       padding: 12px 14px;
       border-radius: 16px;
       border: 1px solid rgba(255,255,255,0.14);
@@ -375,351 +377,91 @@
       cursor:pointer;
       -webkit-tap-highlight-color: transparent;
       user-select:none;
+      min-width: 120px;
     }
     .btn:active{ transform: translateY(1px); }
-    .btn.primary{ background: rgba(120,255,200,0.10); border-color: rgba(120,255,200,0.22); }
+    .btn.good{ background: rgba(120,255,200,0.12); border-color: rgba(120,255,200,0.20); }
     .btn.danger{ background: rgba(255,120,120,0.10); border-color: rgba(255,120,120,0.22); }
     .btn.ghost{ background: rgba(255,255,255,0.04); }
     .btn[disabled]{ opacity:0.55; cursor:not-allowed; }
 
-    .card{
-      margin-top: 14px;
-      padding: 14px 14px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      box-shadow: 0 16px 50px rgba(0,0,0,0.25);
-    }
-    .cardTitle{
-      font: 950 18px/1.15 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      letter-spacing: 0.2px;
-      margin-bottom: 6px;
-    }
-    .meta{
-      font: 700 12px/1.35 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.70);
-      margin-bottom: 10px;
-    }
-
-    /* Role picker */
-    #rolePickerMask{
-      position: fixed;
-      inset: 0;
-      z-index: 30000;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding: 18px;
-      background: rgba(0,0,0,0.55);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-    }
-    #rolePickerMask.on{ display:flex; }
-    #rolePicker{
-      width: min(520px, calc(100vw - 24px));
-      border-radius: 20px;
+    /* ===== Toggle ===== */
+    .toggle{
+      width: 54px; height: 32px;
+      border-radius: 999px;
       border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(12,14,18,0.86);
-      box-shadow: 0 20px 70px rgba(0,0,0,0.55);
-      overflow: hidden;
+      background: rgba(255,255,255,0.08);
+      position: relative;
+      cursor: pointer;
+      flex: 0 0 auto;
     }
-    #rolePickerTop{
-      padding: 12px 14px 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.10);
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap: 10px;
+    .toggle .knob{
+      width: 26px; height: 26px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.86);
+      position:absolute;
+      top: 2px; left: 2px;
+      transition: transform 160ms ease, background 160ms ease;
     }
-    #rolePickerTitle{
-      font: 900 13px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      letter-spacing: 0.25px;
-      color: rgba(255,255,255,0.92);
-    }
-    #rolePickerClose{
-      width: 40px; height: 40px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.92);
-      cursor:pointer;
-    }
-    #rolePickerBody{ padding: 14px; }
-    .roleGrid{
-      display:grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-    .roleBtn{
-      padding: 14px 14px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.92);
-      cursor:pointer;
-      text-align:left;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .roleBtn:active{ transform: translateY(1px); }
-    .roleName{ font: 950 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial; letter-spacing:0.2px; }
-    .roleDesc{ margin-top: 6px; font: 650 12px/1.35 -apple-system, system-ui, Segoe UI, Roboto, Arial; color: rgba(255,255,255,0.68); }
-    .roleBtn[disabled]{ opacity:0.55; cursor:not-allowed; }
+    .toggle.on{ background: rgba(120,255,200,0.18); border-color: rgba(120,255,200,0.30); }
+    .toggle.on .knob{ transform: translateX(22px); background: rgba(120,255,200,0.92); }
 
-    /* Overlay Library */
-    .libRow{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      justify-content:space-between;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-    .tiny{
-      font: 700 12px/1.35 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.72);
-    }
-
-    /* Hub (X + Discord feel) */
+    /* ===== Hub (X + Discord feel) ===== */
     .hubWrap{
       display:flex;
-      gap: 12px;
-      padding: 14px;
-      height: calc(86vh - 60px);
-      box-sizing:border-box;
+      min-height: calc(var(--vh) * 92 - 56px);
     }
     .rail{
-      width: 56px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.05);
+      width: 58px;
+      border-right: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.10);
       display:flex;
       flex-direction:column;
       align-items:center;
-      gap: 10px;
       padding: 10px 8px;
-      flex: 0 0 auto;
+      gap:10px;
+      position: sticky;
+      top: 0;
     }
     .railBtn{
       width: 44px; height: 44px;
-      border-radius: 16px;
+      border-radius: 14px;
       border: 1px solid rgba(255,255,255,0.14);
       background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.92);
-      cursor:pointer;
       display:flex;
       align-items:center;
       justify-content:center;
-      font: 900 16px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      color: rgba(255,255,255,0.90);
+      cursor:pointer;
+      user-select:none;
       -webkit-tap-highlight-color: transparent;
+      font: 900 16px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
     }
     .railBtn.on{
-      border-color: rgba(120,255,200,0.24);
-      background: rgba(120,255,200,0.08);
-      box-shadow: 0 0 18px rgba(120,255,200,0.12);
+      border-color: rgba(120,255,200,0.28);
+      background: rgba(120,255,200,0.10);
+      box-shadow: 0 0 20px rgba(120,255,200,0.08);
     }
     .hubMain{
       flex: 1 1 auto;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.05);
-      overflow: hidden;
-      display:flex;
-      flex-direction:column;
-    }
-    .hubTopBar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap: 10px;
-      padding: 12px 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.10);
-    }
-    .hubTitle{
-      font: 950 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      letter-spacing: 0.25px;
-      color: rgba(255,255,255,0.92);
-    }
-    .hubRole{
-      font: 800 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.68);
-    }
-    .hubBody{
-      padding: 12px;
-      overflow:auto;
-      -webkit-overflow-scrolling: touch;
+      padding: 16px 16px 24px;
+      color: rgba(255,255,255,0.88); /* ✅ force white */
     }
 
-    .post{
-      padding: 12px 12px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.04);
-      margin-bottom: 10px;
-    }
-    .postHead{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-    .who{
-      font: 900 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.88);
-    }
-    .when{
-      font: 700 11px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.55);
-    }
-    .postText{
-      font: 650 13px/1.45 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.82);
-    }
-    .actions{
-      margin-top: 10px;
-      display:flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .chip{
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.04);
-      font: 900 12px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.88);
-      cursor:pointer;
-      user-select:none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .chip:active{ transform: translateY(1px); }
+    .divider{ height:1px; background: rgba(255,255,255,0.10); margin: 12px 0; }
 
-    /* Profile */
-    .profileHeader{
-      display:flex;
-      gap: 12px;
-      align-items:center;
-      margin-bottom: 14px;
-    }
-    .avatar{
-      width: 56px; height: 56px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      overflow:hidden;
-      flex: 0 0 auto;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color: rgba(255,255,255,0.55);
-      font: 900 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-    }
-    .avatar img{ width: 100%; height:100%; object-fit: cover; display:block; }
-    .kv{
-      display:flex;
-      flex-direction:column;
-      gap: 6px;
-      min-width: 0;
-    }
-    .kv label{
-      font: 800 11px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.58);
-      letter-spacing: 0.25px;
-      text-transform: uppercase;
-    }
-    .kv input{
-      width: min(380px, 100%);
-      padding: 12px 12px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.92);
-      outline: none;
-      font: 850 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-    }
-    .toggleRow{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 12px;
-      padding: 12px 12px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.04);
-      margin: 10px 0 12px;
-    }
-    .toggleRow .tTitle{
-      font: 900 13px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.88);
-    }
-    .toggleRow .tSub{
-      margin-top: 4px;
-      font: 650 12px/1.35 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.64);
-    }
-    .switch{
-      width: 54px;
-      height: 30px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      position: relative;
-      cursor:pointer;
-      flex: 0 0 auto;
-    }
-    .switch::after{
-      content:"";
-      width: 24px; height: 24px;
-      border-radius: 999px;
-      position:absolute;
-      top: 2px; left: 2px;
-      background: rgba(255,255,255,0.22);
-      transition: left 180ms ease, background 180ms ease;
-    }
-    .switch.on{
-      border-color: rgba(120,255,200,0.24);
-      background: rgba(120,255,200,0.08);
-    }
-    .switch.on::after{
-      left: 28px;
-      background: rgba(120,255,200,0.82);
-    }
-
-    /* Toast */
-    #toast{
-      position: fixed;
-      left: 50%;
-      bottom: 96px;
-      transform: translateX(-50%);
-      z-index: 40000;
-      display:none;
-      padding: 12px 14px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(12,14,18,0.78);
-      color: rgba(255,255,255,0.92);
-      box-shadow: var(--shadow);
-      font: 900 12px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      letter-spacing: 0.15px;
-      max-width: min(520px, calc(100vw - 32px));
-      text-align:center;
-      user-select:none;
-      -webkit-tap-highlight-color: transparent;
-    }
-
+    /* Mobile tweaks */
     @media (max-width: 520px){
       .gridTop{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .pill{ padding: 12px 12px; border-radius: 16px; font-size: 13px; }
-      #drawerBody{ max-height: calc(100vh - 200px); }
+      #drawerBody{ max-height: calc((var(--vh) * 100) - 200px); }
       #subtitle{ max-width: 310px; }
       .pill .hint{ display:none; }
-      .hubWrap{ padding: 12px; }
-      .rail{ width: 52px; }
-      .railBtn{ width: 40px; height: 40px; border-radius: 14px; }
+      #modal{ border-radius: 20px; }
+      .hubMain{ padding: 14px 14px 22px; }
     }
     @media (max-width: 380px){
       .gridTop{ grid-template-columns: 1fr; }
-      .roleGrid{ grid-template-columns: 1fr; }
     }
   </style>
 
@@ -757,35 +499,23 @@
           <span class="left"><span class="dot"></span><span class="label">Mission</span></span>
         </button>
 
-        <button class="pill switch" id="stationBtn">
-          <span class="left"><span class="dot"></span><span class="label">Station</span></span>
-          <span class="hint" id="stationHint">Tap to begin</span>
+        <button class="pill" id="stationBtn">
+          <span class="left"><span class="dot"></span><span class="label" id="stationLabel">Tap to begin</span></span>
+          <span class="hint" id="stationHint">Tap to open</span>
         </button>
       </div>
 
-      <!-- Station group = default smart controls only -->
+      <!-- Default Station panel: Core / Stack / Stations / Overlay+ / Clear / Profile -->
       <div id="stationGroup">
-        <div class="grid2">
-          <button class="pill" id="coreBtn">
-            <span class="left"><span class="dot"></span><span class="label">Core</span></span>
-          </button>
-          <button class="pill" id="stackBtn">
-            <span class="left"><span class="dot"></span><span class="label">Stack</span></span>
-          </button>
+        <div class="grid2" style="margin-top:8px;">
+          <button class="pill" id="coreBtn"><span class="left"><span class="dot"></span><span class="label">Core</span></span></button>
+          <button class="pill" id="stackBtn"><span class="left"><span class="dot"></span><span class="label">Stack</span></span></button>
 
-          <button class="pill" id="stationsBtn">
-            <span class="left"><span class="dot"></span><span class="label">Stations</span></span>
-          </button>
-          <button class="pill" id="overlayPlusBtn">
-            <span class="left"><span class="dot"></span><span class="label">Overlay +</span></span>
-          </button>
+          <button class="pill" id="stationsBtn"><span class="left"><span class="dot"></span><span class="label">Stations</span></span></button>
+          <button class="pill" id="overlayPlusBtn"><span class="left"><span class="dot"></span><span class="label">Overlay +</span></span></button>
 
-          <button class="pill" id="clearBtn">
-            <span class="left"><span class="dot"></span><span class="label">Clear</span></span>
-          </button>
-          <button class="pill" id="profileBtn">
-            <span class="left"><span class="dot"></span><span class="label">Profile</span></span>
-          </button>
+          <button class="pill" id="clearBtn"><span class="left"><span class="dot"></span><span class="label">Clear</span></span></button>
+          <button class="pill" id="profileBtn"><span class="left"><span class="dot"></span><span class="label">Profile</span></span></button>
         </div>
 
         <div id="errors"></div>
@@ -798,190 +528,242 @@
     </div>
   </div>
 
-  <!-- Unified modal -->
+  <!-- Modal -->
   <div id="modalMask" role="dialog" aria-modal="true" aria-label="MAP E.D.E.N. Modal">
     <div id="modal">
       <div id="modalTop">
-        <div id="modalTitle">PANEL</div>
+        <div id="modalTitle">WELCOME</div>
         <button id="modalClose" aria-label="Close modal">✕</button>
       </div>
       <div id="modalBody">
         <!-- Welcome -->
-        <div id="welcomePanel" class="panel">
-          <iframe id="welcomeFrame" title="MAP E.D.E.N. Welcome" loading="lazy"></iframe>
-        </div>
+        <iframe id="welcomeFrame" title="MAP E.D.E.N. Welcome" loading="eager" style="display:none;"></iframe>
 
         <!-- Mission -->
-        <div id="missionPanel" class="panel">
-          <div id="missionContent">
-            <h2>MAP E.D.E.N. Mission</h2>
-            <p>
-              Turn the 42° / 222° axis hypothesis into a coordinated, evidence-first experiment by producing sensor datasets
-              that are repeatable, controlled, and comparable across stations and time.
-            </p>
-            <p>
-              MAP E.D.E.N. is a private, smart community network (X + Discord, but scientific) where Stations (Hubs) coordinate operators,
-              publish datasets, discuss results, and iterate protocols with transparency.
-            </p>
-            <p>
-              This globe is the visual switchboard for overlays — while Stations govern access, roles, and collaboration.
-            </p>
-          </div>
+        <div id="missionContent" class="page" style="display:none;">
+          <h2>MAP E.D.E.N. Mission</h2>
+          <p>
+            Turn the 42° / 222° axis hypothesis into a coordinated, evidence-first experiment by producing sensor datasets
+            that are repeatable, controlled, and comparable across stations and time.
+          </p>
+          <p class="muted">
+            This globe is a visual switchboard for the core overlays while keeping the Earth render clean.
+          </p>
         </div>
 
         <!-- Overlay Library -->
-        <div id="overlayPanel" class="panel">
-          <div class="h1">Overlay Library</div>
-          <div class="sub">Add or remove overlays from your Station view. (Stations stay separate.)</div>
-          <div class="libRow">
-            <input id="overlaySearch" class="input" placeholder="Search overlays…" />
-            <div class="tiny" id="overlaySummary">—</div>
-          </div>
-          <div id="overlayList" class="grid2"></div>
-        </div>
+        <div id="overlayContent" class="page" style="display:none;">
+          <h2>Overlay Library</h2>
+          <p class="muted">Add or remove overlays for your Station view. (Prototype-local settings.)</p>
 
-        <!-- Stations list -->
-        <div id="stationsPanel" class="panel">
-          <div class="h1">Stations</div>
-          <div class="sub">
-            Join only works near your location. Exit222•Station1 (Axis 42/222) is the only active station right now.
-            Observers/Analysts/Operators require Owner approval to view the Hub.
-          </div>
-
-          <input id="stationSearch" class="input" placeholder="Search stations…" />
-
-          <div class="row">
-            <button class="btn primary" id="createStationBtn">+ Create</button>
-            <button class="btn danger" id="deleteStationBtn">− Delete</button>
-            <button class="btn ghost" id="requestLocationBtn">Enable Location</button>
-          </div>
-
-          <div id="stationsList"></div>
-        </div>
-
-        <!-- Station preview -->
-        <div id="stationPreviewPanel" class="panel">
-          <div class="h1" id="previewName">Station</div>
-          <div class="sub" id="previewMeta">—</div>
-
-          <div class="card">
-            <div class="meta" id="previewAccess">Access: —</div>
-            <div class="row">
-              <button class="btn primary" id="previewJoinBtn">Join</button>
-              <button class="btn" id="previewFollowBtn">Follow</button>
-              <button class="btn" id="previewHubBtn">View Hub</button>
+          <div class="card" style="margin-top:12px;">
+            <div class="rowBetween">
+              <div>
+                <div style="font-weight:900;">Quick actions</div>
+                <div class="tiny">Core / Stack use presets. Clear disables everything.</div>
+              </div>
+              <div class="row">
+                <button class="btn ghost" id="overlayAllOffBtn">Overlay −</button>
+                <button class="btn good" id="overlayAllOnBtn">Overlay +</button>
+              </div>
             </div>
-            <div class="tiny" id="previewNote" style="margin-top:10px; color: rgba(255,255,255,0.62);">
-              Join requests require Owner approval. Hub view requires approval.
+          </div>
+
+          <div id="overlayList" style="display:grid; gap:10px; margin-top:12px;"></div>
+        </div>
+
+        <!-- Stations -->
+        <div id="stationsContent" class="page" style="display:none;">
+          <h2>Stations</h2>
+          <p class="muted">
+            Join only works near your location. Exit222•Station1 (Axis 42/222) is the only active station right now.
+            Observers / Analysts / Operators require Owner approval to view the Hub.
+          </p>
+
+          <div class="card" style="margin-top:12px;">
+            <input class="input" id="stationSearch" placeholder="Search stations…" />
+            <div class="rowBetween" style="margin-top:12px;">
+              <button class="btn good" id="stationCreateBtn">+ Create</button>
+              <button class="btn danger" id="stationDeleteBtn">− Delete</button>
+            </div>
+            <div class="row" style="margin-top:12px;">
+              <button class="btn" id="enableLocationBtn">Enable Location</button>
+              <div class="tiny" id="locStateText">Location: Off</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:14px;">
+            <div style="font: 900 20px/1.1 -apple-system,system-ui,Segoe UI,Roboto,Arial; color: rgba(255,255,255,0.92);">
+              Exit222•Station1
+            </div>
+            <div class="muted" style="margin-top:6px;">
+              Axis 42/222 • 38°9′39″ N, 79°4′24″ W
+            </div>
+
+            <div style="margin-top:10px; display:grid; gap:6px;">
+              <div><span class="muted">Distance:</span> <span id="distanceText">0.0 km away</span> <span class="muted">• Join/View radius 100 km</span></div>
+              <div><span class="muted">Access:</span> <span id="accessText">None</span></div>
+            </div>
+
+            <div class="rowBetween" style="margin-top:14px;">
+              <button class="btn good" id="previewStationBtn">Preview</button>
+              <button class="btn" id="followStationBtn">Follow</button>
+            </div>
+
+            <div class="tiny" style="margin-top:10px;">
+              Join remains blocked until location is enabled and within radius.
+            </div>
+          </div>
+        </div>
+
+        <!-- Station Preview -->
+        <div id="previewContent" class="page" style="display:none;">
+          <h2>Station Preview</h2>
+          <div class="card">
+            <div class="rowBetween">
+              <div>
+                <div style="font-weight:900; color: rgba(255,255,255,0.92);">Exit222•Station1</div>
+                <div class="tiny">Axis 42/222 • 38°9′39″ N, 79°4′24″ W</div>
+              </div>
+              <div class="tiny" id="previewDistanceTiny">0.0 km away</div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="muted">
+              A minimal hub for coordinated station work: Feed (field notes), Data (exports), Chat (coordination), Files (assets).
+              Owner approval required to view hub content.
+            </div>
+
+            <div class="rowBetween" style="margin-top:14px;">
+              <button class="btn good" id="joinStationBtn">Join</button>
+              <button class="btn" id="viewHubBtn">View Hub</button>
+            </div>
+
+            <div class="tiny" style="margin-top:10px;" id="joinRulesTiny">
+              Join is blocked until location is enabled.
             </div>
           </div>
         </div>
 
         <!-- Hub -->
-        <div id="hubPanel" class="panel" style="padding:0;">
+        <div id="hubContent" style="display:none;">
           <div class="hubWrap">
-            <div class="rail" aria-label="Hub rail">
-              <button class="railBtn on" data-hubtab="feed" title="Feed">📰</button>
-              <button class="railBtn" data-hubtab="data" title="Data">📊</button>
-              <button class="railBtn" data-hubtab="chat" title="Chat">💬</button>
-              <button class="railBtn" data-hubtab="files" title="Files">📁</button>
+            <div class="rail">
+              <div class="railBtn on" data-tab="feed" title="Feed">⌁</div>
+              <div class="railBtn" data-tab="data" title="Data">Δ</div>
+              <div class="railBtn" data-tab="chat" title="Chat">✶</div>
+              <div class="railBtn" data-tab="files" title="Files">▣</div>
             </div>
-
             <div class="hubMain">
-              <div class="hubTopBar">
+              <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
                 <div>
-                  <div class="hubTitle" id="hubTitle">Hub</div>
-                  <div class="hubRole" id="hubRole">Role: —</div>
+                  <div style="font:900 18px/1.1 -apple-system,system-ui,Segoe UI,Roboto,Arial; color: rgba(255,255,255,0.92);">
+                    Exit222•Station1
+                  </div>
+                  <div class="tiny">Hub • Owner approval required • Prototype-local</div>
                 </div>
-                <div class="row" style="margin:0;">
-                  <button class="btn ghost" id="hubFollowBtn">Follow</button>
+                <div class="tiny" id="hubAccessTiny">Access: None</div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div id="hubTab_feed">
+                <div class="card">
+                  <div style="font-weight:900; color: rgba(255,255,255,0.92);">Feed</div>
+                  <div class="muted" style="margin-top:6px;">Scientific field notes & station updates (microblog).</div>
+                  <div class="tiny" style="margin-top:10px;">(Preview mode: content hidden until approved.)</div>
                 </div>
               </div>
 
-              <div class="hubBody" id="hubBody"></div>
+              <div id="hubTab_data" style="display:none;">
+                <div class="card">
+                  <div style="font-weight:900; color: rgba(255,255,255,0.92);">Data</div>
+                  <div class="muted" style="margin-top:6px;">Exports, instruments, timestamps, protocols.</div>
+                  <div class="tiny" style="margin-top:10px;">(Preview mode: content hidden until approved.)</div>
+                </div>
+              </div>
+
+              <div id="hubTab_chat" style="display:none;">
+                <div class="card">
+                  <div style="font-weight:900; color: rgba(255,255,255,0.92);">Chat</div>
+                  <div class="muted" style="margin-top:6px;">Coordination and requests (owner approvals).</div>
+                  <div class="tiny" style="margin-top:10px;">(Preview mode: content hidden until approved.)</div>
+                </div>
+              </div>
+
+              <div id="hubTab_files" style="display:none;">
+                <div class="card">
+                  <div style="font-weight:900; color: rgba(255,255,255,0.92);">Files</div>
+                  <div class="muted" style="margin-top:6px;">Images, audio, video, PDFs, station assets.</div>
+                  <div class="tiny" style="margin-top:10px;">(Preview mode: content hidden until approved.)</div>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
 
         <!-- Profile -->
-        <div id="profilePanel" class="panel">
-          <div class="h1">Profile</div>
-          <div class="sub">Minimal, scientific identity + microblog (prototype-local). Stations remain public; profile/research visibility can be private/public.</div>
+        <div id="profileContent" class="page" style="display:none;">
+          <h2>Profile</h2>
+          <p class="muted">
+            Minimal, scientific identity + microblog (prototype-local). Stations remain public; profile/research visibility can be private/public.
+          </p>
 
-          <div class="profileHeader">
-            <div class="avatar" id="avatarBox">ED</div>
-            <div class="kv">
-              <label>Display name</label>
-              <input id="profileName" placeholder="Enter name…" />
-              <div class="tiny" id="roleSymbols" style="margin-top:2px;">Role symbols: ⬡ Owner • ⛭ Operator • ∑ Analyst • ◉ Observer</div>
-            </div>
-          </div>
-
-          <div class="row" style="margin-top:0;">
-            <input type="file" id="avatarInput" accept="image/*" style="display:none;" />
-            <button class="btn" id="avatarUploadBtn">Upload photo</button>
-            <button class="btn danger" id="avatarRemoveBtn">Remove</button>
-          </div>
-
-          <div class="toggleRow">
-            <div>
-              <div class="tTitle">Account visibility</div>
-              <div class="tSub">Public profiles can be followed. Private profiles require approval to follow.</div>
-            </div>
-            <div class="switch" id="privacySwitch" role="switch" aria-checked="false"></div>
-          </div>
-
-          <div class="card">
-            <div class="cardTitle">Micro-post (Field Note)</div>
-            <div class="sub" style="margin-bottom:10px;">Post a scientific note. (Local-only prototype)</div>
-            <input id="postInput" class="input" placeholder="Write a field note…" />
+          <div class="card" style="margin-top:12px;">
+            <div class="tiny" style="margin-bottom:6px;">DISPLAY NAME</div>
             <div class="row">
-              <button class="btn primary" id="postBtn">Post</button>
-              <div class="tiny" id="profileStats">Posts: 0 • Likes: 0 • Messages: 0</div>
+              <div id="avatarBox" class="card" style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;padding:0;">
+                <div id="avatarText" style="font:900 16px/1 -apple-system,system-ui,Segoe UI,Roboto,Arial;color:rgba(255,255,255,0.92);">ED</div>
+                <img id="avatarImg" alt="profile photo" style="display:none;width:64px;height:64px;border-radius:18px;object-fit:cover;" />
+              </div>
+              <input class="input" id="displayName" value="E.D.E.N. User" />
+            </div>
+
+            <div class="tiny" style="margin-top:10px;">
+              Role symbols: ⊙ Owner • ✶ Operator • Σ Analyst • ◌ Observer
+            </div>
+
+            <div class="rowBetween" style="margin-top:12px;">
+              <div class="row">
+                <input type="file" id="photoInput" accept="image/*" style="display:none;" />
+                <button class="btn" id="uploadPhotoBtn">Upload photo</button>
+                <button class="btn danger" id="removePhotoBtn">Remove</button>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top:12px;">
+              <div class="rowBetween">
+                <div>
+                  <div style="font-weight:900; color: rgba(255,255,255,0.92);">Account visibility</div>
+                  <div class="tiny">Public profiles can be followed. Private profiles require approval to follow.</div>
+                </div>
+                <div class="toggle" id="visibilityToggle"><div class="knob"></div></div>
+              </div>
             </div>
           </div>
 
-          <div id="profileFeed" style="margin-top: 14px;"></div>
+          <div class="card" style="margin-top:14px;">
+            <div style="font-weight:900; color: rgba(255,255,255,0.92);">Micro-Post (Field Note)</div>
+            <div class="muted" style="margin-top:6px;">Post a scientific note. (Local-only prototype.)</div>
+            <textarea class="textarea" id="fieldNote" placeholder="Write a field note…" style="margin-top:10px;"></textarea>
+            <div class="rowBetween" style="margin-top:12px;">
+              <button class="btn good" id="postBtn">Post</button>
+              <div class="tiny" id="profileCounts">Posts: 0 • Likes: 0 • Messages: 0</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:14px;">
+            <div style="font-weight:900; color: rgba(255,255,255,0.92);">Inbox (prototype)</div>
+            <div class="muted" style="margin-top:6px;">Direct + station messages (counts only for now).</div>
+            <div class="tiny" style="margin-top:10px;">Next: threaded messages + approvals.</div>
+          </div>
         </div>
+
       </div>
     </div>
   </div>
-
-  <!-- Role picker -->
-  <div id="rolePickerMask" aria-label="Role picker">
-    <div id="rolePicker">
-      <div id="rolePickerTop">
-        <div id="rolePickerTitle">Choose role</div>
-        <button id="rolePickerClose" aria-label="Close role picker">✕</button>
-      </div>
-      <div id="rolePickerBody">
-        <div class="roleGrid">
-          <button class="roleBtn" data-role="Observer">
-            <div class="roleName">◉ Observer</div>
-            <div class="roleDesc">View Hub (requires Owner approval).</div>
-          </button>
-          <button class="roleBtn" data-role="Analyst">
-            <div class="roleName">∑ Analyst</div>
-            <div class="roleDesc">Analyze + comment (requires Owner approval).</div>
-          </button>
-          <button class="roleBtn" data-role="Operator">
-            <div class="roleName">⛭ Operator</div>
-            <div class="roleDesc">Operate station tasks (requires Owner approval).</div>
-          </button>
-          <button class="roleBtn" data-role="Owner">
-            <div class="roleName">⬡ Owner</div>
-            <div class="roleDesc">Create/manage station (not allowed on stations already owned).</div>
-          </button>
-        </div>
-        <div class="tiny" style="margin-top:12px; color: rgba(255,255,255,0.62);">
-          Join requires proximity + Owner approval. Owner role is only allowed when you create a station.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Toast -->
-  <div id="toast"></div>
 
   <script type="module">
     import * as THREE from "three";
@@ -992,7 +774,32 @@
     import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 
     // ============================
-    // Elements
+    // ✅ SETTINGS
+    // ============================
+    const WELCOME_FILE = "assets/welcome6.html";
+
+    // ✅ Your request: show “0.0 km away” even if location unknown (Join still blocked)
+    const DEMO_DISTANCE_MODE = true;
+
+    // Prototype join radius
+    const JOIN_RADIUS_KM = 100;
+
+    // Station anchor (Exit 222 • Station 1)
+    const ANCHOR = { name: "Exit 222 • Station 1", lat: 38.1608333333, lon: -79.0733333333 };
+
+    // ============================
+    // VH fix for iOS (helps modal + welcome scaling)
+    // ============================
+    function setVH(){
+      const vh = window.innerHeight * 0.01;
+      document.body.style.setProperty("--vh", `${vh}px`);
+    }
+    setVH();
+    window.addEventListener("resize", setVH, { passive:true });
+    window.addEventListener("orientationchange", setVH, { passive:true });
+
+    // ============================
+    // UI elements
     // ============================
     const statusEl   = document.getElementById("status");
     const errorsEl   = document.getElementById("errors");
@@ -1004,96 +811,61 @@
     const welcomeBtn = document.getElementById("welcomeBtn");
     const missionBtn = document.getElementById("missionBtn");
 
-    // Station (renamed from Switchboard)
-    const stationBtn  = document.getElementById("stationBtn");
-    const stationHint = document.getElementById("stationHint");
-    const stationGroup= document.getElementById("stationGroup");
+    const stationBtn   = document.getElementById("stationBtn");
+    const stationLabel = document.getElementById("stationLabel");
+    const stationHint  = document.getElementById("stationHint");
+    const stationGroup = document.getElementById("stationGroup");
 
-    // Station controls
-    const coreBtn     = document.getElementById("coreBtn");
-    const stackBtn    = document.getElementById("stackBtn");
-    const stationsBtn = document.getElementById("stationsBtn");
+    const coreBtn      = document.getElementById("coreBtn");
+    const stackBtn     = document.getElementById("stackBtn");
+    const stationsBtn  = document.getElementById("stationsBtn");
     const overlayPlusBtn = document.getElementById("overlayPlusBtn");
-    const clearBtn    = document.getElementById("clearBtn");
-    const profileBtn  = document.getElementById("profileBtn");
+    const clearBtn     = document.getElementById("clearBtn");
+    const profileBtn   = document.getElementById("profileBtn");
 
-    // Modal system
-    const modalMask   = document.getElementById("modalMask");
-    const modalClose  = document.getElementById("modalClose");
-    const modalTitle  = document.getElementById("modalTitle");
+    const modalMask  = document.getElementById("modalMask");
+    const modalClose = document.getElementById("modalClose");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalBody  = document.getElementById("modalBody");
 
-    const welcomePanel = document.getElementById("welcomePanel");
-    const missionPanel = document.getElementById("missionPanel");
-    const overlayPanel = document.getElementById("overlayPanel");
-    const stationsPanel= document.getElementById("stationsPanel");
-    const stationPreviewPanel = document.getElementById("stationPreviewPanel");
-    const hubPanel     = document.getElementById("hubPanel");
-    const profilePanel = document.getElementById("profilePanel");
+    const welcomeFrame   = document.getElementById("welcomeFrame");
+    const missionContent = document.getElementById("missionContent");
+    const overlayContent = document.getElementById("overlayContent");
+    const overlayList    = document.getElementById("overlayList");
+    const overlayAllOnBtn = document.getElementById("overlayAllOnBtn");
+    const overlayAllOffBtn = document.getElementById("overlayAllOffBtn");
 
-    const welcomeFrame = document.getElementById("welcomeFrame");
+    const stationsContent = document.getElementById("stationsContent");
+    const distanceText = document.getElementById("distanceText");
+    const accessText   = document.getElementById("accessText");
+    const enableLocationBtn = document.getElementById("enableLocationBtn");
+    const locStateText = document.getElementById("locStateText");
+    const previewStationBtn = document.getElementById("previewStationBtn");
+    const followStationBtn  = document.getElementById("followStationBtn");
 
-    // Overlay library UI
-    const overlayList = document.getElementById("overlayList");
-    const overlaySearch = document.getElementById("overlaySearch");
-    const overlaySummary = document.getElementById("overlaySummary");
+    const previewContent = document.getElementById("previewContent");
+    const previewDistanceTiny = document.getElementById("previewDistanceTiny");
+    const joinStationBtn = document.getElementById("joinStationBtn");
+    const viewHubBtn     = document.getElementById("viewHubBtn");
+    const joinRulesTiny  = document.getElementById("joinRulesTiny");
 
-    // Stations UI
-    const stationSearch = document.getElementById("stationSearch");
-    const stationsList = document.getElementById("stationsList");
-    const createStationBtn = document.getElementById("createStationBtn");
-    const deleteStationBtn = document.getElementById("deleteStationBtn");
-    const requestLocationBtn = document.getElementById("requestLocationBtn");
+    const hubContent = document.getElementById("hubContent");
+    const hubAccessTiny = document.getElementById("hubAccessTiny");
 
-    // Station preview UI
-    const previewName = document.getElementById("previewName");
-    const previewMeta = document.getElementById("previewMeta");
-    const previewAccess = document.getElementById("previewAccess");
-    const previewJoinBtn = document.getElementById("previewJoinBtn");
-    const previewFollowBtn = document.getElementById("previewFollowBtn");
-    const previewHubBtn = document.getElementById("previewHubBtn");
-    const previewNote = document.getElementById("previewNote");
-
-    // Hub UI
-    const hubTitle = document.getElementById("hubTitle");
-    const hubRole = document.getElementById("hubRole");
-    const hubBody = document.getElementById("hubBody");
-    const hubFollowBtn = document.getElementById("hubFollowBtn");
-
-    // Role picker
-    const rolePickerMask = document.getElementById("rolePickerMask");
-    const rolePickerClose = document.getElementById("rolePickerClose");
-    const rolePickerTitle = document.getElementById("rolePickerTitle");
-
-    // Profile UI
-    const avatarBox = document.getElementById("avatarBox");
-    const avatarInput = document.getElementById("avatarInput");
-    const avatarUploadBtn = document.getElementById("avatarUploadBtn");
-    const avatarRemoveBtn = document.getElementById("avatarRemoveBtn");
-    const profileName = document.getElementById("profileName");
-    const privacySwitch = document.getElementById("privacySwitch");
-    const postInput = document.getElementById("postInput");
+    const profileContent = document.getElementById("profileContent");
+    const displayNameInput = document.getElementById("displayName");
+    const avatarText = document.getElementById("avatarText");
+    const avatarImg  = document.getElementById("avatarImg");
+    const photoInput = document.getElementById("photoInput");
+    const uploadPhotoBtn = document.getElementById("uploadPhotoBtn");
+    const removePhotoBtn = document.getElementById("removePhotoBtn");
+    const visibilityToggle = document.getElementById("visibilityToggle");
+    const fieldNote = document.getElementById("fieldNote");
     const postBtn = document.getElementById("postBtn");
-    const profileFeed = document.getElementById("profileFeed");
-    const profileStats = document.getElementById("profileStats");
-
-    // Toast
-    const toastEl = document.getElementById("toast");
-
-    const stationTextEl = document.getElementById("stationText");
+    const profileCounts = document.getElementById("profileCounts");
 
     // ============================
-    // Toast
-    // ============================
-    let toastTimer = 0;
-    function toast(msg){
-      clearTimeout(toastTimer);
-      toastEl.textContent = msg;
-      toastEl.style.display = "block";
-      toastTimer = setTimeout(()=> toastEl.style.display = "none", 2200);
-    }
-
-    // ============================
-    // Quiet status system (no red panel for texture fallbacks)
+    // Quiet status system
     // ============================
     let statusBase = "Booting…";
     const notices = new Set();
@@ -1107,16 +879,10 @@
         statusEl.textContent = statusBase;
       }
     }
-    function setStatusBase(s){
-      statusBase = s;
-      renderStatus();
-    }
-    function addNotice(n){
-      notices.add(n);
-      renderStatus();
-    }
+    function setStatusBase(s){ statusBase = s; renderStatus(); }
+    function addNotice(n){ notices.add(n); renderStatus(); }
 
-    // Only REAL errors get the red panel
+    // Only REAL errors get red panel
     function showError(msg){
       if (errorsEl){
         errorsEl.style.display = "block";
@@ -1127,9 +893,6 @@
     window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
     window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
 
-    // ============================
-    // Drawer
-    // ============================
     function setDrawerClosed(isClosed){
       drawerEl.classList.toggle("closed", !!isClosed);
       openBtn.style.display = isClosed ? "inline-flex" : "none";
@@ -1139,841 +902,322 @@
     closeBtn.addEventListener("click", () => setDrawerClosed(true));
     handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
 
-    // “Lights turn green” for top buttons
-    function setTopOn(btn){ btn.classList.add("on"); }
+    // ============================
+    // Station panel open/close
+    // ============================
+    let stationOpen = false;
+    function setStationOpen(on){
+      stationOpen = !!on;
+      stationGroup.classList.toggle("on", stationOpen);
+      stationBtn.classList.toggle("on", stationOpen);
+      stationHint.textContent = stationOpen ? "Tap to close" : "Tap to open";
+      stationLabel.textContent = stationOpen ? "Tap to close" : "Tap to begin";
+    }
+    stationBtn.addEventListener("click", ()=> setStationOpen(!stationOpen));
+    setStationOpen(false);
 
     // ============================
     // Modal routing
     // ============================
-    const PANELS = [welcomePanel, missionPanel, overlayPanel, stationsPanel, stationPreviewPanel, hubPanel, profilePanel];
+    const views = [
+      {key:"welcome", el: welcomeFrame},
+      {key:"mission", el: missionContent},
+      {key:"overlay", el: overlayContent},
+      {key:"stations", el: stationsContent},
+      {key:"preview", el: previewContent},
+      {key:"hub", el: hubContent},
+      {key:"profile", el: profileContent},
+    ];
 
-    function showPanel(panel, title){
-      PANELS.forEach(p => p.classList.remove("on"));
-      panel.classList.add("on");
-      modalTitle.textContent = title;
+    function hideAllViews(){
+      for (const v of views){
+        v.el.style.display = "none";
+      }
+    }
+
+    function openModal(kind){
       modalMask.classList.add("on");
-    }
+      hideAllViews();
 
-    function openWelcome(){
-      setTopOn(welcomeBtn);
-      showPanel(welcomePanel, "WELCOME");
-      const WELCOME_FILE = "assets/welcome6.html";
-      const u = new URL(WELCOME_FILE, window.location.href);
-      u.searchParams.set("v", Date.now().toString());
-      welcomeFrame.style.height = "100%";
-      welcomeFrame.src = u.toString();
-    }
+      if (kind === "welcome"){
+        modalTitle.textContent = "WELCOME";
+        welcomeFrame.style.display = "block";
 
-    function openMission(){
-      setTopOn(missionBtn);
-      showPanel(missionPanel, "MISSION");
-    }
+        // robust URL resolution for GitHub Pages subpaths + cache-bust
+        const u = new URL(WELCOME_FILE, window.location.href);
+        u.searchParams.set("v", Date.now().toString());
+        welcomeFrame.src = u.toString();
 
-    function openOverlayLibrary(){
-      showPanel(overlayPanel, "OVERLAY +");
-      renderOverlayLibrary();
-    }
+      } else if (kind === "mission"){
+        modalTitle.textContent = "MISSION";
+        missionContent.style.display = "block";
 
-    function openStations(){
-      showPanel(stationsPanel, "STATIONS");
-      renderStations();
-    }
+      } else if (kind === "overlay"){
+        modalTitle.textContent = "OVERLAY +";
+        overlayContent.style.display = "block";
+        renderOverlayList();
 
-    function openStationPreview(st){
-      currentPreviewStationId = st.id;
-      showPanel(stationPreviewPanel, "STATION PREVIEW");
-      renderStationPreview(st);
-    }
+      } else if (kind === "stations"){
+        modalTitle.textContent = "STATIONS";
+        stationsContent.style.display = "block";
+        refreshStationUI();
 
-    function openHub(st){
-      showPanel(hubPanel, "VIEW HUB");
-      renderHub(st);
-    }
+      } else if (kind === "preview"){
+        modalTitle.textContent = "STATION PREVIEW";
+        previewContent.style.display = "block";
+        refreshStationUI();
 
-    function openProfile(){
-      showPanel(profilePanel, "PROFILE");
-      renderProfile();
+      } else if (kind === "hub"){
+        modalTitle.textContent = "VIEW HUB";
+        hubContent.style.display = "block";
+        refreshStationUI();
+
+      } else if (kind === "profile"){
+        modalTitle.textContent = "PROFILE";
+        profileContent.style.display = "block";
+        refreshProfileUI();
+      }
     }
 
     function closeModal(){
       modalMask.classList.remove("on");
-      // clean welcome iframe to reduce memory
-      if (welcomePanel.classList.contains("on")){
-        welcomeFrame.src = "about:blank";
-      }
-      PANELS.forEach(p => p.classList.remove("on"));
+      // stop iframe work (prevents iOS scaling glitches on reopen)
+      welcomeFrame.src = "about:blank";
+      hideAllViews();
     }
-
     modalClose.addEventListener("click", closeModal);
     modalMask.addEventListener("click", (e)=>{ if(e.target === modalMask) closeModal(); });
 
-    welcomeBtn.addEventListener("click", openWelcome);
-    missionBtn.addEventListener("click", openMission);
+    // Top buttons
+    function setTopOn(btn){ btn.classList.add("on"); }
+    welcomeBtn.addEventListener("click", ()=>{ setTopOn(welcomeBtn); openModal("welcome"); });
+    missionBtn.addEventListener("click", ()=>{ setTopOn(missionBtn); openModal("mission"); });
 
-    // ============================
-    // Station button toggles the stationGroup
-    // ============================
-    let stationOn = false;
-    function setStation(on){
-      stationOn = !!on;
-      stationBtn.classList.toggle("on", stationOn);
-      stationGroup.classList.toggle("on", stationOn);
-      stationHint.textContent = stationOn ? "Tap to close" : "Tap to begin";
+    // Station panel buttons
+    coreBtn.addEventListener("click", ()=>{ setPreset("core"); flashOn(coreBtn); });
+    stackBtn.addEventListener("click", ()=>{ setPreset("stack"); flashOn(stackBtn); });
+    stationsBtn.addEventListener("click", ()=>{ flashOn(stationsBtn); openModal("stations"); });
+    overlayPlusBtn.addEventListener("click", ()=>{ flashOn(overlayPlusBtn); openModal("overlay"); });
+    clearBtn.addEventListener("click", ()=>{ setPreset("clear"); flashOn(clearBtn); });
+    profileBtn.addEventListener("click", ()=>{ flashOn(profileBtn); openModal("profile"); });
+
+    function flashOn(btn){
+      btn.classList.add("on");
+      setTimeout(()=>btn.classList.remove("on"), 450);
     }
-    stationBtn.addEventListener("click", ()=> setStation(!stationOn));
-    setStation(false);
 
     // ============================
-    // Data (local prototype)
+    // Station access + location gating (prototype-local)
     // ============================
-    const LS = {
-      profile: "eden_profile_v1",
-      overlays: "eden_overlays_v1",
-      stations: "eden_stations_v1",
-      follows: "eden_follows_v1",
-      access: "eden_access_v1",
-      posts: "eden_posts_v1"
+    const store = {
+      get(k, d=null){ try{ const v = localStorage.getItem(k); return v==null ? d : JSON.parse(v);}catch{ return d; } },
+      set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} }
     };
 
-    const ROLE_SYMBOL = {
-      Owner: "⬡",
-      Operator: "⛭",
-      Analyst: "∑",
-      Observer: "◉"
-    };
+    let locEnabled = false;
+    let userLat = null, userLon = null;
 
-    function loadJSON(key, fallback){
-      try{
-        const v = localStorage.getItem(key);
-        return v ? JSON.parse(v) : fallback;
-      } catch { return fallback; }
-    }
-    function saveJSON(key, val){
-      localStorage.setItem(key, JSON.stringify(val));
+    function haversineKm(lat1, lon1, lat2, lon2){
+      const R = 6371;
+      const dLat = (lat2-lat1) * Math.PI/180;
+      const dLon = (lon2-lon1) * Math.PI/180;
+      const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+      return 2 * R * Math.asin(Math.sqrt(a));
     }
 
-    function nowISO(){
-      return new Date().toISOString();
-    }
-
-    // Default profile
-    let profile = loadJSON(LS.profile, {
-      name: "E.D.E.N. User",
-      isPublic: true,
-      avatar: null,
-      stats: { likes: 0, messages: 0 }
-    });
-
-    // Station inventory (prototype)
-    const ANCHOR = { id:"exit222_station1", name:"Exit222•Station1", axis:"42/222", lat: 38.1608333333, lon: -79.0733333333 };
-    let stations = loadJSON(LS.stations, [
-      {
-        id: ANCHOR.id,
-        name: ANCHOR.name,
-        axis: "42/222",
-        lat: ANCHOR.lat,
-        lon: ANCHOR.lon,
-        ownerId: "system_owner",
-        ownerName: "Owner",
-        joinRadiusKm: 100,
-        isActive: true,
-        requireApproval: true
+    function getDistanceKm(){
+      if (locEnabled && userLat!=null && userLon!=null){
+        return haversineKm(userLat, userLon, ANCHOR.lat, ANCHOR.lon);
       }
-    ]);
-
-    // Follows + Access state (prototype)
-    // follows: { [stationId]: true/false }
-    let follows = loadJSON(LS.follows, {});
-    // access: { [stationId]: { status:"none"|"pending"|"approved", role: "Observer"|"Analyst"|"Operator"|"Owner" } }
-    let access = loadJSON(LS.access, {});
-
-    // Overlay state (what is visible)
-    // Note: stations overlay stays separate & always allowed
-    const DEFAULT_STATE = {
-      rhumb222: true,
-      rhumb42:  false,
-      gc222:    true,
-      gc42:     false,
-      names222: false,
-      names42:  false,
-      perpLine: false,
-      perpName: false,
-      continents:false,
-      stations: true,
-      corridors:false,
-      magField: false,
-      aurora:   false,
-      nightLights: true
-    };
-    let overlayState = loadJSON(LS.overlays, {...DEFAULT_STATE});
-    // Always enforce stations on (separate)
-    overlayState.stations = true;
-
-    // Overlay library list (restored fully)
-    const OVERLAY_LIBRARY = [
-      { key:"rhumb222",   label:"Rhumb 222 SW" },
-      { key:"rhumb42",    label:"Rhumb 42 NE" },
-      { key:"gc222",      label:"Great Circle 222 SW" },
-      { key:"gc42",       label:"Great Circle 42 NE" },
-      { key:"names222",   label:"Names 222 SW" },
-      { key:"names42",    label:"Names 42 NE" },
-      { key:"perpLine",   label:"Perpendiculars" },
-      { key:"continents", label:"Continents" },
-      { key:"corridors",  label:"Corridors" },
-      { key:"magField",   label:"Magnetic Field" },
-      { key:"aurora",     label:"Aurora" },
-      { key:"nightLights",label:"Night Lights" },
-      { key:"perpName",   label:"Perp Name" }
-    ];
-
-    // Presets
-    const PRESET_CORE = (s)=>({
-      ...s,
-      rhumb222: true,
-      gc222: true,
-      nightLights: true,
-      corridors: false,
-      rhumb42: false,
-      gc42: false,
-      names222: false,
-      names42: false,
-      perpLine: false,
-      perpName: false,
-      continents: false,
-      magField: false,
-      aurora: false,
-      stations: true
-    });
-
-    const PRESET_STACK = (s)=>({
-      ...s,
-      rhumb222: true,
-      rhumb42: true,
-      gc222: true,
-      gc42: true,
-      names222: true,
-      names42: true,
-      perpLine: true,
-      perpName: true,
-      continents: true,
-      corridors: true,
-      magField: true,
-      aurora: true,
-      nightLights: true,
-      stations: true
-    });
-
-    function applyOverlayState(next){
-      overlayState = { ...overlayState, ...next };
-      overlayState.stations = true; // lock
-      saveJSON(LS.overlays, overlayState);
-      applyVisibility();
-      syncStationButtons();
+      // ✅ Per your request: show 0.0 km away even when unknown
+      return DEMO_DISTANCE_MODE ? 0.0 : null;
     }
 
-    // ============================
-    // Profile rendering
-    // ============================
-    function renderProfile(){
-      // avatar
-      if (profile.avatar){
-        avatarBox.innerHTML = `<img alt="avatar" src="${profile.avatar}">`;
+    function refreshStationUI(){
+      const d = getDistanceKm();
+      const dText = (d==null) ? "—" : `${d.toFixed(1)} km away`;
+      distanceText.textContent = dText;
+      previewDistanceTiny.textContent = dText;
+
+      locStateText.textContent = `Location: ${locEnabled ? "On" : "Off"}`;
+
+      // Join blocked until location enabled (even if DEMO_DISTANCE_MODE shows 0.0)
+      const joinAllowedByLoc = locEnabled && (d != null) && (d <= JOIN_RADIUS_KM);
+
+      const access = store.get("station_access", "None");
+      accessText.textContent = access;
+      hubAccessTiny.textContent = `Access: ${access}`;
+
+      joinStationBtn.disabled = !joinAllowedByLoc;
+      viewHubBtn.disabled = (access === "None"); // prototype rule: can't view hub unless access granted
+      joinRulesTiny.textContent = joinAllowedByLoc
+        ? "Choose role: Owner / Operator / Analyst / Observer (Owner approval required)."
+        : "Join is blocked until location is enabled and within radius.";
+    }
+
+    enableLocationBtn.addEventListener("click", ()=>{
+      if (!navigator.geolocation){
+        alert("Geolocation not supported on this browser.");
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos)=>{
+          locEnabled = true;
+          userLat = pos.coords.latitude;
+          userLon = pos.coords.longitude;
+          refreshStationUI();
+        },
+        ()=>{
+          locEnabled = false;
+          userLat = null; userLon = null;
+          refreshStationUI();
+          alert("Location permission denied. Join remains blocked.");
+        },
+        { enableHighAccuracy:true, timeout:12000, maximumAge:60000 }
+      );
+    });
+
+    previewStationBtn.addEventListener("click", ()=> openModal("preview"));
+    viewHubBtn.addEventListener("click", ()=> openModal("hub"));
+
+    // Follow station (prototype-local)
+    let followed = store.get("station_followed", false);
+    function refreshFollow(){
+      followStationBtn.textContent = followed ? "Unfollow" : "Follow";
+      followStationBtn.classList.toggle("on", followed);
+    }
+    refreshFollow();
+    followStationBtn.addEventListener("click", ()=>{
+      followed = !followed;
+      store.set("station_followed", followed);
+      refreshFollow();
+    });
+
+    // Join station (prototype-local request)
+    joinStationBtn.addEventListener("click", ()=>{
+      // Only allow join near location (already gated)
+      const role = prompt("Choose role for Exit222•Station1:\nObserver, Analyst, Operator, Owner");
+      if (!role) return;
+
+      const r = role.trim().toLowerCase();
+      const allowed = ["observer","analyst","operator","owner"];
+      if (!allowed.includes(r)){
+        alert("Role must be: Observer, Analyst, Operator, Owner");
+        return;
+      }
+
+      // Prototype rule: if station already owned, non-owners require owner approval
+      const stationHasOwner = true; // Exit222•Station1 is owned in your model
+      if (stationHasOwner && r !== "owner"){
+        store.set("station_access", "Pending");
+        alert("Request sent to Owner. Access is Pending.");
+      } else if (r === "owner"){
+        store.set("station_access", "Owner");
+        alert("You are now the Owner (prototype-local).");
       } else {
-        avatarBox.textContent = "ED";
+        store.set("station_access", r[0].toUpperCase() + r.slice(1));
       }
-      profileName.value = profile.name || "";
-      privacySwitch.classList.toggle("on", !!profile.isPublic);
-      privacySwitch.setAttribute("aria-checked", profile.isPublic ? "true" : "false");
 
-      // posts
-      const posts = loadJSON(LS.posts, []);
-      const likes = profile.stats?.likes ?? 0;
-      const messages = profile.stats?.messages ?? 0;
-      profileStats.textContent = `Posts: ${posts.length} • Likes: ${likes} • Messages: ${messages}`;
-
-      profileFeed.innerHTML = "";
-      posts.slice().reverse().forEach(p=>{
-        const el = document.createElement("div");
-        el.className = "post";
-        el.innerHTML = `
-          <div class="postHead">
-            <div class="who">${escapeHTML(profile.name || "E.D.E.N. User")}</div>
-            <div class="when">${new Date(p.ts).toLocaleString()}</div>
-          </div>
-          <div class="postText">${escapeHTML(p.text)}</div>
-          <div class="actions">
-            <div class="chip" data-like="${p.id}">👍 ${p.likes||0}</div>
-            <div class="chip" data-dislike="${p.id}">👎 ${p.dislikes||0}</div>
-            <div class="chip" data-love="${p.id}">❤️ ${p.loves||0}</div>
-            <div class="chip" data-comment="${p.id}">💬 ${p.comments||0}</div>
-          </div>
-        `;
-        profileFeed.appendChild(el);
-      });
-    }
-
-    function escapeHTML(s){
-      return (s||"").replace(/[&<>"']/g, c => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-      }[c]));
-    }
-
-    privacySwitch.addEventListener("click", ()=>{
-      profile.isPublic = !profile.isPublic;
-      saveJSON(LS.profile, profile);
-      renderProfile();
-      toast(profile.isPublic ? "Profile set to Public" : "Profile set to Private");
+      refreshStationUI();
     });
 
-    avatarUploadBtn.addEventListener("click", ()=> avatarInput.click());
-    avatarInput.addEventListener("change", ()=>{
-      const f = avatarInput.files?.[0];
+    // ============================
+    // Profile (force white titles already handled in CSS)
+    // ============================
+    function initialsFromName(n){
+      const s = (n || "").trim();
+      if (!s) return "ED";
+      const parts = s.split(/\s+/).slice(0,2);
+      return parts.map(p=>p[0]?.toUpperCase() || "").join("") || "ED";
+    }
+
+    function refreshProfileUI(){
+      const name = store.get("profile_name", "E.D.E.N. User");
+      const isPrivate = store.get("profile_private", false);
+      const posts = store.get("profile_posts", 0);
+      const likes = store.get("profile_likes", 0);
+      const msgs  = store.get("profile_msgs", 0);
+      const photo = store.get("profile_photo", null);
+
+      displayNameInput.value = name;
+      profileCounts.textContent = `Posts: ${posts} • Likes: ${likes} • Messages: ${msgs}`;
+
+      visibilityToggle.classList.toggle("on", !isPrivate);
+
+      if (photo){
+        avatarImg.src = photo;
+        avatarImg.style.display = "block";
+        avatarText.style.display = "none";
+      } else {
+        avatarImg.style.display = "none";
+        avatarText.style.display = "block";
+        avatarText.textContent = initialsFromName(name);
+      }
+    }
+
+    displayNameInput.addEventListener("input", ()=>{
+      store.set("profile_name", displayNameInput.value);
+      refreshProfileUI();
+    });
+
+    visibilityToggle.addEventListener("click", ()=>{
+      const isPrivate = store.get("profile_private", false);
+      store.set("profile_private", !isPrivate);
+      refreshProfileUI();
+    });
+
+    uploadPhotoBtn.addEventListener("click", ()=> photoInput.click());
+    photoInput.addEventListener("change", ()=>{
+      const f = photoInput.files?.[0];
       if (!f) return;
       const reader = new FileReader();
       reader.onload = ()=>{
-        profile.avatar = String(reader.result || "");
-        saveJSON(LS.profile, profile);
-        renderProfile();
-        toast("Profile photo updated");
+        store.set("profile_photo", reader.result);
+        refreshProfileUI();
       };
       reader.readAsDataURL(f);
     });
-    avatarRemoveBtn.addEventListener("click", ()=>{
-      profile.avatar = null;
-      saveJSON(LS.profile, profile);
-      renderProfile();
-      toast("Profile photo removed");
-    });
-    profileName.addEventListener("input", ()=>{
-      profile.name = profileName.value.slice(0, 40);
-      saveJSON(LS.profile, profile);
+
+    removePhotoBtn.addEventListener("click", ()=>{
+      store.set("profile_photo", null);
+      refreshProfileUI();
     });
 
     postBtn.addEventListener("click", ()=>{
-      const txt = (postInput.value || "").trim();
-      if (!txt) return toast("Write a field note first");
-      const posts = loadJSON(LS.posts, []);
-      posts.push({ id: cryptoRandomId(), ts: nowISO(), text: txt, likes:0, dislikes:0, loves:0, comments:0 });
-      saveJSON(LS.posts, posts);
-      postInput.value = "";
-      renderProfile();
-      toast("Posted");
-    });
-
-    profileFeed.addEventListener("click", (e)=>{
-      const t = e.target;
-      const posts = loadJSON(LS.posts, []);
-      const upd = (id, fn)=>{
-        const p = posts.find(x=>x.id===id);
-        if (!p) return;
-        fn(p);
-        saveJSON(LS.posts, posts);
-        renderProfile();
-      };
-      if (t?.dataset?.like){
-        upd(t.dataset.like, p=>{ p.likes=(p.likes||0)+1; profile.stats.likes=(profile.stats.likes||0)+1; saveJSON(LS.profile, profile); });
-      }
-      if (t?.dataset?.dislike){
-        upd(t.dataset.dislike, p=>{ p.dislikes=(p.dislikes||0)+1; });
-      }
-      if (t?.dataset?.love){
-        upd(t.dataset.love, p=>{ p.loves=(p.loves||0)+1; });
-      }
-      if (t?.dataset?.comment){
-        upd(t.dataset.comment, p=>{ p.comments=(p.comments||0)+1; });
-      }
-    });
-
-    function cryptoRandomId(){
-      try{
-        return crypto.getRandomValues(new Uint32Array(2)).join("-");
-      } catch {
-        return String(Math.random()).slice(2) + "-" + Date.now();
-      }
-    }
-
-    // ============================
-    // Overlay Library UI
-    // ============================
-    function renderOverlayLibrary(){
-      const q = (overlaySearch.value || "").trim().toLowerCase();
-      overlayList.innerHTML = "";
-
-      const filtered = OVERLAY_LIBRARY.filter(o => o.label.toLowerCase().includes(q));
-      filtered.forEach(o=>{
-        const b = document.createElement("button");
-        b.className = "pill";
-        b.dataset.key = o.key;
-        b.innerHTML = `<span class="left"><span class="dot"></span><span class="label">${o.label}</span></span><span class="hint">${overlayState[o.key] ? "Overlay −" : "Overlay +"}</span>`;
-        b.classList.toggle("on", !!overlayState[o.key]);
-        b.addEventListener("click", ()=>{
-          // Toggle overlay
-          overlayState[o.key] = !overlayState[o.key];
-          saveJSON(LS.overlays, overlayState);
-          applyVisibility();
-          renderOverlayLibrary();
-          toast(overlayState[o.key] ? `${o.label} added` : `${o.label} removed`);
-        });
-        overlayList.appendChild(b);
-      });
-
-      const onCount = OVERLAY_LIBRARY.reduce((n,o)=> n + (overlayState[o.key] ? 1 : 0), 0);
-      overlaySummary.textContent = `Active overlays: ${onCount}/${OVERLAY_LIBRARY.length}`;
-    }
-
-    overlaySearch.addEventListener("input", renderOverlayLibrary);
-
-    // ============================
-    // Location + Stations
-    // ============================
-    let userLoc = loadJSON("eden_user_loc_v1", null); // {lat,lon,ts}
-    function haversineKm(lat1, lon1, lat2, lon2){
-      const R = 6371;
-      const toRad = (d)=> d*Math.PI/180;
-      const dLat = toRad(lat2-lat1);
-      const dLon = toRad(lon2-lon1);
-      const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
-      return 2*R*Math.asin(Math.min(1, Math.sqrt(a)));
-    }
-
-    async function requestLocation(){
-      return new Promise((resolve)=>{
-        if (!navigator.geolocation){
-          toast("Geolocation not supported");
-          return resolve(null);
-        }
-        navigator.geolocation.getCurrentPosition((pos)=>{
-          userLoc = { lat: pos.coords.latitude, lon: pos.coords.longitude, ts: Date.now() };
-          saveJSON("eden_user_loc_v1", userLoc);
-          toast("Location enabled");
-          resolve(userLoc);
-        }, ()=>{
-          toast("Location denied — Join is blocked");
-          resolve(null);
-        }, { enableHighAccuracy: true, timeout: 9000, maximumAge: 60_000 });
-      });
-    }
-
-    requestLocationBtn.addEventListener("click", async ()=>{
-      await requestLocation();
-      renderStations();
-    });
-
-    function stationDistanceText(st){
-      if (!userLoc) return "Distance: — (enable location to join)";
-      const km = haversineKm(userLoc.lat, userLoc.lon, st.lat, st.lon);
-      return `${km.toFixed(1)} km away • Join/View radius ${st.joinRadiusKm} km`;
-    }
-
-    function canJoinByLocation(st){
-      if (!userLoc) return false;
-      const km = haversineKm(userLoc.lat, userLoc.lon, st.lat, st.lon);
-      return km <= (st.joinRadiusKm || 100);
-    }
-
-    function getAccess(stId){
-      return access[stId] || { status:"none", role:null };
-    }
-
-    function renderStations(){
-      const q = (stationSearch.value || "").trim().toLowerCase();
-      stationsList.innerHTML = "";
-
-      const list = stations.filter(s => s.name.toLowerCase().includes(q));
-      list.forEach(st=>{
-        const kmTxt = stationDistanceText(st);
-
-        const card = document.createElement("div");
-        card.className = "card";
-        const acc = getAccess(st.id);
-        const follow = !!follows[st.id];
-
-        card.innerHTML = `
-          <div class="cardTitle">${escapeHTML(st.name)}</div>
-          <div class="meta">Axis ${escapeHTML(st.axis)} • ${fmtDMS(st.lat, st.lon)}</div>
-          <div class="meta">${escapeHTML(kmTxt)}</div>
-          <div class="meta">Access: ${acc.status === "approved" ? "Approved" : (acc.status === "pending" ? "Pending" : "None")}${acc.role ? " • " + acc.role : ""}</div>
-          <div class="row">
-            <button class="btn primary" data-open="${st.id}">Preview</button>
-            <button class="btn" data-follow="${st.id}">${follow ? "Unfollow" : "Follow"}</button>
-          </div>
-        `;
-        stationsList.appendChild(card);
-      });
-    }
-
-    stationSearch.addEventListener("input", renderStations);
-
-    stationsList.addEventListener("click", (e)=>{
-      const t = e.target;
-      const openId = t?.dataset?.open;
-      const followId = t?.dataset?.follow;
-
-      if (openId){
-        const st = stations.find(s=>s.id===openId);
-        if (st) openStationPreview(st);
-      }
-      if (followId){
-        follows[followId] = !follows[followId];
-        saveJSON(LS.follows, follows);
-        toast(follows[followId] ? "Station followed" : "Station unfollowed");
-        renderStations();
-      }
-    });
-
-    // Create/Delete station (prototype-local)
-    createStationBtn.addEventListener("click", ()=>{
-      const name = prompt("Name your Station (Owner creates):", "NewStation•001");
-      if (!name) return;
-      const s = {
-        id: "st_" + cryptoRandomId(),
-        name: name.trim().slice(0, 40),
-        axis: "42/222",
-        lat: (userLoc?.lat ?? ANCHOR.lat),
-        lon: (userLoc?.lon ?? ANCHOR.lon),
-        ownerId: "me",
-        ownerName: profile.name || "Owner",
-        joinRadiusKm: 100,
-        isActive: true,
-        requireApproval: true
-      };
-      stations.push(s);
-      saveJSON(LS.stations, stations);
-
-      // Owner gets approved access automatically
-      access[s.id] = { status:"approved", role:"Owner" };
-      saveJSON(LS.access, access);
-
-      toast("Station created");
-      renderStations();
-    });
-
-    deleteStationBtn.addEventListener("click", ()=>{
-      const name = prompt("Type Station ID to delete (Owner only):");
-      if (!name) return;
-      const idx = stations.findIndex(s=>s.id===name.trim());
-      if (idx < 0) return toast("Station not found");
-      const st = stations[idx];
-      const acc = getAccess(st.id);
-      if (acc.role !== "Owner" || acc.status !== "approved"){
-        return toast("Only an approved Owner can delete");
-      }
-      stations.splice(idx, 1);
-      saveJSON(LS.stations, stations);
-      delete access[st.id];
-      saveJSON(LS.access, access);
-      toast("Station deleted");
-      renderStations();
+      const t = (fieldNote.value || "").trim();
+      if (!t) return;
+      const posts = store.get("profile_posts", 0) + 1;
+      store.set("profile_posts", posts);
+      fieldNote.value = "";
+      refreshProfileUI();
     });
 
     // ============================
-    // Station Preview + permissions
+    // Hub rail tabs
     // ============================
-    let currentPreviewStationId = null;
-
-    function fmtDMS(lat, lon){
-      const dms = (deg, pos, neg)=>{
-        const a = Math.abs(deg);
-        const d = Math.floor(a);
-        const mFloat = (a - d) * 60;
-        const m = Math.floor(mFloat);
-        const s = Math.round((mFloat - m) * 60);
-        return `${d}°${m}′${s}″ ${deg>=0 ? pos : neg}`;
-      };
-      return `${dms(lat,"N","S")}, ${dms(lon,"E","W")}`;
-    }
-
-    function renderStationPreview(st){
-      previewName.textContent = st.name;
-      previewMeta.textContent = `Axis ${st.axis} • ${fmtDMS(st.lat, st.lon)} • Join radius ${st.joinRadiusKm} km`;
-
-      const acc = getAccess(st.id);
-      const follow = !!follows[st.id];
-
-      previewAccess.textContent = `Access: ${
-        acc.status === "approved" ? "Approved" :
-        acc.status === "pending" ? "Pending approval" : "None"
-      }${acc.role ? " • " + acc.role : ""}`;
-
-      previewFollowBtn.textContent = follow ? "Unfollow" : "Follow";
-
-      // Join gating
-      const near = canJoinByLocation(st);
-      const locOk = !!userLoc;
-
-      previewJoinBtn.disabled = !near;
-      if (!locOk){
-        previewNote.textContent = "Location is required to Join. Enable Location in Stations.";
-      } else if (!near){
-        previewNote.textContent = "Join is blocked: you are outside the station radius.";
-      } else {
-        previewNote.textContent = "Join will request Owner approval (Observer/Analyst/Operator). Owner role is only for station creators.";
-      }
-
-      // Hub gating (Observers/Analysts must be approved to view; same for Operator)
-      const canViewHub = (acc.status === "approved");
-      previewHubBtn.disabled = !canViewHub;
-    }
-
-    previewFollowBtn.addEventListener("click", ()=>{
-      const st = stations.find(s=>s.id===currentPreviewStationId);
-      if (!st) return;
-      follows[st.id] = !follows[st.id];
-      saveJSON(LS.follows, follows);
-      toast(follows[st.id] ? "Station followed" : "Station unfollowed");
-      renderStationPreview(st);
-    });
-
-    previewJoinBtn.addEventListener("click", ()=>{
-      const st = stations.find(s=>s.id===currentPreviewStationId);
-      if (!st) return;
-
-      if (!userLoc) return toast("Enable location to Join");
-      if (!canJoinByLocation(st)) return toast("Outside Join radius");
-
-      openRolePicker(st);
-    });
-
-    previewHubBtn.addEventListener("click", ()=>{
-      const st = stations.find(s=>s.id===currentPreviewStationId);
-      if (!st) return;
-      const acc = getAccess(st.id);
-      if (acc.status !== "approved"){
-        return toast("Hub access requires approval");
-      }
-      openHub(st);
-    });
-
-    // ============================
-    // Role Picker
-    // ============================
-    let rolePickerStationId = null;
-
-    function openRolePicker(st){
-      rolePickerStationId = st.id;
-      rolePickerTitle.textContent = `Choose role for ${st.name}`;
-
-      // Disable Owner role if station already has an owner (system or someone else)
-      const ownerExists = !!st.ownerId;
-      document.querySelectorAll(".roleBtn").forEach(btn=>{
-        const role = btn.dataset.role;
-        btn.disabled = false;
-        if (role === "Owner" && ownerExists && st.ownerId !== "me"){
-          btn.disabled = true;
-        }
-      });
-
-      rolePickerMask.classList.add("on");
-    }
-    function closeRolePicker(){
-      rolePickerMask.classList.remove("on");
-      rolePickerStationId = null;
-    }
-    rolePickerClose.addEventListener("click", closeRolePicker);
-    rolePickerMask.addEventListener("click", (e)=>{ if (e.target === rolePickerMask) closeRolePicker(); });
-
-    rolePickerMask.addEventListener("click", (e)=>{
-      const btn = e.target.closest?.(".roleBtn");
-      if (!btn || btn.disabled) return;
-      const role = btn.dataset.role;
-      const st = stations.find(s=>s.id===rolePickerStationId);
-      if (!st) return;
-
-      // Enforce role rules:
-      // - Only Observer/Analyst/Operator/Owner exist (already)
-      // - If station owned already, Owner role blocked unless you created it
-      if (role === "Owner" && st.ownerId && st.ownerId !== "me"){
-        toast("Owner role not allowed on an already-owned station");
-        return;
-      }
-
-      // Apply request
-      if (role === "Owner"){
-        access[st.id] = { status:"approved", role:"Owner" };
-        st.ownerId = "me";
-        st.ownerName = profile.name || "Owner";
-        saveJSON(LS.stations, stations);
-        toast("You are now Owner (local prototype)");
-      } else {
-        // requires approval
-        access[st.id] = { status:"pending", role };
-        toast(`${role} request sent (Pending approval)`);
-      }
-      saveJSON(LS.access, access);
-
-      closeRolePicker();
-      renderStationPreview(st);
-    });
-
-    // ============================
-    // Hub
-    // ============================
-    function hubTabButton(tab){
-      return document.querySelector(`.railBtn[data-hubtab="${tab}"]`);
-    }
-
+    const railBtns = Array.from(document.querySelectorAll(".railBtn"));
     function setHubTab(tab){
-      document.querySelectorAll(".railBtn").forEach(b=> b.classList.toggle("on", b.dataset.hubtab === tab));
-      renderHubTab(tab);
+      for (const b of railBtns){
+        b.classList.toggle("on", b.dataset.tab === tab);
+      }
+      ["feed","data","chat","files"].forEach(k=>{
+        const el = document.getElementById("hubTab_"+k);
+        if (el) el.style.display = (k===tab) ? "block" : "none";
+      });
     }
-
-    function renderHub(st){
-      const acc = getAccess(st.id);
-      // Observers need permission to view (enforced by requiring approved access)
-      if (acc.status !== "approved"){
-        hubBody.innerHTML = `<div class="post"><div class="who">Access required</div><div class="postText">Your request is not approved yet.</div></div>`;
-        return;
-      }
-
-      hubTitle.textContent = `${st.name} • Hub`;
-      hubRole.textContent = `Role: ${ROLE_SYMBOL[acc.role] || ""} ${acc.role || "—"} • Axis ${st.axis}`;
-
-      const follow = !!follows[st.id];
-      hubFollowBtn.textContent = follow ? "Unfollow" : "Follow";
-
-      // Default tab
-      setHubTab("feed");
-    }
-
-    hubFollowBtn.addEventListener("click", ()=>{
-      const st = stations.find(s=>s.id===currentPreviewStationId) || stations.find(s=>s.id===rolePickerStationId);
-      // If opened from preview, currentPreviewStationId is set; if not, infer by hubTitle match
-      const st2 = stations.find(s=> hubTitle.textContent.startsWith(s.name));
-      const use = st2 || st;
-      if (!use) return;
-
-      follows[use.id] = !follows[use.id];
-      saveJSON(LS.follows, follows);
-      toast(follows[use.id] ? "Station followed" : "Station unfollowed");
-      hubFollowBtn.textContent = follows[use.id] ? "Unfollow" : "Follow";
-    });
-
-    document.querySelectorAll(".railBtn").forEach(b=>{
-      b.addEventListener("click", ()=> setHubTab(b.dataset.hubtab));
-    });
-
-    function renderHubTab(tab){
-      // Minimal scientific content placeholders
-      if (tab === "feed"){
-        hubBody.innerHTML = `
-          <div class="post">
-            <div class="postHead"><div class="who">Station Broadcast</div><div class="when">${new Date().toLocaleString()}</div></div>
-            <div class="postText">Protocol note: keep exports UTC-tagged. Avoid phone movement during magnetometer capture.</div>
-            <div class="actions">
-              <div class="chip">👍</div><div class="chip">👎</div><div class="chip">❤️</div><div class="chip">💬</div>
-            </div>
-          </div>
-          <div class="post">
-            <div class="postHead"><div class="who">Data Thread</div><div class="when">—</div></div>
-            <div class="postText">Next: add station-to-station comparisons along 42/222. (Hub → Data)</div>
-          </div>
-        `;
-      }
-      if (tab === "data"){
-        hubBody.innerHTML = `
-          <div class="post">
-            <div class="postHead"><div class="who">Datasets</div><div class="when">UTC</div></div>
-            <div class="postText">• Magnetometer (XYZ) exports<br>• GNSS UTC snapshots<br>• Environmental notes (weather, exposure)</div>
-          </div>
-          <div class="post">
-            <div class="postHead"><div class="who">Analysis</div><div class="when">—</div></div>
-            <div class="postText">Compare: step-shifts across X/Y/Z, correlation with device orientation, and local magnetic interference controls.</div>
-          </div>
-        `;
-      }
-      if (tab === "chat"){
-        hubBody.innerHTML = `
-          <div class="post">
-            <div class="postHead"><div class="who">Chat</div><div class="when">Channels</div></div>
-            <div class="postText">#ops • #analysis • #field-notes • #hardware</div>
-          </div>
-          <div class="post">
-            <div class="postHead"><div class="who">Message</div><div class="when">—</div></div>
-            <div class="postText">This is a prototype UI shell (local). Next step is backend + auth + station permissions.</div>
-          </div>
-        `;
-      }
-      if (tab === "files"){
-        hubBody.innerHTML = `
-          <div class="post">
-            <div class="postHead"><div class="who">Files</div><div class="when">Uploads</div></div>
-            <div class="postText">• field_export.csv<br>• station_notes.md<br>• image_capture.png<br>• audio_note.m4a</div>
-          </div>
-        `;
-      }
-    }
+    railBtns.forEach(b=> b.addEventListener("click", ()=> setHubTab(b.dataset.tab)));
+    setHubTab("feed");
 
     // ============================
-    // Station control buttons (Core / Stack / Stations / Overlay+ / Profile / Clear)
-    // ============================
-    function syncStationButtons(){
-      // visually light these only as quick feedback (not required)
-      coreBtn.classList.toggle("on", isCoreActive());
-      stackBtn.classList.toggle("on", isStackActive());
-      stationsBtn.classList.toggle("on", true);
-      overlayPlusBtn.classList.toggle("on", false);
-      profileBtn.classList.toggle("on", false);
-      clearBtn.classList.toggle("on", isClearState());
-    }
-
-    function isCoreActive(){
-      // simple heuristic: core key set matches core preset for a few keys
-      return overlayState.rhumb222 && overlayState.gc222 && overlayState.nightLights &&
-             !overlayState.rhumb42 && !overlayState.gc42 && !overlayState.corridors &&
-             !overlayState.magField && !overlayState.aurora && overlayState.stations;
-    }
-    function isStackActive(){
-      const keys = ["rhumb222","rhumb42","gc222","gc42","names222","names42","perpLine","perpName","continents","corridors","magField","aurora","nightLights"];
-      return keys.every(k => !!overlayState[k]) && overlayState.stations;
-    }
-    function isClearState(){
-      const anyOn = OVERLAY_LIBRARY.some(o => o.key !== "stations" && overlayState[o.key]);
-      return !anyOn && overlayState.stations;
-    }
-
-    coreBtn.addEventListener("click", ()=>{
-      applyOverlayState(PRESET_CORE(overlayState));
-      toast("Core applied");
-    });
-
-    stackBtn.addEventListener("click", ()=>{
-      applyOverlayState(PRESET_STACK(overlayState));
-      toast("Stack applied");
-    });
-
-    clearBtn.addEventListener("click", ()=>{
-      const next = {...overlayState};
-      OVERLAY_LIBRARY.forEach(o => next[o.key] = false);
-      next.stations = true;
-      applyOverlayState(next);
-      toast("Cleared overlays (Stations kept)");
-    });
-
-    stationsBtn.addEventListener("click", ()=>{
-      openStations();
-    });
-
-    overlayPlusBtn.addEventListener("click", ()=>{
-      openOverlayLibrary();
-    });
-
-    profileBtn.addEventListener("click", ()=>{
-      openProfile();
-    });
-
-    // ============================
-    // Helper: UI event targets
-    // ============================
-    function isUIEventTarget(target){
-      return !!(target && (target.closest?.("#drawer") || target.closest?.("#openBtn") || target.closest?.("#modalMask") || target.closest?.("#rolePickerMask")));
-    }
-
-    // ============================
-    // Globe math helpers
+    // Overlay system (Three.js visibility)
     // ============================
     const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
     const DEG = Math.PI/180;
     const RAD = 180/Math.PI;
+
+    function isUIEventTarget(target){
+      return !!(target && (target.closest?.("#drawer") || target.closest?.("#openBtn") || target.closest?.("#modalMask")));
+    }
 
     function latLonToVec3(latDeg, lonDeg, radius=1.0){
       const lat = latDeg * DEG;
@@ -2186,43 +1430,115 @@
     }
 
     // ============================
-    // THREE scene setup (unchanged visuals)
+    // Three.js scene
     // ============================
     let renderer, camera, scene, globe;
     let bloomComposer, finalComposer, bloomPass, finalPass;
     let rafId = 0;
     let running = true;
 
-    const overlays = {};
-    let nightLightsMesh = null;
+    // Overlay state keys (full library restored)
+    const overlayMeta = [
+      { key:"rhumb222", label:"Rhumb 222 SW" },
+      { key:"rhumb42",  label:"Rhumb 42 NE" },
+      { key:"gc222",    label:"Great Circle 222 SW" },
+      { key:"gc42",     label:"Great Circle 42 NE" },
+      { key:"names222", label:"Names 222 SW" },
+      { key:"names42",  label:"Names 42 NE" },
+      { key:"perpLine", label:"Perpendiculars" },
+      { key:"continents", label:"Continents" },
+      { key:"magField", label:"Magnetic Field" },
+      { key:"corridors", label:"Corridors" },
+      { key:"aurora", label:"Aurora" },
+      { key:"nightLights", label:"Night Lights" },
+      { key:"perpName", label:"Perp Name" },
+      { key:"stations", label:"Stations" }
+    ];
 
-    // ============================
-    // Overlay visibility wiring
-    // ============================
-    function applyVisibility(){
-      if (!globe) return;
-      for (const k in overlays){
-        if (!overlays[k]) continue;
-        overlays[k].visible = !!overlayState[k];
+    // Default: Core is minimal
+    const state = store.get("overlay_state", {
+      rhumb222: true,
+      rhumb42:  false,
+      gc222:    true,
+      gc42:     false,
+      names222: false,
+      names42:  false,
+      perpLine: false,
+      perpName: false,
+      continents:false,
+      stations: true,
+      corridors:false,
+      magField: false,
+      aurora:   false,
+      nightLights: true
+    });
+
+    function saveState(){ store.set("overlay_state", state); }
+
+    function setPreset(p){
+      if (p === "core"){
+        Object.keys(state).forEach(k => state[k]=false);
+        state.rhumb222 = true;
+        state.gc222 = true;
+        state.stations = true;
+        state.nightLights = true;
+
+      } else if (p === "stack"){
+        Object.keys(state).forEach(k => state[k]=true);
+        // keep “stack” dense but still readable: names on, corridors on, etc.
+
+      } else if (p === "clear"){
+        Object.keys(state).forEach(k => state[k]=false);
       }
-      if (nightLightsMesh) nightLightsMesh.visible = !!overlayState.nightLights;
-    }
-
-    function setOverlayPillVisuals(){
-      // purely reflect preset “on” glows for station group buttons
-      syncStationButtons();
-    }
-
-    function saveOverlayAndApply(){
-      overlayState.stations = true;
-      saveJSON(LS.overlays, overlayState);
       applyVisibility();
-      setOverlayPillVisuals();
+      saveState();
+      renderOverlayList();
     }
 
-    // ============================
-    // Boot
-    // ============================
+    function renderOverlayList(){
+      if (!overlayList) return;
+      overlayList.innerHTML = "";
+
+      for (const o of overlayMeta){
+        const on = !!state[o.key];
+        const row = document.createElement("div");
+        row.className = "card";
+        row.style.padding = "12px 12px";
+        row.innerHTML = `
+          <div class="rowBetween">
+            <div style="min-width:0;">
+              <div style="font-weight:900; color: rgba(255,255,255,0.92);">${o.label}</div>
+              <div class="tiny">Overlay</div>
+            </div>
+            <button class="btn ${on ? "danger" : "good"}" data-k="${o.key}" style="min-width:120px;">
+              ${on ? "Overlay −" : "Overlay +"}
+            </button>
+          </div>
+        `;
+        row.querySelector("button").addEventListener("click", (e)=>{
+          const k = e.currentTarget.dataset.k;
+          state[k] = !state[k];
+          applyVisibility();
+          saveState();
+          renderOverlayList();
+        });
+        overlayList.appendChild(row);
+      }
+    }
+
+    overlayAllOnBtn?.addEventListener("click", ()=>{
+      Object.keys(state).forEach(k=> state[k]=true);
+      applyVisibility(); saveState(); renderOverlayList();
+    });
+    overlayAllOffBtn?.addEventListener("click", ()=>{
+      Object.keys(state).forEach(k=> state[k]=false);
+      applyVisibility(); saveState(); renderOverlayList();
+    });
+
+    // Start in Core (visually), but preserve local toggles if already stored
+    // (If you want to force Core on every load, uncomment next line)
+    // setPreset("core");
+
     (async ()=>{
       try{
         setStatusBase("Starting…");
@@ -2348,7 +1664,7 @@
           gain:     { value: 2.8 }
         };
 
-        nightLightsMesh = new THREE.Mesh(
+        const nightLights = new THREE.Mesh(
           new THREE.SphereGeometry(earthRadius * 1.001, SEG, SEG),
           new THREE.ShaderMaterial({
             uniforms: lightsUniforms,
@@ -2463,20 +1779,26 @@
         );
 
         globe = new THREE.Group();
-        globe.add(earth, nightLightsMesh, cloudShadow, clouds, atmosphere);
+        globe.add(earth, nightLights, cloudShadow, clouds, atmosphere);
         scene.add(globe);
 
-        // Build overlays groups
-        const overlayKeys = [
-          "rhumb222","rhumb42","gc222","gc42",
-          "names222","names42",
-          "perpLine","perpName",
-          "continents","stations","corridors","magField","aurora"
-        ];
-        overlayKeys.forEach(k=>{
-          overlays[k] = new THREE.Group();
-          globe.add(overlays[k]);
-        });
+        // Overlays groups
+        const overlays = {
+          rhumb222: new THREE.Group(),
+          rhumb42:  new THREE.Group(),
+          gc222:    new THREE.Group(),
+          gc42:     new THREE.Group(),
+          names222: new THREE.Group(),
+          names42:  new THREE.Group(),
+          perpLine: new THREE.Group(),
+          perpName: new THREE.Group(),
+          continents: new THREE.Group(),
+          stations: new THREE.Group(),
+          corridors: new THREE.Group(),
+          magField: new THREE.Group(),
+          aurora: new THREE.Group()
+        };
+        Object.values(overlays).forEach(g => globe.add(g));
 
         const BEAR_222 = 222;
         const BEAR_42  = 42;
@@ -2493,6 +1815,7 @@
 
         overlays.gc222.add(makeGlowTube(gc222, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.28));
         overlays.rhumb222.add(makeGlowTube(rh222, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.26));
+
         overlays.gc42.add(makeGlowTube(gc42, 0.0032, 0x5bbcff, 0x5bbcff, 0.55, 0.20));
         overlays.rhumb42.add(makeGlowTube(rh42, 0.0032, 0xf6c24a, 0xf6c24a, 0.55, 0.18));
 
@@ -2504,7 +1827,7 @@
         }
         overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
-        // Settled labels
+        // Reduced glow labels
         const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 4, glow:"rgba(246,194,74,0.10)" });
         n222.position.copy(latLonToVec3(18, -18, earthRadius*1.10));
         overlays.names222.add(n222);
@@ -2559,14 +1882,13 @@
           );
           glow.position.copy(p);
 
-          const tag = makeTextSprite(label, { fontSize: 18, glowBlur: 4, glow:"rgba(255,255,255,0.10)" });
+          const tag = makeTextSprite(label.replaceAll(" ", ""), { fontSize: 18, glowBlur: 4, glow:"rgba(255,255,255,0.10)" });
           tag.position.copy(latLonToVec3(lat, lon, earthRadius*1.12));
 
           g.add(glow, pin, tag);
           return g;
         }
-        overlays.stations.add(makeStationMarker(ANCHOR.name, ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
-        stationTextEl.textContent = `${ANCHOR.name} @ ${fmtDMS(ANCHOR.lat, ANCHOR.lon)}`;
+        overlays.stations.add(makeStationMarker("Exit222•Station1", ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
 
         function makeDipoleFieldLines(){
           const g = new THREE.Group();
@@ -2613,11 +1935,10 @@
         }
         overlays.aurora.add(makeAuroraBelt(67));
 
-        // Bloom setup
         const BLOOM_LAYER = 1;
         const bloomLayer = new THREE.Layers(); bloomLayer.set(BLOOM_LAYER);
 
-        nightLightsMesh.layers.enable(BLOOM_LAYER);
+        nightLights.layers.enable(BLOOM_LAYER);
         atmosphere.layers.enable(BLOOM_LAYER);
         Object.values(overlays).forEach(g=>{
           g.traverse(o => o.layers && o.layers.enable(BLOOM_LAYER));
@@ -2665,12 +1986,27 @@
           scene.traverse(restoreMaterial);
         }
 
-        // Apply initial overlay state
-        overlayState.stations = true;
+        function applyVisibility(){
+          overlays.rhumb222.visible = !!state.rhumb222;
+          overlays.rhumb42.visible  = !!state.rhumb42;
+          overlays.gc222.visible    = !!state.gc222;
+          overlays.gc42.visible     = !!state.gc42;
+          overlays.names222.visible = !!state.names222;
+          overlays.names42.visible  = !!state.names42;
+          overlays.perpLine.visible = !!state.perpLine;
+          overlays.perpName.visible = !!state.perpName;
+          overlays.continents.visible = !!state.continents;
+          overlays.stations.visible = !!state.stations;
+          overlays.corridors.visible = !!state.corridors;
+          overlays.magField.visible = !!state.magField;
+          overlays.aurora.visible = !!state.aurora;
+          nightLights.visible = !!state.nightLights;
+        }
+        // expose for presets + overlay modal
+        window.applyVisibility = applyVisibility;
         applyVisibility();
-        syncStationButtons();
 
-        // Interaction
+        // Interaction: drag/zoom globe
         let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
         const AUTO_SPIN=0.0012, DRAG_SENS=0.0065, PITCH_SENS=0.0048, DAMPING=0.92, MAX_PITCH=0.55;
 
@@ -2800,16 +2136,15 @@
         }
         animate();
 
+        // initial overlay modal render
+        renderOverlayList();
+        refreshStationUI();
+        refreshProfileUI();
+
       } catch (err){
         showError("Top-level error:\n" + (err?.stack || err?.message || err));
       }
     })();
-
-    // ============================
-    // Keep station buttons synced on load
-    // ============================
-    syncStationButtons();
-
   </script>
 </body>
 </html>
