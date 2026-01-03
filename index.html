@@ -363,6 +363,7 @@
     }
     .textarea{ min-height: 92px; resize: vertical; font-weight: 750; }
 
+    /* ===== Button ===== */
     .btn{
       display:inline-flex;
       align-items:center;
@@ -384,6 +385,15 @@
     .btn.danger{ background: rgba(255,120,120,0.10); border-color: rgba(255,120,120,0.22); }
     .btn.ghost{ background: rgba(255,255,255,0.04); }
     .btn[disabled]{ opacity:0.55; cursor:not-allowed; }
+
+    /* ✅ Compact button style (match Overlay look) */
+    .btn.compact{
+      min-width: 0;
+      padding: 10px 12px;
+      border-radius: 14px;
+      font: 900 13px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      letter-spacing: 0.15px;
+    }
 
     /* ===== Toggle ===== */
     .toggle{
@@ -602,8 +612,8 @@
                 <div class="tiny">Core / Stack use presets. Clear disables everything.</div>
               </div>
               <div class="row">
-                <button class="btn ghost" id="overlayAllOffBtn">Overlay −</button>
-                <button class="btn good" id="overlayAllOnBtn">Overlay +</button>
+                <button class="btn compact ghost" id="overlayAllOffBtn">Overlay −</button>
+                <button class="btn compact good" id="overlayAllOnBtn">Overlay +</button>
               </div>
             </div>
           </div>
@@ -622,8 +632,9 @@
           <div class="card" style="margin-top:12px;">
             <input class="input" id="stationSearch" placeholder="Search stations…" />
             <div class="rowBetween" style="margin-top:12px;">
-              <button class="btn good" id="stationCreateBtn">+ Create</button>
-              <button class="btn danger" id="stationDeleteBtn">− Delete</button>
+              <!-- ✅ MATCH OVERLAY LOOK (compact) -->
+              <button class="btn compact good" id="stationCreateBtn">+ Create</button>
+              <button class="btn compact danger" id="stationDeleteBtn">− Delete</button>
             </div>
             <div class="row" style="margin-top:12px;">
               <button class="btn" id="enableLocationBtn">Enable Location</button>
@@ -1551,7 +1562,7 @@
               <div style="font-weight:900; color: rgba(255,255,255,0.92);">${o.label}</div>
               <div class="tiny">Overlay</div>
             </div>
-            <button class="btn ${on ? "danger" : "good"}" data-k="${o.key}" style="min-width:120px;">
+            <button class="btn compact ${on ? "danger" : "good"}" data-k="${o.key}">
               ${on ? "Overlay −" : "Overlay +"}
             </button>
           </div>
