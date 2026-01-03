@@ -17,27 +17,20 @@
 
   <style>
     :root{
-      /* Pitch black / grayscale only */
       --glass: rgba(12,14,18,0.60);
       --stroke: rgba(255,255,255,0.12);
       --stroke2: rgba(255,255,255,0.14);
       --text: rgba(255,255,255,0.92);
       --muted: rgba(255,255,255,0.70);
       --muted2: rgba(255,255,255,0.46);
+      --gold: #f6c24a;
+      --blue: #5bbcff;
+      --aqua: #7fffd4;
+      --violet:#a078ff;
 
-      --on: rgba(255,255,255,0.92);
-      --onHalo: rgba(255,255,255,0.22);
-
-      --btnBg: rgba(255,255,255,0.06);
-      --btnBg2: rgba(255,255,255,0.08);
-      --btnStroke: rgba(255,255,255,0.14);
-      --btnStroke2: rgba(255,255,255,0.18);
-
-      --dangerBg: rgba(255,255,255,0.06);
-      --dangerStroke: rgba(255,255,255,0.18);
-
-      --goodBg: rgba(255,255,255,0.10);
-      --goodStroke: rgba(255,255,255,0.22);
+      --good: rgba(120,255,200,0.88);
+      --danger: rgba(255,120,120,0.80);
+      --warn: rgba(246,194,74,0.92);
     }
 
     *{ box-sizing:border-box; }
@@ -181,8 +174,8 @@
       gap:10px;
       padding: 12px 14px;
       border-radius: 18px;
-      border: 1px solid var(--btnStroke);
-      background: var(--btnBg);
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
       color: var(--text);
       font: 900 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       letter-spacing: 0.15px;
@@ -217,15 +210,15 @@
       flex: 0 0 auto;
     }
 
-    /* “Lights on” (grayscale only) */
-    .pill.on{
-      background: var(--btnBg2);
-      border-color: var(--btnStroke2);
-    }
-    .pill.on .dot{
-      background: var(--on);
-      box-shadow: 0 0 16px var(--onHalo);
-    }
+    /* “Lights turn green” when pressed */
+    .pill.on .dot{ background: var(--good); box-shadow: 0 0 16px rgba(120,255,200,0.24); }
+    .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
+    .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 16px rgba(91,188,255,0.22); }
+    .pill.on[data-key="rhumb42"]  .dot{ background: rgba(246,194,74,0.55); box-shadow:0 0 16px rgba(246,194,74,0.16); }
+    .pill.on[data-key="gc42"]     .dot{ background: rgba(91,188,255,0.55); box-shadow:0 0 16px rgba(91,188,255,0.16); }
+    .pill.on[data-key="stations"] .dot{ background: rgba(127,255,212,0.90); box-shadow:0 0 16px rgba(127,255,212,0.18); }
+    .pill.on[data-key="aurora"]   .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 16px rgba(160,120,255,0.18); }
+    .pill.on[data-key="nightLights"] .dot{ background: rgba(140,255,200,0.92); box-shadow:0 0 16px rgba(140,255,200,0.18); }
 
     #statusBar{
       margin-top: 10px;
@@ -245,9 +238,9 @@
       display:none;
       padding: 10px 12px;
       border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(0,0,0,0.35);
-      color: rgba(255,255,255,0.88);
+      border: 1px solid rgba(255,120,120,0.22);
+      background: rgba(80,10,10,0.35);
+      color: rgba(255,170,170,0.95);
       font: 650 11px/1.35 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
       white-space: pre-wrap;
     }
@@ -260,7 +253,7 @@
     #stationGroup{ display:none; }
     #stationGroup.on{ display:block; }
 
-    /* ===== Modal ===== */
+    /* ===== Modal (full-screen feel, fixes iOS sizing + welcome scaling) ===== */
     #modalMask{
       position: fixed;
       inset: 0;
@@ -319,7 +312,7 @@
       background: rgba(0,0,0,0.15);
     }
 
-    /* ✅ Welcome scaling fix */
+    /* ✅ Welcome scaling fix (true top-to-bottom inside modal) */
     #welcomeFrame{
       width: 100%;
       height: 100%;
@@ -329,7 +322,7 @@
       background: #000;
     }
 
-    /* ===== Content blocks ===== */
+    /* ===== Content blocks (force white headings) ===== */
     .page{
       padding: 18px 18px 24px;
       max-width: 920px;
@@ -353,6 +346,8 @@
       padding: 14px;
       color: rgba(255,255,255,0.88);
       box-shadow: 0 12px 34px rgba(0,0,0,0.18) inset;
+
+      /* ✅ LOCK: prevent “input bubble” from visually leaking outside rounded card on iOS */
       overflow: hidden;
     }
     .row{ display:flex; gap:10px; align-items:center; }
@@ -375,6 +370,7 @@
       outline: none;
     }
 
+    /* ✅ LOCK: stop iOS textarea inner overflow/resize glitches */
     .textarea{ min-height: 92px; resize: none; font-weight: 750; }
 
     .btn{
@@ -395,11 +391,12 @@
       white-space: nowrap;
     }
     .btn:active{ transform: translateY(1px); }
-    .btn.good{ background: var(--goodBg); border-color: var(--goodStroke); }
-    .btn.danger{ background: var(--dangerBg); border-color: var(--dangerStroke); }
+    .btn.good{ background: rgba(120,255,200,0.12); border-color: rgba(120,255,200,0.20); }
+    .btn.danger{ background: rgba(255,120,120,0.10); border-color: rgba(255,120,120,0.22); }
     .btn.ghost{ background: rgba(255,255,255,0.04); }
     .btn[disabled]{ opacity:0.55; cursor:not-allowed; }
 
+    /* ✅ Compact buttons (match Overlay Quick Actions perfectly) */
     .btn.compact{
       padding: 10px 12px;
       border-radius: 14px;
@@ -426,11 +423,14 @@
       top: 2px; left: 2px;
       transition: transform 160ms ease, background 160ms ease;
     }
-    .toggle.on{ background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.22); }
-    .toggle.on .knob{ transform: translateX(22px); background: rgba(255,255,255,0.92); }
+    .toggle.on{ background: rgba(120,255,200,0.18); border-color: rgba(120,255,200,0.30); }
+    .toggle.on .knob{ transform: translateX(22px); background: rgba(120,255,200,0.92); }
 
-    /* ===== Hub ===== */
-    .hubWrap{ display:flex; min-height: calc(var(--vh) * 92 - 56px); }
+    /* ===== Hub (X + Discord feel) ===== */
+    .hubWrap{
+      display:flex;
+      min-height: calc(var(--vh) * 92 - 56px);
+    }
     .rail{
       width: 58px;
       border-right: 1px solid rgba(255,255,255,0.10);
@@ -458,17 +458,19 @@
       font: 900 16px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
     }
     .railBtn.on{
-      border-color: rgba(255,255,255,0.26);
-      background: rgba(255,255,255,0.10);
-      box-shadow: 0 0 20px rgba(255,255,255,0.08);
+      border-color: rgba(120,255,200,0.28);
+      background: rgba(120,255,200,0.10);
+      box-shadow: 0 0 20px rgba(120,255,200,0.08);
     }
     .hubMain{
       flex: 1 1 auto;
       padding: 16px 16px 24px;
       color: rgba(255,255,255,0.88);
     }
+
     .divider{ height:1px; background: rgba(255,255,255,0.10); margin: 12px 0; }
 
+    /* Mobile tweaks */
     @media (max-width: 520px){
       .gridTop{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .pill{ padding: 12px 12px; border-radius: 16px; font-size: 13px; }
@@ -615,9 +617,10 @@
           <h2>Overlay Library</h2>
           <p class="muted">Add or remove overlays for your Station view. (Prototype-local settings.)</p>
 
+          <!-- ✅ NEW: Overlay search bar (locked + full width) -->
           <div class="card" style="margin-top:12px;">
             <div class="tiny" style="margin-bottom:6px;">SEARCH OVERLAYS</div>
-            <input class="input" id="overlaySearch" placeholder="Search overlays (e.g., rhumb, stations, magnetic)..." />
+            <input class="input" id="overlaySearch" placeholder="Search overlays (e.g., rhumb, aurora, stations, magnetic)..." />
             <div class="tiny" id="overlaySearchCount" style="margin-top:10px;">Showing all overlays</div>
           </div>
 
@@ -647,11 +650,13 @@
 
           <div class="card" style="margin-top:12px;">
             <div class="tiny" style="margin-bottom:6px;">SEARCH</div>
+            <!-- ✅ LOCK: no leak + role search -->
             <input class="input" id="stationSearch" placeholder="Search stations or roles (Owner / Operator / Analyst / Observer)..." />
             <div class="tiny" style="margin-top:10px;">
               Tip: try “owner”, “operator”, “analyst”, “observer” to search people/roles inside the station.
             </div>
 
+            <!-- ✅ Compact Create/Delete (match Overlay Quick Actions) -->
             <div class="rowBetween" style="margin-top:12px;">
               <div class="row" style="gap:8px;">
                 <button class="btn compact good" id="stationCreateBtn">+ Create</button>
@@ -665,6 +670,7 @@
               <div class="tiny" id="locStateText">Location: Off</div>
             </div>
 
+            <!-- ✅ Results (stations + people/roles) -->
             <div id="stationSearchResults" style="display:grid; gap:10px; margin-top:12px;"></div>
           </div>
 
@@ -824,6 +830,7 @@
             <div style="font-weight:900; color: rgba(255,255,255,0.92);">Micro-Post (Field Note)</div>
             <div class="muted" style="margin-top:6px;">Post a scientific note. (Local-only prototype.)</div>
 
+            <!-- ✅ LOCK: textarea cannot leak + full width -->
             <textarea class="textarea" id="fieldNote" placeholder="Write a field note…" style="margin-top:10px;"></textarea>
 
             <div class="rowBetween" style="margin-top:12px;">
@@ -855,12 +862,18 @@
     // ✅ SETTINGS
     // ============================
     const WELCOME_FILE = "assets/welcome6.html";
+
+    // ✅ show “0.0 km away” even if location unknown (Join still blocked)
     const DEMO_DISTANCE_MODE = true;
+
+    // Prototype join radius
     const JOIN_RADIUS_KM = 100;
+
+    // Station anchor (Exit 222 • Station 1)
     const ANCHOR = { name: "Exit 222 • Station 1", lat: 38.1608333333, lon: -79.0733333333 };
 
     // ============================
-    // VH fix for iOS
+    // VH fix for iOS (helps modal + welcome scaling)
     // ============================
     function setVH(){
       const vh = window.innerHeight * 0.01;
@@ -959,6 +972,7 @@
     function setStatusBase(s){ statusBase = s; renderStatus(); }
     function addNotice(n){ notices.add(n); renderStatus(); }
 
+    // Only REAL errors get red panel
     function showError(msg){
       if (errorsEl){
         errorsEl.style.display = "block";
@@ -979,7 +993,7 @@
     handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
 
     // ============================
-    // Station panel open/close
+    // Station panel open/close (Start / Close)
     // ============================
     let stationOpen = false;
     function setStationOpen(on){
@@ -1006,7 +1020,9 @@
     ];
 
     function hideAllViews(){
-      for (const v of views) v.el.style.display = "none";
+      for (const v of views){
+        v.el.style.display = "none";
+      }
     }
 
     function openModal(kind){
@@ -1016,6 +1032,8 @@
       if (kind === "welcome"){
         modalTitle.textContent = "HELLO";
         welcomeFrame.style.display = "block";
+
+        // robust URL resolution for GitHub Pages subpaths + cache-bust
         const u = new URL(WELCOME_FILE, window.location.href);
         u.searchParams.set("v", Date.now().toString());
         welcomeFrame.src = u.toString();
@@ -1054,12 +1072,14 @@
 
     function closeModal(){
       modalMask.classList.remove("on");
+      // stop iframe work (prevents iOS scaling glitches on reopen)
       welcomeFrame.src = "about:blank";
       hideAllViews();
     }
     modalClose.addEventListener("click", closeModal);
     modalMask.addEventListener("click", (e)=>{ if(e.target === modalMask) closeModal(); });
 
+    // Top buttons (single-active highlight)
     function setTopOn(btn){
       [welcomeBtn, missionBtn].forEach(b => b.classList.remove("on"));
       btn.classList.add("on");
@@ -1067,6 +1087,7 @@
     welcomeBtn.addEventListener("click", ()=>{ setTopOn(welcomeBtn); openModal("welcome"); });
     missionBtn.addEventListener("click", ()=>{ setTopOn(missionBtn); openModal("mission"); });
 
+    // Station panel buttons
     coreBtn.addEventListener("click", ()=>{ setPreset("core"); flashOn(coreBtn); });
     stackBtn.addEventListener("click", ()=>{ setPreset("stack"); flashOn(stackBtn); });
     stationsBtn.addEventListener("click", ()=>{ flashOn(stationsBtn); openModal("stations"); });
@@ -1102,6 +1123,7 @@
       if (locEnabled && userLat!=null && userLon!=null){
         return haversineKm(userLat, userLon, ANCHOR.lat, ANCHOR.lon);
       }
+      // ✅ show 0.0 km away even when unknown
       return DEMO_DISTANCE_MODE ? 0.0 : null;
     }
 
@@ -1113,6 +1135,7 @@
 
       locStateText.textContent = `Location: ${locEnabled ? "On" : "Off"}`;
 
+      // Join blocked until location enabled (even if DEMO_DISTANCE_MODE shows 0.0)
       const joinAllowedByLoc = locEnabled && (d != null) && (d <= JOIN_RADIUS_KM);
 
       const access = store.get("station_access", "None");
@@ -1151,6 +1174,7 @@
     previewStationBtn.addEventListener("click", ()=> openModal("preview"));
     viewHubBtn.addEventListener("click", ()=> openModal("hub"));
 
+    // Follow station (prototype-local)
     let followed = store.get("station_followed", false);
     function refreshFollow(){
       followStationBtn.textContent = followed ? "Unfollow" : "Follow";
@@ -1163,6 +1187,7 @@
       refreshFollow();
     });
 
+    // Join station (prototype-local request)
     joinStationBtn.addEventListener("click", ()=>{
       const role = prompt("Choose role for Exit222•Station1:\nObserver, Analyst, Operator, Owner");
       if (!role) return;
@@ -1189,12 +1214,13 @@
     });
 
     // ============================
-    // Stations search
+    // ✅ Stations search: stations + owners/operators/analysts/observers
     // ============================
     const STATIONS = [
       { type:"station", name:"Exit222•Station1", desc:"Axis 42/222 • 38°9′39″ N, 79°4′24″ W" }
     ];
 
+    // Prototype local directory (role-search requested)
     const STATION_DIRECTORY = [
       { type:"person", name:"Owner", role:"Owner", symbol:"⊙", note:"Owner approval required" },
       { type:"person", name:"Operator-01", role:"Operator", symbol:"✶", note:"Field capture / instruments" },
@@ -1208,6 +1234,7 @@
       const q = (qRaw || "").trim().toLowerCase();
       stationSearchResults.innerHTML = "";
 
+      // Determine mode
       const roleWords = ["owner","operator","analyst","observer","observers","operators","analysts","owners"];
       const roleMode = roleWords.some(w => q.includes(w));
 
@@ -1223,6 +1250,7 @@
       });
 
       if (!q){
+        // Default: show station card as “quick”
         const s = STATIONS[0];
         const card = document.createElement("div");
         card.className = "card";
@@ -1274,6 +1302,7 @@
         stationSearchResults.appendChild(card);
       }
     }
+
     stationSearch?.addEventListener("input", ()=> renderStationSearchResults(stationSearch.value));
 
     // ============================
@@ -1515,8 +1544,8 @@
       const c=document.createElement("canvas");
       c.width=1024; c.height=512;
       const ctx=c.getContext("2d");
-      ctx.fillStyle="#111"; ctx.fillRect(0,0,c.width,c.height);
-      ctx.globalAlpha=0.85; ctx.fillStyle="#444";
+      ctx.fillStyle="#0c1c3a"; ctx.fillRect(0,0,c.width,c.height);
+      ctx.globalAlpha=0.85; ctx.fillStyle="#2b7a4b";
       for(let i=0;i<35;i++){
         const x=Math.random()*c.width, y=Math.random()*c.height;
         const r=20+Math.random()*90;
@@ -1538,7 +1567,7 @@
       c.width=1024; c.height=512;
       const ctx=c.getContext("2d");
       ctx.fillStyle="#000"; ctx.fillRect(0,0,c.width,c.height);
-      ctx.fillStyle="rgba(255,255,255,0.9)";
+      ctx.fillStyle="rgba(255,210,120,0.9)";
       for(let i=0;i<2400;i++){
         const x=Math.random()*c.width, y=Math.random()*c.height;
         if(Math.random()<0.985) continue;
@@ -1592,6 +1621,7 @@
     let rafId = 0;
     let running = true;
 
+    // Overlay state keys (full library restored)
     const overlayMeta = [
       { key:"rhumb222", label:"Rhumb 222 SW" },
       { key:"rhumb42",  label:"Rhumb 42 NE" },
@@ -1609,6 +1639,7 @@
       { key:"stations", label:"Stations" }
     ];
 
+    // Default: Core is minimal
     const state = store.get("overlay_state", {
       rhumb222: true,
       rhumb42:  false,
@@ -1647,6 +1678,7 @@
       renderOverlayList(overlaySearch?.value || "");
     }
 
+    // ✅ overlay search filter (new)
     function renderOverlayList(queryRaw=""){
       if (!overlayList) return;
       overlayList.innerHTML = "";
@@ -1667,7 +1699,7 @@
         const empty = document.createElement("div");
         empty.className = "card";
         empty.style.padding = "12px 12px";
-        empty.innerHTML = `<div style="font-weight:900;">No overlays found</div><div class="tiny" style="margin-top:6px;">Try: rhumb, great circle, stations, magnetic, corridors</div>`;
+        empty.innerHTML = `<div style="font-weight:900;">No overlays found</div><div class="tiny" style="margin-top:6px;">Try: rhumb, great circle, aurora, stations, magnetic, corridors</div>`;
         overlayList.appendChild(empty);
         return;
       }
@@ -1770,7 +1802,6 @@
           cameraPos: { value: new THREE.Vector3() }
         };
 
-        /* ✅ Grayscale Earth shader (no colors) */
         const earthMat = new THREE.ShaderMaterial({
           uniforms: earthUniforms,
           vertexShader: `
@@ -1804,24 +1835,26 @@
               vec3 V = normalize(cameraPos - vPosW);
 
               vec3 dayCol = srgbToLinear(texture2D(dayMap, vUv).rgb);
+
               float lum = dot(dayCol, vec3(0.2126,0.7152,0.0722));
-              lum = pow(max(lum, 0.0), 0.92);
+              vec3 sat = mix(vec3(lum), dayCol, 1.15);
+              vec3 c = pow(max(sat, 0.0), vec3(0.90));
 
               float specMask = texture2D(specMap, vUv).r;
               float ndl = dot(N, L);
               float dayAmt = smoothstep(-0.05, 0.15, ndl);
 
-              float nightBase = lum * 0.10;
-              float base = mix(nightBase, lum, dayAmt);
+              vec3 nightBase = c * 0.10;
+              vec3 col = mix(nightBase, c, dayAmt);
 
               vec3 H = normalize(L + V);
               float spec = pow(max(dot(N, H), 0.0), 80.0) * specMask * 0.55 * dayAmt;
+              col += vec3(spec);
 
               float rim = pow(1.0 - max(dot(N, V), 0.0), 2.2);
-              float rimAmt = rim * (0.18 + 0.62 * dayAmt);
+              col += vec3(0.06, 0.11, 0.18) * rim * (0.30 + 0.70 * dayAmt);
 
-              float outLum = base + spec + rimAmt * 0.18;
-              gl_FragColor = vec4(linearToSrgb(vec3(outLum)), 1.0);
+              gl_FragColor = vec4(linearToSrgb(col), 1.0);
             }
           `
         });
@@ -1834,7 +1867,6 @@
           gain:     { value: 2.8 }
         };
 
-        /* ✅ Grayscale night lights shader */
         const nightLights = new THREE.Mesh(
           new THREE.SphereGeometry(earthRadius * 1.001, SEG, SEG),
           new THREE.ShaderMaterial({
@@ -1870,14 +1902,12 @@
                 float dayAmt = smoothstep(-0.05, 0.15, ndl);
                 float nightAmt = 1.0 - dayAmt;
 
-                vec3 tex = srgbToLinear(texture2D(nightMap, vUv).rgb);
-                float lum = dot(tex, vec3(0.2126,0.7152,0.0722)) * gain;
-
+                vec3 lights = srgbToLinear(texture2D(nightMap, vUv).rgb) * gain;
                 float mask = smoothstep(0.06, 0.36, nightAmt);
-                float outLum = lum * mask;
 
-                float a = clamp(outLum, 0.0, 1.0);
-                gl_FragColor = vec4(linearToSrgb(vec3(outLum)), a);
+                vec3 col = lights * mask;
+                float a = clamp(max(max(col.r, col.g), col.b), 0.0, 1.0);
+                gl_FragColor = vec4(linearToSrgb(col), a);
               }
             `
           })
@@ -1901,8 +1931,7 @@
             map: cloudMap,
             transparent: true,
             opacity: 0.95,
-            depthWrite: false,
-            color: 0xffffff
+            depthWrite: false
           })
         );
 
@@ -1911,7 +1940,6 @@
           cameraPos: { value: new THREE.Vector3() }
         };
 
-        /* ✅ Grayscale atmosphere (white only) */
         const atmosphere = new THREE.Mesh(
           new THREE.SphereGeometry(earthRadius * 1.045, SEG, SEG),
           new THREE.ShaderMaterial({
@@ -1945,8 +1973,9 @@
                 float rim = pow(1.0 - max(dot(N, V), 0.0), 3.2);
                 float daySide = smoothstep(-0.15, 0.25, dot(N, L));
 
-                float a = rim * (0.16 + 0.62 * daySide);
-                gl_FragColor = vec4(vec3(1.0) * rim * (0.12 + 0.40 * daySide), a);
+                vec3 col = vec3(0.20, 0.60, 1.00) * rim * (0.22 + 0.78 * daySide);
+                float alpha = rim * (0.16 + 0.62 * daySide);
+                gl_FragColor = vec4(col, alpha);
               }
             `
           })
@@ -1987,29 +2016,30 @@
         const rh42 = rhumbPoints(ANCHOR.lat, ANCHOR.lon, BEAR_42, 240)
           .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
 
-        /* ✅ Grayscale overlay lines */
-        overlays.gc222.add(makeGlowTube(gc222, 0.0032, 0xffffff, 0xffffff, 1.0, 0.22));
-        overlays.rhumb222.add(makeGlowTube(rh222, 0.0032, 0xffffff, 0xffffff, 1.0, 0.20));
-        overlays.gc42.add(makeGlowTube(gc42, 0.0032, 0xd8d8d8, 0xd8d8d8, 0.60, 0.16));
-        overlays.rhumb42.add(makeGlowTube(rh42, 0.0032, 0xd8d8d8, 0xd8d8d8, 0.60, 0.14));
+        overlays.gc222.add(makeGlowTube(gc222, 0.0032, 0x5bbcff, 0x5bbcff, 1.0, 0.28));
+        overlays.rhumb222.add(makeGlowTube(rh222, 0.0032, 0xf6c24a, 0xf6c24a, 1.0, 0.26));
+
+        overlays.gc42.add(makeGlowTube(gc42, 0.0032, 0x5bbcff, 0x5bbcff, 0.55, 0.20));
+        overlays.rhumb42.add(makeGlowTube(rh42, 0.0032, 0xf6c24a, 0xf6c24a, 0.55, 0.18));
 
         function arcFromBearing(bearingDeg){
           const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, bearingDeg, 1.2)
             .filter((_, i) => i > 40 && i < 260)
             .map(p => latLonToVec3(p.lat, p.lon, earthRadius*1.012));
-          return makeGlowTube(pts, 0.0026, 0xffffff, 0xffffff, 1.0, 0.14);
+          return makeGlowTube(pts, 0.0026, 0x5bbcff, 0x5bbcff, 1.0, 0.18);
         }
         overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
-        const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 4, glow:"rgba(255,255,255,0.10)" });
+        // Reduced glow labels
+        const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 4, glow:"rgba(246,194,74,0.10)" });
         n222.position.copy(latLonToVec3(18, -18, earthRadius*1.10));
         overlays.names222.add(n222);
 
-        const n42 = makeTextSprite("42 NE", { fontSize: 20, glowBlur: 4, glow:"rgba(255,255,255,0.10)" });
+        const n42 = makeTextSprite("42 NE", { fontSize: 20, glowBlur: 4, glow:"rgba(91,188,255,0.10)" });
         n42.position.copy(latLonToVec3(-6, 62, earthRadius*1.10));
         overlays.names42.add(n42);
 
-        const pLabel = makeTextSprite("132° / 312°", { fontSize: 18, glowBlur: 4, glow:"rgba(255,255,255,0.09)" });
+        const pLabel = makeTextSprite("132° / 312°", { fontSize: 18, glowBlur: 4, glow:"rgba(91,188,255,0.09)" });
         pLabel.position.copy(latLonToVec3(52, 105, earthRadius*1.11));
         overlays.perpName.add(pLabel);
 
@@ -2030,18 +2060,18 @@
 
         const kmToUnit = (km)=> (km/6371)*earthRadius;
         const corridorRadii = [
-          { km: 1,  r: kmToUnit(1),  o: 0.14 },
-          { km: 5,  r: kmToUnit(5),  o: 0.08 },
-          { km: 10, r: kmToUnit(10), o: 0.05 }
+          { km: 1,  r: kmToUnit(1),  o: 0.16 },
+          { km: 5,  r: kmToUnit(5),  o: 0.09 },
+          { km: 10, r: kmToUnit(10), o: 0.06 }
         ];
         for (const c of corridorRadii){
-          overlays.corridors.add(makeGlowTube(gc222, c.r, 0xffffff, 0xffffff, 0.0, c.o));
-          overlays.corridors.add(makeGlowTube(rh222, c.r, 0xffffff, 0xffffff, 0.0, c.o*0.9));
-          overlays.corridors.add(makeGlowTube(gc42, c.r, 0xd8d8d8, 0xd8d8d8, 0.0, c.o*0.8));
-          overlays.corridors.add(makeGlowTube(rh42, c.r, 0xd8d8d8, 0xd8d8d8, 0.0, c.o*0.75));
+          overlays.corridors.add(makeGlowTube(gc222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o));
+          overlays.corridors.add(makeGlowTube(rh222, c.r, 0xf6c24a, 0xf6c24a, 0.0, c.o*0.9));
+          overlays.corridors.add(makeGlowTube(gc42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.8));
+          overlays.corridors.add(makeGlowTube(rh42, c.r, 0x5bbcff, 0x5bbcff, 0.0, c.o*0.75));
         }
 
-        function makeStationMarker(label, lat, lon, color=0xffffff){
+        function makeStationMarker(label, lat, lon, color=0x7fffd4){
           const g = new THREE.Group();
           const p = latLonToVec3(lat, lon, earthRadius*1.02);
 
@@ -2051,7 +2081,7 @@
           pin.position.copy(p);
 
           const glow = new THREE.Mesh(new THREE.SphereGeometry(0.020, 18, 18),
-            new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.14, blending:THREE.AdditiveBlending, depthWrite:false })
+            new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.16, blending:THREE.AdditiveBlending, depthWrite:false })
           );
           glow.position.copy(p);
 
@@ -2061,11 +2091,11 @@
           g.add(glow, pin, tag);
           return g;
         }
-        overlays.stations.add(makeStationMarker("Exit222•Station1", ANCHOR.lat, ANCHOR.lon, 0xffffff));
+        overlays.stations.add(makeStationMarker("Exit222•Station1", ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
 
         function makeDipoleFieldLines(){
           const g = new THREE.Group();
-          const col = 0xd8d8d8;
+          const col = 0x5bbcff;
           const axis = new THREE.Vector3(0,1,0);
           const Ls = [1.6, 2.2, 3.2, 4.6];
 
@@ -2090,23 +2120,23 @@
                 return v.normalize().multiplyScalar(len);
               });
               const ringClamped = ring.filter(v => v.length() < earthRadius*7.5);
-              g.add(makeGlowTube(ringClamped, 0.0014, col, col, 0.0, 0.045));
+              g.add(makeGlowTube(ringClamped, 0.0014, col, col, 0.0, 0.055));
             }
           }
           return g;
         }
         overlays.magField.add(makeDipoleFieldLines());
 
-        function makeAuroraBelt(latDeg=67, color=0xffffff){
+        function makeAuroraBelt(latDeg=67, color=0xa078ff){
           const g = new THREE.Group();
           for (const lat of [latDeg, -latDeg]){
             const pts = [];
             for (let lon=-180; lon<=180; lon+=2) pts.push(latLonToVec3(lat, lon, earthRadius*1.05));
-            g.add(makeGlowTube(pts, 0.0026, color, color, 0.0, 0.09));
+            g.add(makeGlowTube(pts, 0.0026, color, color, 0.0, 0.11));
           }
           return g;
         }
-        overlays.aurora.add(makeAuroraBelt(67, 0xffffff));
+        overlays.aurora.add(makeAuroraBelt(67));
 
         const BLOOM_LAYER = 1;
         const bloomLayer = new THREE.Layers(); bloomLayer.set(BLOOM_LAYER);
@@ -2308,6 +2338,7 @@
         }
         animate();
 
+        // initial overlay modal render
         renderOverlayList("");
         refreshStationUI();
         refreshProfileUI();
