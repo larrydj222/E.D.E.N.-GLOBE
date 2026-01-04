@@ -34,8 +34,8 @@
     }
 
     *{ box-sizing:border-box; }
-    html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
-    canvas { display:block; width:100vw !important; height:100vh !important; }
+    html, body { height: 100%; margin: 0; background:#000; overflow:hidden; }
+    canvas { display:block; width:100vw !important; height:100vh !important; touch-action:none; }
 
     /* iOS safe vh helper */
     body{ --vh: 1vh; }
@@ -317,7 +317,7 @@
       background: rgba(0,0,0,0.15);
     }
 
-    /* ✅ Welcome scaling fix (true top-to-bottom inside modal) */
+    /* ✅ Welcome scaling fix */
     #welcomeFrame{
       width: 100%;
       height: 100%;
@@ -327,7 +327,7 @@
       background: #000;
     }
 
-    /* ===== Content blocks (force white headings) ===== */
+    /* ===== Content blocks ===== */
     .page{
       padding: 18px 18px 24px;
       max-width: 920px;
@@ -351,7 +351,7 @@
       padding: 14px;
       color: rgba(255,255,255,0.88);
       box-shadow: 0 12px 34px rgba(0,0,0,0.18) inset;
-      overflow: hidden; /* ✅ iOS leak lock */
+      overflow: hidden;
     }
     .row{ display:flex; gap:10px; align-items:center; }
     .rowBetween{ display:flex; gap:10px; align-items:center; justify-content:space-between; }
@@ -363,7 +363,6 @@
       max-width: 100%;
       min-width: 0;
       display: block;
-
       border-radius: 16px;
       border: 1px solid rgba(255,255,255,0.14);
       background: rgba(0,0,0,0.14);
@@ -372,7 +371,6 @@
       font: 800 14px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
       outline: none;
     }
-
     .textarea{ min-height: 92px; resize: none; font-weight: 750; }
 
     .btn{
@@ -428,7 +426,7 @@
     .toggle.on{ background: rgba(120,255,200,0.18); border-color: rgba(120,255,200,0.30); }
     .toggle.on .knob{ transform: translateX(22px); background: rgba(120,255,200,0.92); }
 
-    /* ===== Segmented (Modes: Lite / Field / Lab) ===== */
+    /* ===== Segmented (Modes) ===== */
     .seg{
       display:flex;
       gap:0;
@@ -455,7 +453,7 @@
     }
     .seg button:active{ transform: translateY(1px); }
 
-    /* ===== Accordions (Overlay categories) ===== */
+    /* ===== Accordions ===== */
     .acc{
       border-radius: 18px;
       border: 1px solid rgba(255,255,255,0.14);
@@ -507,7 +505,7 @@
     .badge.warn{ border-color: rgba(246,194,74,0.22); background: rgba(246,194,74,0.08); }
     .badge.ghost{ background: rgba(255,255,255,0.04); }
 
-    /* ===== Hub (X + Discord feel) ===== */
+    /* ===== Hub ===== */
     .hubWrap{ display:flex; min-height: calc(var(--vh) * 92 - 56px); }
     .rail{
       width: 58px;
@@ -859,7 +857,6 @@
 
             <div id="loadoutList" style="display:grid; gap:10px; margin-top:12px;"></div>
           </div>
-
         </div>
 
         <!-- Station Preview -->
@@ -944,7 +941,6 @@
                   <div class="tiny" style="margin-top:10px;">(Preview mode: content hidden until approved.)</div>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
@@ -1071,6 +1067,7 @@
     // ✅ SETTINGS
     // ============================
     const WELCOME_FILE = "assets/welcome6.html";
+    const BW_GLOBE_TEXTURE = "eden-globe-bw.png"; // or "assets/eden-globe-bw.png"
     const DEMO_DISTANCE_MODE = true;
     const JOIN_RADIUS_KM = 100;
     const ANCHOR = { name: "Exit 222 • Station 1", lat: 38.1608333333, lon: -79.0733333333 };
@@ -1362,6 +1359,7 @@
     }
     modalClose.addEventListener("click", closeModal);
     modalMask.addEventListener("click", (e)=>{ if(e.target === modalMask) closeModal(); });
+    window.addEventListener("keydown", (e)=>{ if(e.key==="Escape") closeModal(); });
 
     function setTopOn(btn){
       [welcomeBtn, missionBtn].forEach(b => b.classList.remove("on"));
@@ -2019,16 +2017,6 @@
       return spr;
     }
 
-    function solidTexture(hex="#222"){
-      const c=document.createElement("canvas");
-      c.width=2; c.height=2;
-      const ctx=c.getContext("2d");
-      ctx.fillStyle=hex; ctx.fillRect(0,0,2,2);
-      const t=new THREE.CanvasTexture(c);
-      t.colorSpace=THREE.SRGBColorSpace;
-      return t;
-    }
-
     function makeFallbackStars(){
       const c=document.createElement("canvas");
       c.width=1024; c.height=1024;
@@ -2050,18 +2038,12 @@
       const c=document.createElement("canvas");
       c.width=1024; c.height=512;
       const ctx=c.getContext("2d");
-      ctx.fillStyle="#0c1c3a"; ctx.fillRect(0,0,c.width,c.height);
-      ctx.globalAlpha=0.85; ctx.fillStyle="#2b7a4b";
+      ctx.fillStyle="#0b0b0c"; ctx.fillRect(0,0,c.width,c.height);
+      ctx.globalAlpha=0.35; ctx.fillStyle="#d9d9d9";
       for(let i=0;i<35;i++){
         const x=Math.random()*c.width, y=Math.random()*c.height;
         const r=20+Math.random()*90;
         ctx.beginPath(); ctx.ellipse(x,y,r,r*0.65,Math.random()*Math.PI,0,Math.PI*2); ctx.fill();
-      }
-      ctx.globalAlpha=0.14; ctx.fillStyle="#fff";
-      for(let i=0;i<80;i++){
-        const x=Math.random()*c.width, y=Math.random()*c.height;
-        const r=20+Math.random()*100;
-        ctx.beginPath(); ctx.ellipse(x,y,r,r*0.45,0,0,Math.PI*2); ctx.fill();
       }
       const t=new THREE.CanvasTexture(c);
       t.colorSpace=THREE.SRGBColorSpace;
@@ -2423,9 +2405,9 @@
       return s;
     }
 
-    function makeRingTilted(radius=1.08, tiltDeg=23.4, color=0xa078ff){
+    function makeRingTilted(radius=1.08, tiltDeg=23.4, color=0xa078ff, opacity=0.55){
       const g = new THREE.TorusGeometry(radius, 0.008, 10, 220);
-      const m = new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.55, blending:THREE.AdditiveBlending, depthWrite:false });
+      const m = new THREE.MeshBasicMaterial({ color, transparent:true, opacity, blending:THREE.AdditiveBlending, depthWrite:false });
       const tor = new THREE.Mesh(g, m);
       tor.rotation.x = tiltDeg*DEG;
       tor.rotation.y = 35*DEG;
@@ -2434,32 +2416,201 @@
 
     function makeDipoleDemo(){
       const grp = new THREE.Group();
-      const ring1 = makeRingTilted(1.08, 60, 0x5bbcff);
-      const ring2 = makeRingTilted(1.08, -60, 0x5bbcff);
-      ring1.material.opacity = 0.25;
-      ring2.material.opacity = 0.25;
-      grp.add(ring1);
-      grp.add(ring2);
+      grp.add(makeRingTilted(1.08, 60, 0x5bbcff, 0.25));
+      grp.add(makeRingTilted(1.08, -60, 0x5bbcff, 0.25));
+      return grp;
+    }
+
+    function makeAuroraDemo(){
+      const grp = new THREE.Group();
+      grp.add(makeRingTilted(1.06, 16, 0xa078ff, 0.30));
+      grp.add(makeRingTilted(1.06, -16, 0xa078ff, 0.22));
       return grp;
     }
 
     function makeCorridorBands(){
-      // lightweight "corridor" demo: 3 thin tubes around gc222 (±1/5/10 km not to scale)
-      // This is a visual placeholder, still matches UI + stack behavior.
       const grp = new THREE.Group();
       const base = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 222, 1.0).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
       const colors = [0xf6c24a, 0x7fffd4, 0xa078ff];
       const radii  = [0.002, 0.0016, 0.0012];
       for (let i=0;i<3;i++){
-        const tube = makeGlowTube(base, radii[i], colors[i], colors[i], 0.75, 0.16);
-        tube.children.forEach(ch=>{
-          if (ch.material) ch.material.transparent = true;
-        });
+        const tube = makeGlowTube(base, radii[i], colors[i], colors[i], 0.70, 0.14);
         grp.add(tube);
       }
       return grp;
     }
 
+    function makeContinentLabels(){
+      const grp = new THREE.Group();
+      const labels = [
+        { t:"N. America", lat: 40, lon: -100 },
+        { t:"S. America", lat: -15, lon: -60 },
+        { t:"Europe", lat: 52, lon: 10 },
+        { t:"Africa", lat: 5, lon: 20 },
+        { t:"Asia", lat: 35, lon: 90 },
+        { t:"Australia", lat: -25, lon: 135 },
+        { t:"Antarctica", lat: -82, lon: 0 },
+      ];
+      labels.forEach(l=>{
+        const spr = makeTextSprite(l.t, { fontSize: 22, glowBlur: 6, scale: 0.0046 });
+        spr.position.copy(latLonToVec3(l.lat, l.lon, earthRadius*1.07));
+        grp.add(spr);
+      });
+      return grp;
+    }
+
+    function makeAxisLabel(text, lat, lon){
+      const spr = makeTextSprite(text, { fontSize: 24, glowBlur: 8, scale: 0.0052 });
+      spr.position.copy(latLonToVec3(lat, lon, earthRadius*1.08));
+      return spr;
+    }
+
+    function makeStars(starTex){
+      const starGeo = new THREE.SphereGeometry(90, 64, 64);
+      const starMat = new THREE.MeshBasicMaterial({
+        map: starTex,
+        side: THREE.BackSide,
+        transparent: true,
+        opacity: 1.0
+      });
+      const m = new THREE.Mesh(starGeo, starMat);
+      return m;
+    }
+
+    function makeEarth(dayTex){
+      const g = new THREE.SphereGeometry(earthRadius, 96, 96);
+      const m = new THREE.MeshStandardMaterial({
+        map: dayTex,
+        roughness: 1.0,
+        metalness: 0.0
+      });
+      return new THREE.Mesh(g, m);
+    }
+
+    function makeNightLights(nightTex){
+      const g = new THREE.SphereGeometry(earthRadius*1.002, 96, 96);
+      const m = new THREE.MeshBasicMaterial({
+        map: nightTex,
+        transparent: true,
+        opacity: 0.85,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+      return new THREE.Mesh(g, m);
+    }
+
+    function makeClouds(cloudTex){
+      const g = new THREE.SphereGeometry(earthRadius*1.01, 96, 96);
+      const m = new THREE.MeshBasicMaterial({
+        map: cloudTex,
+        transparent: true,
+        opacity: 0.26,
+        depthWrite: false
+      });
+      return new THREE.Mesh(g, m);
+    }
+
+    function buildOverlays(){
+      // Rhumb 222 (gold)
+      {
+        const pts = rhumbPoints(ANCHOR.lat, ANCHOR.lon, 222, 240).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
+        const tube = makeGlowTube(pts, 0.0021, 0xf6c24a, 0xf6c24a, 0.78, 0.18);
+        overlays.rhumb222 = tube;
+        scene.add(tube);
+      }
+
+      // Great Circle 222 (blue)
+      {
+        const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 222, 1.0).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+        const tube = makeGlowTube(pts, 0.0019, 0x5bbcff, 0x5bbcff, 0.75, 0.18);
+        overlays.gc222 = tube;
+        scene.add(tube);
+      }
+
+      // Rhumb 42 (soft gold)
+      {
+        const pts = rhumbPoints(ANCHOR.lat, ANCHOR.lon, 42, 240).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
+        const tube = makeGlowTube(pts, 0.0016, 0xf6c24a, 0xf6c24a, 0.40, 0.12);
+        overlays.rhumb42 = tube;
+        scene.add(tube);
+      }
+
+      // Great Circle 42 (soft blue)
+      {
+        const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 42, 1.0).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+        const tube = makeGlowTube(pts, 0.0015, 0x5bbcff, 0x5bbcff, 0.40, 0.12);
+        overlays.gc42 = tube;
+        scene.add(tube);
+      }
+
+      // Perpendicular control line (132/312)
+      {
+        const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 132, 1.0).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.013));
+        const tube = makeGlowTube(pts, 0.0013, 0x7fffd4, 0x7fffd4, 0.55, 0.14);
+        overlays.perpLine = tube;
+        scene.add(tube);
+      }
+
+      // Corridor offsets (placeholder bands)
+      {
+        const grp = makeCorridorBands();
+        overlays.corridors = grp;
+        scene.add(grp);
+      }
+
+      // Stations
+      {
+        const grp = new THREE.Group();
+        grp.add(makePin(ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
+        overlays.stations = grp;
+        scene.add(grp);
+      }
+
+      // Labels
+      {
+        const grp222 = new THREE.Group();
+        grp222.add(makeAxisLabel("222° SW", 30, -20));
+        overlays.names222 = grp222;
+        scene.add(grp222);
+
+        const grp42 = new THREE.Group();
+        grp42.add(makeAxisLabel("42° NE", 60, -150));
+        overlays.names42 = grp42;
+        scene.add(grp42);
+
+        const grpPerp = new THREE.Group();
+        grpPerp.add(makeAxisLabel("132° / 312°", 0, 90));
+        overlays.perpName = grpPerp;
+        scene.add(grpPerp);
+      }
+
+      // Continents
+      {
+        const grp = makeContinentLabels();
+        overlays.continents = grp;
+        scene.add(grp);
+      }
+
+      // Mag field demo
+      {
+        const grp = makeDipoleDemo();
+        overlays.magField = grp;
+        scene.add(grp);
+      }
+
+      // Aurora demo
+      {
+        const grp = makeAuroraDemo();
+        overlays.aurora = grp;
+        scene.add(grp);
+      }
+
+      applyVisibility();
+    }
+
+    // ============================
+    // Boot
+    // ============================
     (async ()=>{
       try{
         setStatusBase("Starting…");
@@ -2492,6 +2643,13 @@
         sunLight.position.set(5, 1.5, 2.5);
         scene.add(sunLight);
 
+        // Post-processing (bloom)
+        composer = new EffectComposer(renderer);
+        composer.addPass(new RenderPass(scene, camera));
+        bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.85, 0.35, 0.90);
+        composer.addPass(bloomPass);
+        composer.addPass(new OutputPass());
+
         const BASES = [
           "https://threejs.org/examples/textures/",
           "https://unpkg.com/three@0.161.0/examples/textures/",
@@ -2501,215 +2659,72 @@
 
         setStatusBase("Loading textures…");
 
-        const dayMap   = await loadTextureWithFallback(urls("planets/earth_atmos_2048.jpg"), makeFallbackEarthDay(), "earth day");
+        const dayMap = await loadTextureWithFallback(
+          [BW_GLOBE_TEXTURE, ...urls("planets/earth_atmos_2048.jpg")],
+          makeFallbackEarthDay(),
+          "earth day (bw local)"
+        );
+
         const nightMap = await loadTextureWithFallback(urls("planets/earth_lights_2048.png"), makeFallbackNight(), "earth night lights");
-        const specMap  = await loadTextureWithFallback(urls("planets/earth_specular_2048.jpg"), solidTexture("#000"), "earth specular");
         const cloudMap = await loadTextureWithFallback(urls("planets/earth_clouds_1024.png"), makeFallbackClouds(), "earth clouds");
         const starMap  = await loadTextureWithFallback(urls("galaxy_starfield.png"), makeFallbackStars(), "stars");
 
         const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
-        [dayMap, nightMap, specMap, cloudMap, starMap].forEach((t)=>{
+        [dayMap, nightMap, cloudMap, starMap].forEach((t)=>{
           t.anisotropy = maxAniso;
           t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
         });
 
-        // Stars
-        {
-          const starGeo = new THREE.SphereGeometry(90, 64, 64);
-          const starMat = new THREE.MeshBasicMaterial({ map: starMap, side: THREE.BackSide });
-          starMesh = new THREE.Mesh(starGeo, starMat);
-          scene.add(starMesh);
-        }
+        // Scene objects
+        starMesh = makeStars(starMap);
+        scene.add(starMesh);
 
-        // Earth day
-        {
-          const geo = new THREE.SphereGeometry(earthRadius, 96, 96);
-          const mat = new THREE.MeshStandardMaterial({
-            map: dayMap,
-            roughness: 0.92,
-            metalness: 0.02,
-            emissive: new THREE.Color(0x000000),
-          });
-          earthMesh = new THREE.Mesh(geo, mat);
-          scene.add(earthMesh);
-        }
+        earthMesh = makeEarth(dayMap);
+        scene.add(earthMesh);
 
-        // Night lights overlay (additive)
-        {
-          const geo = new THREE.SphereGeometry(earthRadius*1.001, 96, 96);
-          const mat = new THREE.MeshBasicMaterial({
-            map: nightMap,
-            transparent: true,
-            opacity: 0.85,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false
-          });
-          nightMesh = new THREE.Mesh(geo, mat);
-          scene.add(nightMesh);
-        }
+        nightMesh = makeNightLights(nightMap);
+        scene.add(nightMesh);
 
-        // Clouds
-        {
-          const geo = new THREE.SphereGeometry(earthRadius*1.012, 96, 96);
-          const mat = new THREE.MeshBasicMaterial({
-            map: cloudMap,
-            transparent: true,
-            opacity: 0.28,
-            depthWrite: false
-          });
-          cloudsMesh = new THREE.Mesh(geo, mat);
-          scene.add(cloudsMesh);
-        }
+        cloudsMesh = makeClouds(cloudMap);
+        scene.add(cloudsMesh);
 
-        // Postprocessing (bloom)
-        composer = new EffectComposer(renderer);
-        composer.addPass(new RenderPass(scene, camera));
-        bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.55, 0.45, 0.90);
-        composer.addPass(bloomPass);
-        composer.addPass(new OutputPass());
-
-        // ============================
-        // Build overlays
-        // ============================
-        const overlayGroup = new THREE.Group();
-        scene.add(overlayGroup);
-
-        const rh222Pts = rhumbPoints(ANCHOR.lat, ANCHOR.lon, 222, 220).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
-        const gc222Pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 222, 1.0).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
-        const rh42Pts  = rhumbPoints(ANCHOR.lat, ANCHOR.lon, 42, 220).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
-        const gc42Pts  = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 42, 1.0).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
-
-        overlays.rhumb222 = makeGlowTube(rh222Pts, 0.0022, 0xf6c24a, 0xf6c24a, 0.95, 0.20);
-        overlays.gc222    = makeGlowTube(gc222Pts, 0.0022, 0x5bbcff, 0x5bbcff, 0.90, 0.18);
-        overlays.rhumb42  = makeGlowTube(rh42Pts,  0.0019, 0xf6c24a, 0xf6c24a, 0.55, 0.12);
-        overlays.gc42     = makeGlowTube(gc42Pts,  0.0019, 0x5bbcff, 0x5bbcff, 0.55, 0.12);
-
-        // Perpendicular controls (visual placeholder: great circles at 132 / 312)
-        const perp132 = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 132, 1.2).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
-        overlays.perpLine = makeGlowTube(perp132, 0.0016, 0x7fffd4, 0x7fffd4, 0.55, 0.14);
-
-        // Corridors demo
-        overlays.corridors = makeCorridorBands();
-
-        // Stations
-        {
-          const g = new THREE.Group();
-          g.add(makePin(ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
-          const label = makeTextSprite("Exit222•Station1", { fontSize: 24, glow:"rgba(127,255,212,0.22)", glowBlur:7 });
-          label.position.copy(latLonToVec3(ANCHOR.lat, ANCHOR.lon, earthRadius*1.09));
-          g.add(label);
-          overlays.stations = g;
-        }
-
-        // Axis labels
-        {
-          const a = new THREE.Group();
-          const s1 = makeTextSprite("222° SW", { fontSize: 28, glow:"rgba(91,188,255,0.22)", glowBlur:8 });
-          s1.position.copy(latLonToVec3(ANCHOR.lat-8, ANCHOR.lon+12, earthRadius*1.12));
-          a.add(s1);
-          overlays.names222 = a;
-        }
-        {
-          const a = new THREE.Group();
-          const s1 = makeTextSprite("42° NE", { fontSize: 28, glow:"rgba(246,194,74,0.22)", glowBlur:8 });
-          s1.position.copy(latLonToVec3(ANCHOR.lat+16, ANCHOR.lon-18, earthRadius*1.12));
-          a.add(s1);
-          overlays.names42 = a;
-        }
-        {
-          const a = new THREE.Group();
-          const s1 = makeTextSprite("132° / 312°", { fontSize: 22, glow:"rgba(127,255,212,0.18)", glowBlur:6 });
-          s1.position.copy(latLonToVec3(ANCHOR.lat+4, ANCHOR.lon+42, earthRadius*1.12));
-          a.add(s1);
-          overlays.perpName = a;
-        }
-
-        // Continents (simple label set, demo)
-        {
-          const g = new THREE.Group();
-          const labels = [
-            ["N. America", 40, -100],
-            ["S. America", -15, -60],
-            ["Europe", 52, 10],
-            ["Africa", 5, 20],
-            ["Asia", 40, 90],
-            ["Australia", -24, 133],
-            ["Antarctica", -78, 0],
-          ];
-          for (const [t, la, lo] of labels){
-            const spr = makeTextSprite(t, { fontSize: 18, glow:"rgba(255,255,255,0.10)", glowBlur:5, scale:0.0045 });
-            spr.position.copy(latLonToVec3(la, lo, earthRadius*1.08));
-            g.add(spr);
-          }
-          overlays.continents = g;
-        }
-
-        // Magnetic field demo
-        overlays.magField = makeDipoleDemo();
-
-        // Aurora demo belt (near poles)
-        {
-          const g = new THREE.Group();
-          const belt1 = new THREE.TorusGeometry(1.03, 0.010, 10, 240);
-          const mat1 = new THREE.MeshBasicMaterial({ color:0xa078ff, transparent:true, opacity:0.26, blending:THREE.AdditiveBlending, depthWrite:false });
-          const t1 = new THREE.Mesh(belt1, mat1);
-          t1.rotation.x = 1.06; // tilt
-          g.add(t1);
-          const t2 = t1.clone();
-          t2.rotation.x = -1.06;
-          t2.material = mat1.clone();
-          t2.material.opacity = 0.22;
-          g.add(t2);
-          overlays.aurora = g;
-        }
-
-        // Attach overlays to scene
-        for (const k of Object.keys(overlays)){
-          overlayGroup.add(overlays[k]);
-        }
-
+        buildOverlays();
+        refreshStacksUI();
         applyVisibility();
 
-        setStatusBase("Running");
-
-        // First renders for UI
-        refreshStationUI();
-
-        // Overlay UI init
-        refreshStacksUI();
-        renderOverlayLibrary("");
-
-        // ============================
-        // Render loop
-        // ============================
-        function animate(){
-          requestAnimationFrame(animate);
-          controls.update();
-          if (cloudsMesh) cloudsMesh.rotation.y += 0.00025;
-          composer.render();
-        }
-        animate();
+        setStatusBase("Ready");
 
         // Resize
-        window.addEventListener("resize", ()=>{
-          if (!renderer || !camera || !composer) return;
-          camera.aspect = innerWidth/innerHeight;
+        function onResize(){
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          camera.aspect = w / h;
           camera.updateProjectionMatrix();
-          renderer.setSize(innerWidth, innerHeight);
-          composer.setSize(innerWidth, innerHeight);
-          bloomPass.setSize(innerWidth, innerHeight);
-        }, { passive:true });
+          renderer.setSize(w, h);
+          composer.setSize(w, h);
+          bloomPass.setSize(w, h);
+        }
+        window.addEventListener("resize", onResize, { passive:true });
+        window.addEventListener("orientationchange", onResize, { passive:true });
+
+        // Animate
+        const clock = new THREE.Clock();
+        function tick(){
+          const dt = clock.getDelta();
+
+          if (cloudsMesh) cloudsMesh.rotation.y += dt * 0.02;
+          if (earthMesh) earthMesh.rotation.y += dt * 0.006;
+
+          controls.update();
+          composer.render();
+          requestAnimationFrame(tick);
+        }
+        tick();
 
       } catch (e){
-        showError("Boot failure:\n" + (e?.message || e));
+        showError("Boot failed:\n" + (e?.message || e));
       }
     })();
-
-    // ============================
-    // Hub tab init (kept)
-    // ============================
-    // (already setHubTab("feed") above)
-
   </script>
 </body>
 </html>
