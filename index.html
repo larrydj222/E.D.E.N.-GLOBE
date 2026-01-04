@@ -4,2736 +4,579 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="referrer" content="no-referrer" />
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    img-src 'self' data: https:;
-    style-src 'self' 'unsafe-inline';
-    script-src 'self' https://unpkg.com https://cdn.jsdelivr.net https://threejs.org 'unsafe-inline';
-    connect-src 'self' https://unpkg.com https://cdn.jsdelivr.net https://threejs.org;
-    frame-src 'self';
-    font-src 'self' data:;
-  " />
-  <title>MAP E.D.E.N. Globe</title>
+  <title>MAP E.D.E.N. — Globe</title>
 
   <style>
     :root{
-      --glass: rgba(12,14,18,0.60);
-      --stroke: rgba(255,255,255,0.12);
-      --stroke2: rgba(255,255,255,0.14);
-      --text: rgba(255,255,255,0.92);
-      --muted: rgba(255,255,255,0.70);
-      --muted2: rgba(255,255,255,0.46);
-      --gold: #f6c24a;
-      --blue: #5bbcff;
-      --aqua: #7fffd4;
-      --violet:#a078ff;
+      --bg:#050508;                 /* space black */
+      --fg:#ffffff;
+      --muted:rgba(255,255,255,.72);
+      --muted2:rgba(255,255,255,.55);
+      --stroke:rgba(255,255,255,.12);
+      --card:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.08);
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --r:16px;
 
-      --good: rgba(120,255,200,0.88);
-      --danger: rgba(255,120,120,0.80);
-      --warn: rgba(246,194,74,0.92);
+      --ledOff: rgba(255,255,255,.18);
+      --ledOn:  #35ff6b;
     }
 
     *{ box-sizing:border-box; }
-    html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
-    canvas { display:block; width:100vw !important; height:100vh !important; }
-
-    /* iOS safe vh helper */
-    body{ --vh: 1vh; }
-
-    #openBtn{
-      position: fixed;
-      left: 18px;
-      bottom: 18px;
-      z-index: 10000;
-      display: none;
-      align-items: center;
-      padding: 12px 14px;
-      border-radius: 18px;
-      color: var(--text);
-      background: rgba(12,14,18,0.62);
-      border: 1px solid rgba(255,255,255,0.14);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 14px 44px rgba(0,0,0,0.42);
-      cursor: pointer;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      font: 900 13px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      letter-spacing: 0.35px;
-    }
-    #openBtn:active { transform: translateY(1px); }
-
-    #drawer {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 18px;
-      width: min(820px, calc(100vw - 28px));
-      max-height: calc((var(--vh) * 100) - 28px);
-      z-index: 9999;
-      color: var(--text);
-      background: var(--glass);
-      border: 1px solid var(--stroke);
-      border-radius: 22px;
-      padding: 14px 14px 12px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 14px 44px rgba(0,0,0,0.42);
-      user-select: none;
-      overflow: hidden;
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--fg);
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      text-rendering:geometricPrecision;
+      overflow:hidden;
     }
 
-    #drawer.closed{
-      transform: translateX(-50%) translateY(140%);
-      opacity: 0;
-      pointer-events: none;
-      transition: transform 240ms ease, opacity 200ms ease;
-    }
-    #drawer:not(.closed){
-      transition: transform 240ms ease, opacity 200ms ease;
-    }
-
-    #handle {
-      width: 44px;
-      height: 6px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.18);
-      margin: 6px auto 10px;
-      cursor: pointer;
+    /* ====== PLANET LAYER ====== */
+    .planet-wrap{
+      position:fixed;
+      inset:0;
+      display:grid;
+      place-items:center;
+      pointer-events:none;
+      z-index:0;
+      background:
+        radial-gradient(1200px 600px at 50% 40%, rgba(255,255,255,.06), transparent 60%),
+        radial-gradient(900px 900px at 50% 60%, rgba(255,255,255,.04), transparent 55%),
+        radial-gradient(1200px 900px at 50% 90%, rgba(0,0,0,.0), rgba(0,0,0,.35) 60%, rgba(0,0,0,.70) 100%);
     }
 
-    #drawerTop{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
+    .planet{
+      width:min(86vmin, 820px);
+      aspect-ratio: 1 / 1;
+      position:relative;
+      filter: drop-shadow(0 35px 70px rgba(0,0,0,.72));
+      transform: translateZ(0);
     }
-    #titleBlock{
+
+    .planet img{
+      width:100%;
+      height:100%;
+      display:block;
+      border-radius:999px; /* keeps edge clean if image has alpha */
+      user-select:none;
+      -webkit-user-drag:none;
+      opacity:.98;
+      transform-origin:center;
+      animation: planetSpin 160s linear infinite;
+    }
+
+    /* soft edge vignette so globe sits into space-black nicely */
+    .planet::after{
+      content:"";
+      position:absolute;
+      inset:-2%;
+      border-radius:999px;
+      background:
+        radial-gradient(circle at 50% 50%,
+          rgba(255,255,255,0) 56%,
+          rgba(0,0,0,.10) 62%,
+          rgba(0,0,0,.30) 72%,
+          rgba(0,0,0,.62) 86%,
+          rgba(0,0,0,.90) 100%);
+      mix-blend-mode:multiply;
+      pointer-events:none;
+    }
+
+    /* subtle highlight */
+    .planet::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:999px;
+      background:
+        radial-gradient(circle at 35% 28%,
+          rgba(255,255,255,.10),
+          rgba(255,255,255,.04) 30%,
+          rgba(255,255,255,0) 55%);
+      pointer-events:none;
+      opacity:.9;
+    }
+
+    @keyframes planetSpin{
+      from{ transform: rotate(0deg) }
+      to  { transform: rotate(360deg) }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .planet img{ animation:none; }
+    }
+
+    /* ====== APP UI ====== */
+    .ui{
+      position:fixed;
+      inset:0;
       display:flex;
       flex-direction:column;
-      gap:4px;
-      padding-right: 8px;
-      min-width: 0;
-    }
-    #title {
-      font: 900 18px/1.1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      letter-spacing: 0.25px;
-    }
-    #subtitle{
-      font: 650 12px/1.25 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: var(--muted);
-      max-width: 540px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      z-index:2;
+      pointer-events:none;
     }
 
-    #closeBtn{
-      width: 40px;
-      height: 40px;
-      border-radius: 14px;
-      border: 1px solid var(--stroke2);
-      background: rgba(255,255,255,0.06);
-      color: var(--text);
-      cursor:pointer;
+    header{
+      pointer-events:auto;
       display:flex;
       align-items:center;
-      justify-content:center;
-      -webkit-tap-highlight-color: transparent;
-      flex: 0 0 auto;
-    }
-    #closeBtn:active { transform: translateY(1px); }
-
-    #drawerBody{
-      margin-top: 12px;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      max-height: calc((var(--vh) * 100) - 190px);
-      padding-bottom: 6px;
-    }
-
-    .gridTop{
-      display:grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .grid2{
-      display:grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .pill {
-      width: 100%;
-      display:inline-flex;
-      align-items:center;
-      justify-content: space-between;
-      gap:10px;
-      padding: 12px 14px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      color: var(--text);
-      font: 900 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      letter-spacing: 0.15px;
-      cursor:pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .pill:active { transform: translateY(1px); }
-    .pill[disabled]{ opacity:0.55; cursor:not-allowed; }
-    .pill .left{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      min-width: 0;
-    }
-    .pill .label{
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .pill .hint{
-      font: 800 11px/1.1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      color: rgba(255,255,255,0.55);
-      letter-spacing: 0.1px;
-      text-align: right;
-    }
-
-    .dot {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.16);
-      box-shadow: 0 0 0 rgba(0,0,0,0);
-      flex: 0 0 auto;
-    }
-
-    /* “Lights turn green” when pressed */
-    .pill.on .dot{ background: var(--good); box-shadow: 0 0 16px rgba(120,255,200,0.24); }
-    .pill.on[data-key="rhumb222"] .dot{ background: rgba(246,194,74,0.95); box-shadow:0 0 16px rgba(246,194,74,0.22); }
-    .pill.on[data-key="gc222"]    .dot{ background: rgba(91,188,255,0.92); box-shadow:0 0 16px rgba(91,188,255,0.22); }
-    .pill.on[data-key="rhumb42"]  .dot{ background: rgba(246,194,74,0.55); box-shadow:0 0 16px rgba(246,194,74,0.16); }
-    .pill.on[data-key="gc42"]     .dot{ background: rgba(91,188,255,0.55); box-shadow:0 0 16px rgba(91,188,255,0.16); }
-    .pill.on[data-key="stations"] .dot{ background: rgba(127,255,212,0.90); box-shadow:0 0 16px rgba(127,255,212,0.18); }
-    .pill.on[data-key="aurora"]   .dot{ background: rgba(160,120,255,0.92); box-shadow:0 0 16px rgba(160,120,255,0.18); }
-    .pill.on[data-key="nightLights"] .dot{ background: rgba(140,255,200,0.92); box-shadow:0 0 16px rgba(140,255,200,0.18); }
-
-    #statusBar{
-      margin-top: 10px;
-      display:flex;
       justify-content:space-between;
-      gap:12px;
+      padding: max(14px, env(safe-area-inset-top)) 14px 10px 14px;
+    }
+
+    .brand{
+      display:flex;
       align-items:center;
-      color: var(--muted2);
-      font: 800 11px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border:1px solid var(--stroke);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .brand .title{
+      font-weight:700;
+      letter-spacing:.14em;
+      font-size:12px;
+      text-transform:uppercase;
+      line-height:1;
+    }
+    .brand .sub{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.15;
+      margin-top:3px;
+    }
+
+    .status{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      background: rgba(255,255,255,.05);
+      border:1px solid var(--stroke);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .pill{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      color:var(--muted);
       white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:999px;
+      background:rgba(255,255,255,.35);
+      box-shadow: 0 0 0 2px rgba(255,255,255,.10);
     }
 
-    #errors{
-      margin-top: 10px;
-      display:none;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,120,120,0.22);
-      background: rgba(80,10,10,0.35);
-      color: rgba(255,170,170,0.95);
-      font: 650 11px/1.35 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      white-space: pre-wrap;
-    }
-
-    #drawer.collapsed #drawerBody,
-    #drawer.collapsed #statusBar,
-    #drawer.collapsed #errors { display:none; }
-    #drawer.collapsed { padding-bottom: 12px; }
-
-    #stationGroup{ display:none; }
-    #stationGroup.on{ display:block; }
-
-    /* ===== Modal (full-screen feel, fixes iOS sizing + welcome scaling) ===== */
-    #modalMask{
-      position: fixed;
-      inset: 0;
-      z-index: 20000;
-      background: rgba(0,0,0,0.62);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 14px;
-    }
-    #modalMask.on{ display:flex; }
-
-    #modal{
-      width: min(980px, calc(100vw - 16px));
-      height: min(calc(var(--vh) * 92), 860px);
-      background: rgba(12,14,18,0.78);
-      border: 1px solid rgba(255,255,255,0.16);
-      border-radius: 22px;
-      box-shadow: 0 20px 70px rgba(0,0,0,0.55);
-      overflow: hidden;
+    .controls{
+      pointer-events:auto;
+      position:fixed;
+      left:14px;
+      top: calc(max(72px, env(safe-area-inset-top) + 58px));
       display:flex;
-      flex-direction: column;
+      flex-direction:column;
+      gap:10px;
     }
-
-    #modalTop{
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      padding: 12px 12px 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.10);
-      background: rgba(0,0,0,0.10);
-      gap: 10px;
-    }
-    #modalTitle{
-      font: 900 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      letter-spacing: 0.3px;
-      color: rgba(255,255,255,0.92);
-      padding-left: 6px;
-      text-transform: uppercase;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    #modalClose{
-      width: 40px;
-      height: 40px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.92);
-      cursor:pointer;
-      flex: 0 0 auto;
-    }
-
-    #modalBody{
-      flex: 1 1 auto;
-      overflow: auto;
-      -webkit-overflow-scrolling: touch;
-      background: rgba(0,0,0,0.15);
-    }
-
-    /* ✅ Welcome scaling fix (true top-to-bottom inside modal) */
-    #welcomeFrame{
-      width: 100%;
-      height: 100%;
-      min-height: calc(var(--vh) * 92 - 56px);
-      border: 0;
-      display:block;
-      background: #000;
-    }
-
-    /* ===== Content blocks (force white headings) ===== */
-    .page{
-      padding: 18px 18px 24px;
-      max-width: 920px;
-      margin: 0 auto;
-      color: rgba(255,255,255,0.88);
-      font: 650 14px/1.55 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-    }
-    .page h2{
-      color: rgba(255,255,255,0.92);
-      font: 900 18px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      margin: 0 0 10px;
-      letter-spacing: 0.2px;
-    }
-    .page p{ margin: 0 0 12px; color: rgba(255,255,255,0.80); }
-
-    /* ===== Cards / inputs ===== */
-    .card{
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      padding: 14px;
-      color: rgba(255,255,255,0.88);
-      box-shadow: 0 12px 34px rgba(0,0,0,0.18) inset;
-      overflow: hidden; /* ✅ iOS leak lock */
-    }
-    .row{ display:flex; gap:10px; align-items:center; }
-    .rowBetween{ display:flex; gap:10px; align-items:center; justify-content:space-between; }
-    .muted{ color: rgba(255,255,255,0.62); }
-    .tiny{ font: 700 11px/1.3 -apple-system, system-ui, Segoe UI, Roboto, Arial; color: rgba(255,255,255,0.55); }
-
-    .input, .textarea, .select{
-      width: 100%;
-      max-width: 100%;
-      min-width: 0;
-      display: block;
-
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(0,0,0,0.14);
-      color: rgba(255,255,255,0.92);
-      padding: 12px 12px;
-      font: 800 14px/1.2 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      outline: none;
-    }
-
-    .textarea{ min-height: 92px; resize: none; font-weight: 750; }
 
     .btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      padding: 12px 14px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.92);
-      font: 900 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-      cursor:pointer;
-      -webkit-tap-highlight-color: transparent;
-      user-select:none;
-      min-width: 120px;
-      white-space: nowrap;
-    }
-    .btn:active{ transform: translateY(1px); }
-    .btn.good{ background: rgba(120,255,200,0.12); border-color: rgba(120,255,200,0.20); }
-    .btn.danger{ background: rgba(255,120,120,0.10); border-color: rgba(255,120,120,0.22); }
-    .btn.warn{ background: rgba(246,194,74,0.10); border-color: rgba(246,194,74,0.22); }
-    .btn.ghost{ background: rgba(255,255,255,0.04); }
-    .btn[disabled]{ opacity:0.55; cursor:not-allowed; }
-
-    .btn.compact{
-      padding: 10px 12px;
-      border-radius: 14px;
-      min-width: 0;
-      font-size: 13px;
-      letter-spacing: 0.15px;
-    }
-
-    /* ===== Toggle ===== */
-    .toggle{
-      width: 54px; height: 32px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(255,255,255,0.08);
-      position: relative;
-      cursor: pointer;
-      flex: 0 0 auto;
-    }
-    .toggle .knob{
-      width: 26px; height: 26px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.86);
-      position:absolute;
-      top: 2px; left: 2px;
-      transition: transform 160ms ease, background 160ms ease;
-    }
-    .toggle.on{ background: rgba(120,255,200,0.18); border-color: rgba(120,255,200,0.30); }
-    .toggle.on .knob{ transform: translateX(22px); background: rgba(120,255,200,0.92); }
-
-    /* ===== Segmented (Modes: Lite / Field / Lab) ===== */
-    .seg{
-      display:flex;
-      gap:0;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.04);
-      border-radius: 16px;
-      overflow:hidden;
-    }
-    .seg button{
-      flex:1 1 0;
-      padding: 10px 10px;
-      border:0;
-      background: transparent;
-      color: rgba(255,255,255,0.82);
-      font: 900 13px/1 -apple-system,system-ui,Segoe UI,Roboto,Arial;
-      letter-spacing: 0.18px;
-      cursor:pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .seg button.on{
-      background: rgba(120,255,200,0.12);
-      color: rgba(255,255,255,0.92);
-      box-shadow: inset 0 0 0 1px rgba(120,255,200,0.16);
-    }
-    .seg button:active{ transform: translateY(1px); }
-
-    /* ===== Accordions (Overlay categories) ===== */
-    .acc{
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      overflow:hidden;
-    }
-    .accTop{
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
-      padding: 12px 14px;
+      min-width: 168px;
+      padding:12px 12px;
+      border-radius: 14px;
+      border:1px solid var(--stroke);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      color:var(--fg);
+      box-shadow: var(--shadow);
+      cursor:pointer;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn .label{
+      font-weight:650;
+      letter-spacing:.08em;
+      font-size:12px;
+      text-transform:uppercase;
+    }
+    .led{
+      width:10px;height:10px;border-radius:999px;
+      background: var(--ledOff);
+      box-shadow: 0 0 0 2px rgba(255,255,255,.10), 0 0 18px rgba(0,0,0,.0);
+      transition: background .25s ease, box-shadow .25s ease, transform .25s ease;
+      flex:0 0 auto;
+    }
+    .led.on{
+      background: var(--ledOn);
+      box-shadow: 0 0 0 2px rgba(53,255,107,.20), 0 0 22px rgba(53,255,107,.35);
+      transform: scale(1.05);
+    }
+
+    .hint{
+      pointer-events:none;
+      position:fixed;
+      right:14px;
+      bottom: calc(16px + env(safe-area-inset-bottom));
+      max-width: 320px;
+      padding:12px 12px;
+      border-radius: 14px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+      color:var(--muted2);
+      font-size:12px;
+      line-height:1.35;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* ====== MODAL ====== */
+    .modal{
+      position:fixed;
+      inset:0;
+      display:none;
+      place-items:center;
+      padding: 16px;
+      background: rgba(0,0,0,.55);
+      z-index:10;
+      pointer-events:auto;
+    }
+    .modal.open{ display:grid; }
+
+    .sheet{
+      width:min(980px, 100%);
+      max-height: min(760px, 84vh);
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(10,10,14,.86);
+      box-shadow: 0 40px 90px rgba(0,0,0,.65);
+      overflow:hidden;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      display:flex;
+      flex-direction:column;
+    }
+
+    .sheet-hd{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 12px 12px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    }
+
+    .sheet-title{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      padding-left:6px;
+    }
+    .sheet-title strong{
+      font-size:12px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+    .sheet-title span{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .close{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color:var(--fg);
+      border-radius: 12px;
+      padding:10px 12px;
       cursor:pointer;
       -webkit-tap-highlight-color: transparent;
-      user-select:none;
     }
-    .accTitle{
-      font-weight: 900;
-      letter-spacing: 0.1px;
-      color: rgba(255,255,255,0.92);
-      min-width:0;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
-    .accHint{ font: 800 11px/1.2 -apple-system,system-ui,Segoe UI,Roboto,Arial; color: rgba(255,255,255,0.55); }
-    .accBody{
-      display:none;
-      padding: 0 14px 14px;
-    }
-    .acc.on .accBody{ display:block; }
-    .accTop:active{ transform: translateY(1px); }
+    .close:active{ transform: translateY(1px); }
 
-    /* ===== Badges ===== */
-    .badgeRow{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
-    .badge{
+    .sheet-bd{
+      padding: 14px;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .card{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .prose{
+      font-size:14px;
+      line-height:1.65;
+      color:rgba(255,255,255,.90);
+      margin:0;
+    }
+    .prose b{ color:#fff; }
+    .prose .muted{ color:var(--muted); }
+
+    .links{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:12px;
+    }
+    .link{
       display:inline-flex;
       align-items:center;
       gap:8px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(0,0,0,0.12);
-      font: 900 11px/1 -apple-system,system-ui,Segoe UI,Roboto,Arial;
-      color: rgba(255,255,255,0.86);
-      letter-spacing: 0.12px;
+      padding:10px 12px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: rgba(255,255,255,.92);
+      text-decoration:none;
+      font-size:13px;
     }
-    .badge.good{ border-color: rgba(120,255,200,0.22); background: rgba(120,255,200,0.08); }
-    .badge.warn{ border-color: rgba(246,194,74,0.22); background: rgba(246,194,74,0.08); }
-    .badge.ghost{ background: rgba(255,255,255,0.04); }
+    .link:active{ transform: translateY(1px); }
 
-    /* ===== Hub (X + Discord feel) ===== */
-    .hubWrap{ display:flex; min-height: calc(var(--vh) * 92 - 56px); }
-    .rail{
-      width: 58px;
-      border-right: 1px solid rgba(255,255,255,0.10);
-      background: rgba(0,0,0,0.10);
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      padding: 10px 8px;
-      gap:10px;
-      position: sticky;
-      top: 0;
-    }
-    .railBtn{
-      width: 44px; height: 44px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color: rgba(255,255,255,0.90);
-      cursor:pointer;
-      user-select:none;
-      -webkit-tap-highlight-color: transparent;
-      font: 900 16px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
-    }
-    .railBtn.on{
-      border-color: rgba(120,255,200,0.28);
-      background: rgba(120,255,200,0.10);
-      box-shadow: 0 0 20px rgba(120,255,200,0.08);
-    }
-    .hubMain{ flex: 1 1 auto; padding: 16px 16px 24px; color: rgba(255,255,255,0.88); }
-
-    .divider{ height:1px; background: rgba(255,255,255,0.10); margin: 12px 0; }
-
+    /* better touch layout on small screens */
     @media (max-width: 520px){
-      .gridTop{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .pill{ padding: 12px 12px; border-radius: 16px; font-size: 13px; }
-      #drawerBody{ max-height: calc((var(--vh) * 100) - 200px); }
-      #subtitle{ max-width: 310px; }
-      .pill .hint{ display:none; }
-      #modal{ border-radius: 20px; }
-      .hubMain{ padding: 14px 14px 22px; }
-      .btn.compact{ padding: 10px 12px; }
-      .seg button{ font-size: 12px; }
-    }
-    @media (max-width: 380px){
-      .gridTop{ grid-template-columns: 1fr; }
-    }
-
-    /* =========================
-       LOCK: NEVER BLACK TEXT
-       ========================= */
-    html, body,
-    h1,h2,h3,h4,h5,h6,
-    p,span,small,strong,em,
-    label,legend,
-    a,button,
-    li,dt,dd,
-    .page,.card,.hubMain,.rail,.railBtn,
-    #drawer,#modal,#modalTitle,#statusBar,#stationText,
-    #distanceText,#accessText,#previewDistanceTiny,#hubAccessTiny,
-    #joinRulesTiny,#locStateText,#profileCounts,
-    #stationSearchResults,#overlaySearchCount {
-      color: rgba(255,255,255,0.92) !important;
-    }
-
-    input, textarea, select {
-      color: rgba(255,255,255,0.92) !important;
-      -webkit-text-fill-color: rgba(255,255,255,0.92) !important;
-      caret-color: rgba(255,255,255,0.92) !important;
-    }
-
-    input::placeholder, textarea::placeholder {
-      color: rgba(255,255,255,0.55) !important;
-      -webkit-text-fill-color: rgba(255,255,255,0.55) !important;
-    }
-
-    input:-webkit-autofill,
-    textarea:-webkit-autofill,
-    select:-webkit-autofill {
-      -webkit-text-fill-color: rgba(255,255,255,0.92) !important;
-      transition: background-color 99999s ease-out 0s;
-    }
-
-    [style*="color: #000"], [style*="color:#000"],
-    [style*="color: black"], [style*="color:black"]{
-      color: rgba(255,255,255,0.92) !important;
+      .controls{ left:12px; top: calc(max(74px, env(safe-area-inset-top) + 60px)); }
+      .btn{ min-width: 160px; }
+      .hint{ display:none; }
+      .sheet-bd{ padding:12px; }
+      .prose{ font-size:13.5px; }
     }
   </style>
-
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
-      }
-    }
-  </script>
 </head>
 
 <body>
-  <button id="openBtn" aria-label="Open MAP E.D.E.N.">MAP E.D.E.N.</button>
-
-  <div id="drawer">
-    <div id="handle" title="Tap to collapse/expand"></div>
-
-    <div id="drawerTop">
-      <div id="titleBlock">
-        <div id="title">MAP E.D.E.N.</div>
-        <div id="subtitle">Earth Diametric Energy Network • Progressive UI • Simple → Advanced</div>
-      </div>
-      <button id="closeBtn" aria-label="Close drawer" title="Close">✕</button>
-    </div>
-
-    <div id="drawerBody">
-      <div class="gridTop">
-        <button class="pill" id="welcomeBtn">
-          <span class="left"><span class="dot"></span><span class="label">Hello</span></span>
-        </button>
-
-        <button class="pill" id="missionBtn">
-          <span class="left"><span class="dot"></span><span class="label">Mission</span></span>
-        </button>
-
-        <button class="pill" id="stationBtn">
-          <span class="left"><span class="dot"></span><span class="label" id="stationLabel">Start</span></span>
-          <span class="hint" id="stationHint">Begin</span>
-        </button>
-      </div>
-
-      <!-- ✅ Modes (Lite / Field / Lab) -->
-      <div class="card" style="padding:12px; margin-bottom:10px;">
-        <div class="rowBetween">
-          <div>
-            <div style="font-weight:900;">Mode</div>
-            <div class="tiny">Lite = observe • Field = capture • Lab = analysis/export</div>
-          </div>
-          <div class="seg" style="min-width: 220px;">
-            <button id="modeLiteBtn" type="button">Lite</button>
-            <button id="modeFieldBtn" type="button">Field</button>
-            <button id="modeLabBtn" type="button">Lab</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Default Station panel: Core / Stack / Stations / Overlay+ / Clear / Profile -->
-      <div id="stationGroup">
-        <div class="grid2" style="margin-top:8px;">
-          <button class="pill" id="coreBtn"><span class="left"><span class="dot"></span><span class="label">Core</span></span></button>
-          <button class="pill" id="stackBtn"><span class="left"><span class="dot"></span><span class="label">Stack</span></span></button>
-
-          <button class="pill" id="stationsBtn"><span class="left"><span class="dot"></span><span class="label">Stations</span></span></button>
-          <button class="pill" id="overlayPlusBtn"><span class="left"><span class="dot"></span><span class="label">Overlay +</span></span></button>
-
-          <button class="pill" id="clearBtn"><span class="left"><span class="dot"></span><span class="label">Clear</span></span></button>
-          <button class="pill" id="profileBtn"><span class="left"><span class="dot"></span><span class="label">Profile</span></span></button>
-        </div>
-
-        <div id="errors"></div>
-      </div>
-    </div>
-
-    <div id="statusBar">
-      <span id="status">Booting…</span>
-      <span id="stationText">Exit 222 • Station 1 @ 38°9′39″ N, 79°4′24″ W</span>
+  <!-- PLANET / GLOBE IMAGE LAYER -->
+  <div class="planet-wrap" aria-hidden="true">
+    <div class="planet">
+      <!-- Prefer assets/eden-globe-bw.png, fallback to root eden-globe-bw.png -->
+      <img id="planetImg" src="assets/eden-globe-bw.png" alt="" />
     </div>
   </div>
 
-  <!-- Modal -->
-  <div id="modalMask" role="dialog" aria-modal="true" aria-label="MAP E.D.E.N. Modal">
-    <div id="modal">
-      <div id="modalTop">
-        <div id="modalTitle">HELLO</div>
-        <button id="modalClose" aria-label="Close modal">✕</button>
+  <!-- UI OVERLAY -->
+  <div class="ui">
+    <header>
+      <div class="brand" role="banner" aria-label="MAP E.D.E.N.">
+        <div>
+          <div class="title">MAP E.D.E.N.</div>
+          <div class="sub">Earth Diametric &amp; Energy Network</div>
+        </div>
       </div>
-      <div id="modalBody">
-        <!-- Welcome / Hello -->
-        <iframe id="welcomeFrame" title="MAP E.D.E.N. Hello" loading="eager" style="display:none;"></iframe>
 
-        <!-- Mission -->
-        <div id="missionContent" class="page" style="display:none;">
-          <h2>MAP E.D.E.N. Mission</h2>
-          <p>
-            Turn the 42° / 222° axis hypothesis into a coordinated, evidence-first experiment by producing sensor datasets
-            that are repeatable, controlled, and comparable across stations and time.
-          </p>
-          <p class="muted">
-            This globe is a visual switchboard: microblog-simple on the surface, research-grade underneath.
-          </p>
-
-          <div class="card" style="margin-top:12px;">
-            <div style="font-weight:900;">The Research Thread</div>
-            <div class="muted" style="margin-top:6px;">
-              A post type that looks like a normal short post… but can expand into protocol + station metadata, evidence bundle,
-              and replication prompts—so the public view stays simple while the science stays real.
-            </div>
-          </div>
-        </div>
-
-        <!-- Overlay Library -->
-        <div id="overlayContent" class="page" style="display:none;">
-          <h2>Overlay +</h2>
-          <p class="muted">Enable a few overlays at a time. The library can be huge; UI stays minimal.</p>
-
-          <div class="card" style="margin-top:12px;">
-            <div class="rowBetween">
-              <div>
-                <div style="font-weight:900;">Overlay Stacks</div>
-                <div class="tiny">Save a named preset (Stack). Apply anytime. (Local prototype.)</div>
-              </div>
-              <div class="row" style="gap:8px;">
-                <button class="btn compact ghost" id="stackSaveBtn">Save</button>
-                <button class="btn compact danger" id="stackDeleteBtn">Delete</button>
-              </div>
-            </div>
-
-            <div class="row" style="margin-top:12px;">
-              <select class="select" id="stackSelect"></select>
-              <button class="btn compact good" id="stackApplyBtn">Apply</button>
-            </div>
-
-            <div class="tiny" id="stackMetaTiny" style="margin-top:10px;">Stack: Core</div>
-          </div>
-
-          <div class="card" style="margin-top:12px;">
-            <div class="tiny" style="margin-bottom:6px;">SEARCH</div>
-            <input class="input" id="overlaySearch" placeholder="Search overlays (e.g., rhumb, aurora, stations, magnetic)..." />
-            <div class="tiny" id="overlaySearchCount" style="margin-top:10px;">Showing all overlays</div>
-          </div>
-
-          <div class="card" style="margin-top:12px;">
-            <div class="rowBetween">
-              <div>
-                <div style="font-weight:900;">Quick actions</div>
-                <div class="tiny">Core = minimal • Stack = max • Clear = none</div>
-              </div>
-              <div class="row">
-                <button class="btn compact ghost" id="overlayAllOffBtn">−</button>
-                <button class="btn compact good" id="overlayAllOnBtn">+</button>
-              </div>
-            </div>
-          </div>
-
-          <div id="overlayCats" style="display:grid; gap:10px; margin-top:12px;"></div>
-        </div>
-
-        <!-- Stations -->
-        <div id="stationsContent" class="page" style="display:none;">
-          <h2>Stations</h2>
-          <p class="muted">
-            Stations are lab nodes. Public coordinates can be approximate. Exact coordinates remain private unless you choose otherwise.
-          </p>
-
-          <div class="card" style="margin-top:12px;">
-            <div class="tiny" style="margin-bottom:6px;">SEARCH</div>
-            <input class="input" id="stationSearch" placeholder="Search stations or roles (Owner / Operator / Analyst / Observer)..." />
-            <div class="tiny" style="margin-top:10px;">
-              Tip: try “owner”, “operator”, “analyst”, “observer” to search people/roles inside the station.
-            </div>
-
-            <div class="rowBetween" style="margin-top:12px;">
-              <div class="row" style="gap:8px;">
-                <button class="btn compact good" id="stationCreateBtn">+ Create</button>
-                <button class="btn compact danger" id="stationDeleteBtn">− Delete</button>
-              </div>
-              <div class="tiny" id="stationSearchModeTiny">Mode: Stations</div>
-            </div>
-
-            <div class="row" style="margin-top:12px;">
-              <button class="btn compact" id="enableLocationBtn">Enable Location</button>
-              <div class="tiny" id="locStateText">Location: Off</div>
-            </div>
-
-            <div id="stationSearchResults" style="display:grid; gap:10px; margin-top:12px;"></div>
-          </div>
-
-          <div class="card" style="margin-top:14px;">
-            <div style="font: 900 20px/1.1 -apple-system,system-ui,Segoe UI,Roboto,Arial;">
-              Exit222•Station1
-            </div>
-            <div class="muted" style="margin-top:6px;">
-              Axis 42/222 • 38°9′39″ N, 79°4′24″ W
-            </div>
-
-            <div style="margin-top:10px; display:grid; gap:6px;">
-              <div><span class="muted">Distance:</span> <span id="distanceText">0.0 km away</span> <span class="muted">• Join/View radius 100 km</span></div>
-              <div><span class="muted">Access:</span> <span id="accessText">None</span></div>
-            </div>
-
-            <div class="rowBetween" style="margin-top:14px;">
-              <button class="btn good" id="previewStationBtn">Preview</button>
-              <button class="btn" id="followStationBtn">Follow</button>
-            </div>
-
-            <div class="tiny" style="margin-top:10px;">
-              Join remains blocked until location is enabled and within radius.
-            </div>
-          </div>
-
-          <div class="card" style="margin-top:14px;">
-            <div style="font-weight:900;">Station Integrity</div>
-            <div class="tiny" style="margin-top:6px;">
-              Multi-mode coordinates + accuracy metadata (prototype fields). Default stays privacy-safe.
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="tiny" style="margin-bottom:6px;">COORDINATE VISIBILITY</div>
-            <select class="select" id="coordPrivacySelect">
-              <option value="public">Public (approximate)</option>
-              <option value="group">Group (medium precision)</option>
-              <option value="private">Private (exact + altitude + metadata)</option>
-            </select>
-
-            <div class="rowBetween" style="margin-top:12px;">
-              <div>
-                <div style="font-weight:900;">Replication beacon</div>
-                <div class="tiny">Opt-in: “Ready to replicate protocol X in next 2 hours.”</div>
-              </div>
-              <div class="toggle" id="replicationToggle"><div class="knob"></div></div>
-            </div>
-
-            <div class="tiny" id="stationIntegrityTiny" style="margin-top:10px;">Saved.</div>
-          </div>
-
-          <div class="card" style="margin-top:14px;">
-            <div class="rowBetween">
-              <div>
-                <div style="font-weight:900;">Test Spots</div>
-                <div class="tiny">Sub-pins for repeatability (porch, yard, hilltop). (Local prototype.)</div>
-              </div>
-              <button class="btn compact good" id="spotAddBtn">+ Add</button>
-            </div>
-            <div id="spotsList" style="display:grid; gap:10px; margin-top:12px;"></div>
-          </div>
-
-          <div class="card" style="margin-top:14px;">
-            <div style="font-weight:900;">Station Loadout</div>
-            <div class="tiny" style="margin-top:6px;">Track sensors + calibration state. (Local prototype.)</div>
-
-            <div class="divider"></div>
-
-            <div class="row">
-              <input class="input" id="loadoutInput" placeholder="Add item (e.g., iPhone magnetometer, SDR, GNSS receiver)..." />
-              <button class="btn compact good" id="loadoutAddBtn">+</button>
-            </div>
-
-            <div id="loadoutList" style="display:grid; gap:10px; margin-top:12px;"></div>
-          </div>
-        </div>
-
-        <!-- Station Preview -->
-        <div id="previewContent" class="page" style="display:none;">
-          <h2>Station Preview</h2>
-          <div class="card">
-            <div class="rowBetween">
-              <div>
-                <div style="font-weight:900;">Exit222•Station1</div>
-                <div class="tiny">Axis 42/222 • 38°9′39″ N, 79°4′24″ W</div>
-              </div>
-              <div class="tiny" id="previewDistanceTiny">0.0 km away</div>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="muted">
-              Hub = Feed (Research Threads), Data (exports), Chat (coordination), Files (assets). Owner approval required to view hub content.
-            </div>
-
-            <div class="rowBetween" style="margin-top:14px;">
-              <button class="btn good" id="joinStationBtn">Join</button>
-              <button class="btn" id="viewHubBtn">View Hub</button>
-            </div>
-
-            <div class="tiny" style="margin-top:10px;" id="joinRulesTiny">
-              Join is blocked until location is enabled.
-            </div>
-          </div>
-        </div>
-
-        <!-- Hub -->
-        <div id="hubContent" style="display:none;">
-          <div class="hubWrap">
-            <div class="rail">
-              <div class="railBtn on" data-tab="feed" title="Feed">⌁</div>
-              <div class="railBtn" data-tab="data" title="Data">Δ</div>
-              <div class="railBtn" data-tab="chat" title="Chat">✶</div>
-              <div class="railBtn" data-tab="files" title="Files">▣</div>
-            </div>
-            <div class="hubMain">
-              <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
-                <div>
-                  <div style="font:900 18px/1.1 -apple-system,system-ui,Segoe UI,Roboto,Arial;">
-                    Exit222•Station1
-                  </div>
-                  <div class="tiny">Hub • Owner approval required • Prototype-local</div>
-                </div>
-                <div class="tiny" id="hubAccessTiny">Access: None</div>
-              </div>
-
-              <div class="divider"></div>
-
-              <div id="hubTab_feed">
-                <div class="card">
-                  <div style="font-weight:900;">Feed</div>
-                  <div class="muted" style="margin-top:6px;">Research Threads (microblog) with expandable metadata.</div>
-                  <div class="tiny" style="margin-top:10px;">(Preview mode: content hidden until approved.)</div>
-                </div>
-              </div>
-
-              <div id="hubTab_data" style="display:none;">
-                <div class="card">
-                  <div style="font-weight:900;">Data</div>
-                  <div class="muted" style="margin-top:6px;">Exports, instruments, timestamps, protocols.</div>
-                  <div class="tiny" style="margin-top:10px;">(Preview mode: content hidden until approved.)</div>
-                </div>
-              </div>
-
-              <div id="hubTab_chat" style="display:none;">
-                <div class="card">
-                  <div style="font-weight:900;">Chat</div>
-                  <div class="muted" style="margin-top:6px;">Coordination and requests (owner approvals).</div>
-                  <div class="tiny" style="margin-top:10px;">(Preview mode: content hidden until approved.)</div>
-                </div>
-              </div>
-
-              <div id="hubTab_files" style="display:none;">
-                <div class="card">
-                  <div style="font-weight:900;">Files</div>
-                  <div class="muted" style="margin-top:6px;">Images, audio, video, PDFs, sensor exports.</div>
-                  <div class="tiny" style="margin-top:10px;">(Preview mode: content hidden until approved.)</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Profile -->
-        <div id="profileContent" class="page" style="display:none;">
-          <h2>Profile</h2>
-          <p class="muted">
-            A research passport: identity layers, signed posts (future), and a private-first asset vault. (Prototype-local.)
-          </p>
-
-          <div class="card" style="margin-top:12px;">
-            <div class="tiny" style="margin-bottom:6px;">DISPLAY NAME</div>
-            <div class="row">
-              <div id="avatarBox" class="card" style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;padding:0;">
-                <div id="avatarText" style="font:900 16px/1 -apple-system,system-ui,Segoe UI,Roboto,Arial;">M</div>
-                <img id="avatarImg" alt="profile photo" style="display:none;width:64px;height:64px;border-radius:18px;object-fit:cover;" />
-              </div>
-              <input class="input" id="displayName" value="Member" />
-            </div>
-
-            <div class="badgeRow">
-              <span class="badge ghost">⊙ Owner</span>
-              <span class="badge ghost">✶ Operator</span>
-              <span class="badge ghost">Σ Analyst</span>
-              <span class="badge ghost">◌ Observer</span>
-            </div>
-
-            <div class="rowBetween" style="margin-top:12px;">
-              <div class="row">
-                <input type="file" id="photoInput" accept="image/*" style="display:none;" />
-                <button class="btn compact" id="uploadPhotoBtn">Upload photo</button>
-                <button class="btn compact danger" id="removePhotoBtn">Remove</button>
-              </div>
-            </div>
-
-            <div class="card" style="margin-top:12px;">
-              <div class="rowBetween">
-                <div>
-                  <div style="font-weight:900;">Account visibility</div>
-                  <div class="tiny">Public profiles can be followed. Private profiles require approval to follow.</div>
-                </div>
-                <div class="toggle" id="visibilityToggle"><div class="knob"></div></div>
-              </div>
-            </div>
-
-            <div class="card" style="margin-top:12px;">
-              <div class="rowBetween">
-                <div>
-                  <div style="font-weight:900;">Verification (opt-in)</div>
-                  <div class="tiny">Basic • Station Verified • Research Verified (UI placeholder)</div>
-                </div>
-                <button class="btn compact ghost" id="verifyBtn" type="button">View</button>
-              </div>
-              <div class="badgeRow">
-                <span class="badge warn" id="badgeBasic">Basic</span>
-                <span class="badge ghost" id="badgeStation">Station Verified</span>
-                <span class="badge ghost" id="badgeResearch">Research Verified</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="card" style="margin-top:14px;">
-            <div style="font-weight:900;">Research Thread</div>
-            <div class="muted" style="margin-top:6px;">
-              Looks like a normal short post… expands into protocol + station metadata + evidence notes.
-            </div>
-
-            <textarea class="textarea" id="threadText" placeholder="Write a Research Thread…" style="margin-top:10px;"></textarea>
-
-            <div class="divider"></div>
-
-            <div class="row" style="gap:10px; flex-wrap:wrap;">
-              <input class="input" id="threadProtocol" placeholder="Protocol (e.g., Phone Magnetometer v1.0)" />
-              <input class="input" id="threadProtocolVer" placeholder="Protocol version (e.g., 1.0.3)" />
-            </div>
-
-            <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
-              <input class="input" id="threadStation" placeholder="Station (default: Exit222•Station1)" />
-              <input class="input" id="threadStack" placeholder="Overlay Stack (default: Core)" />
-            </div>
-
-            <div class="rowBetween" style="margin-top:12px;">
-              <button class="btn good" id="threadPostBtn">Post</button>
-              <div class="tiny" id="profileCounts">Posts: 0 • Likes: 0 • Messages: 0</div>
-            </div>
-
-            <div class="tiny" style="margin-top:10px;">
-              Future: signed posts + evidence bundle uploads + replication prompts.
-            </div>
-          </div>
-
-          <div class="card" style="margin-top:14px;">
-            <div class="rowBetween">
-              <div>
-                <div style="font-weight:900;">My Threads</div>
-                <div class="tiny">Local-only list (prototype)</div>
-              </div>
-              <button class="btn compact danger" id="threadClearBtn" type="button">Clear</button>
-            </div>
-            <div id="threadsList" style="display:grid; gap:10px; margin-top:12px;"></div>
-          </div>
-
-          <div class="card" style="margin-top:14px;">
-            <div style="font-weight:900;">Inbox (prototype)</div>
-            <div class="muted" style="margin-top:6px;">Direct + station messages (counts only for now).</div>
-            <div class="tiny" style="margin-top:10px;">Next: threaded messages + approvals.</div>
-          </div>
-        </div>
-
+      <div class="status" aria-label="System Status">
+        <div class="pill"><span class="dot" id="sysDot"></span><span id="sysText">Ready</span></div>
       </div>
+    </header>
+
+    <nav class="controls" aria-label="Primary">
+      <button class="btn" id="btnHello" type="button">
+        <span class="label">Hello</span>
+        <span class="led" id="ledHello" aria-hidden="true"></span>
+      </button>
+
+      <button class="btn" id="btnMission" type="button">
+        <span class="label">Mission</span>
+        <span class="led" id="ledMission" aria-hidden="true"></span>
+      </button>
+
+      <button class="btn" id="btnSwitchboard" type="button">
+        <span class="label">Switchboard</span>
+        <span class="led" id="ledSwitchboard" aria-hidden="true"></span>
+      </button>
+    </nav>
+
+    <div class="hint">
+      Tip: Tap <b>Hello</b>, <b>Mission</b>, or <b>Switchboard</b>. The indicator lights turn green after each one is opened.
     </div>
   </div>
 
-  <script type="module">
-    import * as THREE from "three";
-    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
-    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
-    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-    import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
-
-    // ============================
-    // ✅ SETTINGS
-    // ============================
-    const WELCOME_FILE = "assets/welcome6.html";
-
-    // ✅ Your local B/W globe texture (put eden-globe-bw.png in repo root)
-    // If you keep it in /assets, change to "assets/eden-globe-bw.png"
-    const BW_GLOBE_TEXTURE = "eden-globe-bw.png";
-
-    const DEMO_DISTANCE_MODE = true;
-    const JOIN_RADIUS_KM = 100;
-    const ANCHOR = { name: "Exit 222 • Station 1", lat: 38.1608333333, lon: -79.0733333333 };
-
-    // ============================
-    // VH fix for iOS
-    // ============================
-    function setVH(){
-      const vh = window.innerHeight * 0.01;
-      document.body.style.setProperty("--vh", `${vh}px`);
-    }
-    setVH();
-    window.addEventListener("resize", setVH, { passive:true });
-    window.addEventListener("orientationchange", setVH, { passive:true });
-
-    // ============================
-    // UI elements
-    // ============================
-    const statusEl   = document.getElementById("status");
-    const errorsEl   = document.getElementById("errors");
-    const drawerEl   = document.getElementById("drawer");
-    const openBtn    = document.getElementById("openBtn");
-    const closeBtn   = document.getElementById("closeBtn");
-    const handle     = document.getElementById("handle");
-
-    const welcomeBtn = document.getElementById("welcomeBtn");
-    const missionBtn = document.getElementById("missionBtn");
-
-    const stationBtn   = document.getElementById("stationBtn");
-    const stationLabel = document.getElementById("stationLabel");
-    const stationHint  = document.getElementById("stationHint");
-    const stationGroup = document.getElementById("stationGroup");
-
-    const coreBtn        = document.getElementById("coreBtn");
-    const stackBtn       = document.getElementById("stackBtn");
-    const stationsBtn    = document.getElementById("stationsBtn");
-    const overlayPlusBtn = document.getElementById("overlayPlusBtn");
-    const clearBtn       = document.getElementById("clearBtn");
-    const profileBtn     = document.getElementById("profileBtn");
-
-    const modeLiteBtn  = document.getElementById("modeLiteBtn");
-    const modeFieldBtn = document.getElementById("modeFieldBtn");
-    const modeLabBtn   = document.getElementById("modeLabBtn");
-
-    const modalMask  = document.getElementById("modalMask");
-    const modalClose = document.getElementById("modalClose");
-    const modalTitle = document.getElementById("modalTitle");
-
-    const welcomeFrame   = document.getElementById("welcomeFrame");
-    const missionContent = document.getElementById("missionContent");
-    const overlayContent = document.getElementById("overlayContent");
-    const overlayAllOnBtn  = document.getElementById("overlayAllOnBtn");
-    const overlayAllOffBtn = document.getElementById("overlayAllOffBtn");
-    const overlaySearch = document.getElementById("overlaySearch");
-    const overlaySearchCount = document.getElementById("overlaySearchCount");
-    const overlayCats = document.getElementById("overlayCats");
-
-    // Stacks UI
-    const stackSelect = document.getElementById("stackSelect");
-    const stackApplyBtn = document.getElementById("stackApplyBtn");
-    const stackSaveBtn = document.getElementById("stackSaveBtn");
-    const stackDeleteBtn = document.getElementById("stackDeleteBtn");
-    const stackMetaTiny = document.getElementById("stackMetaTiny");
-
-    // Stations
-    const stationsContent = document.getElementById("stationsContent");
-    const stationSearch = document.getElementById("stationSearch");
-    const stationSearchResults = document.getElementById("stationSearchResults");
-    const stationSearchModeTiny = document.getElementById("stationSearchModeTiny");
-
-    const distanceText = document.getElementById("distanceText");
-    const accessText   = document.getElementById("accessText");
-    const enableLocationBtn = document.getElementById("enableLocationBtn");
-    const locStateText = document.getElementById("locStateText");
-    const previewStationBtn = document.getElementById("previewStationBtn");
-    const followStationBtn  = document.getElementById("followStationBtn");
-
-    const coordPrivacySelect = document.getElementById("coordPrivacySelect");
-    const replicationToggle = document.getElementById("replicationToggle");
-    const stationIntegrityTiny = document.getElementById("stationIntegrityTiny");
-
-    const spotsList = document.getElementById("spotsList");
-    const spotAddBtn = document.getElementById("spotAddBtn");
-
-    const loadoutInput = document.getElementById("loadoutInput");
-    const loadoutAddBtn = document.getElementById("loadoutAddBtn");
-    const loadoutList = document.getElementById("loadoutList");
-
-    const previewContent = document.getElementById("previewContent");
-    const previewDistanceTiny = document.getElementById("previewDistanceTiny");
-    const joinStationBtn = document.getElementById("joinStationBtn");
-    const viewHubBtn     = document.getElementById("viewHubBtn");
-    const joinRulesTiny  = document.getElementById("joinRulesTiny");
-
-    const hubContent = document.getElementById("hubContent");
-    const hubAccessTiny = document.getElementById("hubAccessTiny");
-
-    // Profile
-    const profileContent = document.getElementById("profileContent");
-    const displayNameInput = document.getElementById("displayName");
-    const avatarText = document.getElementById("avatarText");
-    const avatarImg  = document.getElementById("avatarImg");
-    const photoInput = document.getElementById("photoInput");
-    const uploadPhotoBtn = document.getElementById("uploadPhotoBtn");
-    const removePhotoBtn = document.getElementById("removePhotoBtn");
-    const visibilityToggle = document.getElementById("visibilityToggle");
-    const verifyBtn = document.getElementById("verifyBtn");
-    const badgeBasic = document.getElementById("badgeBasic");
-    const badgeStation = document.getElementById("badgeStation");
-    const badgeResearch = document.getElementById("badgeResearch");
-
-    const threadText = document.getElementById("threadText");
-    const threadProtocol = document.getElementById("threadProtocol");
-    const threadProtocolVer = document.getElementById("threadProtocolVer");
-    const threadStation = document.getElementById("threadStation");
-    const threadStack = document.getElementById("threadStack");
-    const threadPostBtn = document.getElementById("threadPostBtn");
-    const threadClearBtn = document.getElementById("threadClearBtn");
-    const threadsList = document.getElementById("threadsList");
-
-    const profileCounts = document.getElementById("profileCounts");
-
-    // ============================
-    // Storage helper
-    // ============================
-    const store = {
-      get(k, d=null){ try{ const v = localStorage.getItem(k); return v==null ? d : JSON.parse(v);}catch{ return d; } },
-      set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} }
-    };
-
-    // ============================
-    // Quiet status system
-    // ============================
-    let statusBase = "Booting…";
-    const notices = new Set();
-
-    function renderStatus(){
-      if (!statusEl) return;
-      if (notices.size){
-        const list = Array.from(notices).join(", ");
-        statusEl.textContent = `${statusBase} • Texture fallback: ${list}`;
-      } else {
-        statusEl.textContent = statusBase;
-      }
-    }
-    function setStatusBase(s){ statusBase = s; renderStatus(); }
-    function addNotice(n){ notices.add(n); renderStatus(); }
-
-    function showError(msg){
-      if (errorsEl){
-        errorsEl.style.display = "block";
-        errorsEl.textContent += (errorsEl.textContent ? "\n\n" : "") + msg;
-      }
-      setStatusBase("Error (see panel)");
-    }
-    window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
-    window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
-
-    // ============================
-    // Drawer open/close + collapse
-    // ============================
-    function setDrawerClosed(isClosed){
-      drawerEl.classList.toggle("closed", !!isClosed);
-      openBtn.style.display = isClosed ? "inline-flex" : "none";
-    }
-    setDrawerClosed(false);
-    openBtn.addEventListener("click", () => setDrawerClosed(false));
-    closeBtn.addEventListener("click", () => setDrawerClosed(true));
-    handle.addEventListener("click", () => drawerEl.classList.toggle("collapsed"));
-
-    // ============================
-    // Station panel open/close (Start / Close)
-    // ============================
-    let stationOpen = false;
-    function setStationOpen(on){
-      stationOpen = !!on;
-      stationGroup.classList.toggle("on", stationOpen);
-      stationBtn.classList.toggle("on", stationOpen);
-      stationHint.textContent  = stationOpen ? "Close" : "Begin";
-      stationLabel.textContent = stationOpen ? "Close" : "Start";
-    }
-    stationBtn.addEventListener("click", ()=> setStationOpen(!stationOpen));
-    setStationOpen(false);
-
-    // ============================
-    // ✅ Modes (Progressive disclosure)
-    // ============================
-    const MODES = ["lite","field","lab"];
-    let mode = store.get("eden_mode", "field");
-    if (!MODES.includes(mode)) mode = "field";
-
-    function setMode(m){
-      if (!MODES.includes(m)) return;
-      mode = m;
-      store.set("eden_mode", mode);
-
-      modeLiteBtn.classList.toggle("on", mode==="lite");
-      modeFieldBtn.classList.toggle("on", mode==="field");
-      modeLabBtn.classList.toggle("on", mode==="lab");
-
-      const show = (el, yes)=> { if (!el) return; el.style.display = yes ? "" : "none"; };
-
-      show(stackBtn, mode==="lab");
-      show(clearBtn, mode==="lab");
-      show(overlayPlusBtn, mode!=="lite");
-      show(profileBtn, mode!=="lite");
-
-      const sub = document.getElementById("subtitle");
-      if (sub){
-        sub.textContent = `Earth Diametric Energy Network • Mode: ${mode.toUpperCase()} • Simple → Advanced`;
-      }
-    }
-    modeLiteBtn.addEventListener("click", ()=> setMode("lite"));
-    modeFieldBtn.addEventListener("click", ()=> setMode("field"));
-    modeLabBtn.addEventListener("click", ()=> setMode("lab"));
-    setMode(mode);
-
-    // ============================
-    // Modal routing
-    // ============================
-    const views = [
-      {key:"welcome", el: welcomeFrame},
-      {key:"mission", el: missionContent},
-      {key:"overlay", el: overlayContent},
-      {key:"stations", el: stationsContent},
-      {key:"preview", el: previewContent},
-      {key:"hub", el: hubContent},
-      {key:"profile", el: profileContent},
-    ];
-
-    function hideAllViews(){
-      for (const v of views){
-        v.el.style.display = "none";
-      }
-    }
-
-    function openModal(kind){
-      modalMask.classList.add("on");
-      hideAllViews();
-
-      if (kind === "welcome"){
-        modalTitle.textContent = "HELLO";
-        welcomeFrame.style.display = "block";
-        const u = new URL(WELCOME_FILE, window.location.href);
-        u.searchParams.set("v", Date.now().toString());
-        welcomeFrame.src = u.toString();
-
-      } else if (kind === "mission"){
-        modalTitle.textContent = "MISSION";
-        missionContent.style.display = "block";
-
-      } else if (kind === "overlay"){
-        modalTitle.textContent = "OVERLAY +";
-        overlayContent.style.display = "block";
-        renderOverlayLibrary(overlaySearch?.value || "");
-        refreshStacksUI();
-
-      } else if (kind === "stations"){
-        modalTitle.textContent = "STATIONS";
-        stationsContent.style.display = "block";
-        refreshStationUI();
-        renderStationSearchResults(stationSearch?.value || "");
-        refreshStationIntegrityUI();
-        renderSpots();
-        renderLoadout();
-
-      } else if (kind === "preview"){
-        modalTitle.textContent = "STATION PREVIEW";
-        previewContent.style.display = "block";
-        refreshStationUI();
-
-      } else if (kind === "hub"){
-        modalTitle.textContent = "VIEW HUB";
-        hubContent.style.display = "block";
-        refreshStationUI();
-
-      } else if (kind === "profile"){
-        modalTitle.textContent = "PROFILE";
-        profileContent.style.display = "block";
-        refreshProfileUI();
-        renderThreads();
-      }
-    }
-
-    function closeModal(){
-      modalMask.classList.remove("on");
-      welcomeFrame.src = "about:blank";
-      hideAllViews();
-    }
-    modalClose.addEventListener("click", closeModal);
-    modalMask.addEventListener("click", (e)=>{ if(e.target === modalMask) closeModal(); });
-    window.addEventListener("keydown", (e)=>{ if(e.key==="Escape") closeModal(); });
-
-    function setTopOn(btn){
-      [welcomeBtn, missionBtn].forEach(b => b.classList.remove("on"));
-      btn.classList.add("on");
-    }
-    welcomeBtn.addEventListener("click", ()=>{ setTopOn(welcomeBtn); openModal("welcome"); });
-    missionBtn.addEventListener("click", ()=>{ setTopOn(missionBtn); openModal("mission"); });
-
-    coreBtn.addEventListener("click", ()=>{ setPreset("core"); flashOn(coreBtn); });
-    stackBtn.addEventListener("click", ()=>{ setPreset("stack"); flashOn(stackBtn); });
-    stationsBtn.addEventListener("click", ()=>{ flashOn(stationsBtn); openModal("stations"); });
-    overlayPlusBtn.addEventListener("click", ()=>{ flashOn(overlayPlusBtn); openModal("overlay"); });
-    clearBtn.addEventListener("click", ()=>{ setPreset("clear"); flashOn(clearBtn); });
-    profileBtn.addEventListener("click", ()=>{ flashOn(profileBtn); openModal("profile"); });
-
-    function flashOn(btn){
-      btn.classList.add("on");
-      setTimeout(()=>btn.classList.remove("on"), 450);
-    }
-
-    // ============================
-    // Station access + location gating (prototype-local)
-    // ============================
-    let locEnabled = false;
-    let userLat = null, userLon = null;
-
-    function haversineKm(lat1, lon1, lat2, lon2){
-      const R = 6371;
-      const dLat = (lat2-lat1) * Math.PI/180;
-      const dLon = (lon2-lon1) * Math.PI/180;
-      const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-      return 2 * R * Math.asin(Math.sqrt(a));
-    }
-
-    function getDistanceKm(){
-      if (locEnabled && userLat!=null && userLon!=null){
-        return haversineKm(userLat, userLon, ANCHOR.lat, ANCHOR.lon);
-      }
-      return DEMO_DISTANCE_MODE ? 0.0 : null;
-    }
-
-    function refreshStationUI(){
-      const d = getDistanceKm();
-      const dText = (d==null) ? "—" : `${d.toFixed(1)} km away`;
-      distanceText.textContent = dText;
-      previewDistanceTiny.textContent = dText;
-
-      locStateText.textContent = `Location: ${locEnabled ? "On" : "Off"}`;
-
-      const joinAllowedByLoc = locEnabled && (d != null) && (d <= JOIN_RADIUS_KM);
-
-      const access = store.get("station_access", "None");
-      accessText.textContent = access;
-      hubAccessTiny.textContent = `Access: ${access}`;
-
-      joinStationBtn.disabled = !joinAllowedByLoc;
-      viewHubBtn.disabled = (access === "None");
-      joinRulesTiny.textContent = joinAllowedByLoc
-        ? "Choose role: Owner / Operator / Analyst / Observer (Owner approval required)."
-        : "Join is blocked until location is enabled and within radius.";
-    }
-
-    enableLocationBtn.addEventListener("click", ()=>{
-      if (!navigator.geolocation){
-        alert("Geolocation not supported on this browser.");
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        (pos)=>{
-          locEnabled = true;
-          userLat = pos.coords.latitude;
-          userLon = pos.coords.longitude;
-          refreshStationUI();
-        },
-        ()=>{
-          locEnabled = false;
-          userLat = null; userLon = null;
-          refreshStationUI();
-          alert("Location permission denied. Join remains blocked.");
-        },
-        { enableHighAccuracy:true, timeout:12000, maximumAge:60000 }
-      );
-    });
-
-    previewStationBtn.addEventListener("click", ()=> openModal("preview"));
-    viewHubBtn.addEventListener("click", ()=> openModal("hub"));
-
-    let followed = store.get("station_followed", false);
-    function refreshFollow(){
-      followStationBtn.textContent = followed ? "Unfollow" : "Follow";
-      followStationBtn.classList.toggle("on", followed);
-    }
-    refreshFollow();
-    followStationBtn.addEventListener("click", ()=>{
-      followed = !followed;
-      store.set("station_followed", followed);
-      refreshFollow();
-    });
-
-    joinStationBtn.addEventListener("click", ()=>{
-      const role = prompt("Choose role for Exit222•Station1:\nObserver, Analyst, Operator, Owner");
-      if (!role) return;
-
-      const r = role.trim().toLowerCase();
-      const allowed = ["observer","analyst","operator","owner"];
-      if (!allowed.includes(r)){
-        alert("Role must be: Observer, Analyst, Operator, Owner");
-        return;
-      }
-
-      const stationHasOwner = true;
-      if (stationHasOwner && r !== "owner"){
-        store.set("station_access", "Pending");
-        alert("Request sent to Owner. Access is Pending.");
-      } else if (r === "owner"){
-        store.set("station_access", "Owner");
-        alert("You are now the Owner (prototype-local).");
-      } else {
-        store.set("station_access", r[0].toUpperCase() + r.slice(1));
-      }
-
-      refreshStationUI();
-    });
-
-    // ============================
-    // ✅ Stations search
-    // ============================
-    const STATIONS = [
-      { type:"station", name:"Exit222•Station1", desc:"Axis 42/222 • 38°9′39″ N, 79°4′24″ W" }
-    ];
-
-    const STATION_DIRECTORY = [
-      { type:"person", name:"Owner", role:"Owner", symbol:"⊙", note:"Owner approval required" },
-      { type:"person", name:"Operator-01", role:"Operator", symbol:"✶", note:"Field capture / instruments" },
-      { type:"person", name:"Analyst-01", role:"Analyst", symbol:"Σ", note:"Review / compare datasets" },
-      { type:"person", name:"Observer-01", role:"Observer", symbol:"◌", note:"Read-only / follow" }
-    ];
-
-    function renderStationSearchResults(qRaw){
-      if (!stationSearchResults) return;
-
-      const q = (qRaw || "").trim().toLowerCase();
-      stationSearchResults.innerHTML = "";
-
-      const roleWords = ["owner","operator","analyst","observer","observers","operators","analysts","owners"];
-      const roleMode = roleWords.some(w => q.includes(w));
-
-      stationSearchModeTiny.textContent = q
-        ? (roleMode ? "Mode: People/Roles" : "Mode: Stations")
-        : "Mode: Stations";
-
-      const pool = roleMode ? STATION_DIRECTORY : STATIONS;
-
-      const filtered = !q ? pool : pool.filter(item=>{
-        const hay = `${item.name} ${item.role || ""} ${item.desc || ""} ${item.note || ""}`.toLowerCase();
-        return hay.includes(q);
+  <!-- MODAL -->
+  <section class="modal" id="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="sheet" role="document" aria-label="Panel">
+      <div class="sheet-hd">
+        <div class="sheet-title">
+          <strong id="modalTitle">Panel</strong>
+          <span id="modalSub">MAP E.D.E.N.</span>
+        </div>
+        <button class="close" id="btnClose" type="button" aria-label="Close">Close</button>
+      </div>
+
+      <div class="sheet-bd">
+        <div class="card" id="modalBody">
+          <!-- injected -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    (function(){
+      const $ = (sel) => document.querySelector(sel);
+
+      // Globe image fallback (assets/ -> root)
+      const img = $("#planetImg");
+      img.addEventListener("error", () => { img.src = "eden-globe-bw.png"; }, { once:true });
+
+      const modal = $("#modal");
+      const modalTitle = $("#modalTitle");
+      const modalSub = $("#modalSub");
+      const modalBody = $("#modalBody");
+
+      const sysDot = $("#sysDot");
+      const sysText = $("#sysText");
+
+      const ledHello = $("#ledHello");
+      const ledMission = $("#ledMission");
+      const ledSwitchboard = $("#ledSwitchboard");
+
+      const stateKey = "eden_seen_panels_v1";
+      const seen = loadSeen();
+
+      // restore LEDs
+      setLed(ledHello, !!seen.hello);
+      setLed(ledMission, !!seen.mission);
+      setLed(ledSwitchboard, !!seen.switchboard);
+
+      // content
+      const missionHTML = `
+        <p class="prose">
+          <b>MAP E.D.E.N.</b> is the operational field platform for <b>Project E.D.E.N.</b>
+          (<span class="muted">Earth Diametric &amp; Energy Network</span>)—a secure, repeatable way to run real-world tests
+          along defined Earth corridors, beginning with the <b>42°/222°</b> diametric axis
+          (<span class="muted">42° and 222° are opposite bearings on the same straight line</span>).
+          Based on a 20+ year personal observation record, the Founder identified “222” as a persistent recurring numeric
+          event marker across routine environments (time displays, identifiers, signage). This long-duration recurrence
+          served as the initial trigger for structuring Project E.D.E.N. as a measurement-first field program.
+          <br><br>
+          Over time, and in multiple documented sessions, the “222” event marker also coincided with a compass bearing of
+          <b>222° (SW)</b>—reinforcing the 42/222 line as a repeatable corridor for formal testing.
+          MAP E.D.E.N. equips trusted operators with clear protocols to collect environmental field measurements and
+          navigation-behavior observations, including human biological magnetoreception and magnetically influenced
+          orientation, homing, and migratory navigation in animals and insects, so results can be compared across station,
+          time, and conditions.
+        </p>
+      `;
+
+      const helloHTML = `
+        <p class="prose">
+          Welcome to <b>MAP E.D.E.N.</b><br>
+          <span class="muted">Tap Mission for the full purpose statement, or Switchboard to manage stations and field flow.</span>
+        </p>
+        <div class="links">
+          <a class="link" href="welcome.html" target="_self" rel="noopener">Open Welcome Page</a>
+          <a class="link" href="mission.html" target="_self" rel="noopener">Open Mission Page</a>
+          <a class="link" href="switchboard.html" target="_self" rel="noopener">Open Switchboard</a>
+        </div>
+        <p class="prose" style="margin-top:12px;">
+          If those pages don’t exist yet, you can still use the in-app panels here.
+        </p>
+      `;
+
+      const switchboardHTML = `
+        <p class="prose">
+          <b>Switchboard</b> is the station and workflow hub.
+          <span class="muted">Use it to coordinate operators, capture protocols, exports, and repeatable runs.</span>
+        </p>
+        <div class="links">
+          <a class="link" href="switchboard.html" target="_self" rel="noopener">Open switchboard.html</a>
+          <a class="link" href="stations.html" target="_self" rel="noopener">Stations</a>
+          <a class="link" href="fieldnotes.html" target="_self" rel="noopener">Field Notes</a>
+        </div>
+        <p class="prose" style="margin-top:12px;">
+          <span class="muted">Note:</span> If you haven’t created these pages yet, you can keep this button as your placeholder
+          until the modules are added.
+        </p>
+      `;
+
+      // buttons
+      $("#btnHello").addEventListener("click", () => openPanel("hello"));
+      $("#btnMission").addEventListener("click", () => openPanel("mission"));
+      $("#btnSwitchboard").addEventListener("click", () => openPanel("switchboard"));
+      $("#btnClose").addEventListener("click", closePanel);
+
+      // close on backdrop click
+      modal.addEventListener("click", (e) => {
+        if(e.target === modal) closePanel();
       });
 
-      if (!q){
-        const s = STATIONS[0];
-        const card = document.createElement("div");
-        card.className = "card";
-        card.style.padding = "12px 12px";
-        card.innerHTML = `
-          <div style="font-weight:900;">${s.name}</div>
-          <div class="tiny" style="margin-top:6px;">${s.desc}</div>
-        `;
-        stationSearchResults.appendChild(card);
+      // esc to close
+      window.addEventListener("keydown", (e) => {
+        if(e.key === "Escape" && modal.classList.contains("open")) closePanel();
+      });
 
-        const hint = document.createElement("div");
-        hint.className = "tiny";
-        hint.style.marginTop = "10px";
-        hint.textContent = "Type a role (owner/operator/analyst/observer) to search station members.";
-        stationSearchResults.appendChild(hint);
-        return;
-      }
+      function openPanel(which){
+        // system "activity"
+        sysDot.style.background = "#35ff6b";
+        sysText.textContent = "Active";
 
-      if (!filtered.length){
-        const empty = document.createElement("div");
-        empty.className = "card";
-        empty.style.padding = "12px 12px";
-        empty.innerHTML = `<div style="font-weight:900;">No results</div><div class="tiny" style="margin-top:6px;">Try: owner, operator, analyst, observer, Exit222</div>`;
-        stationSearchResults.appendChild(empty);
-        return;
-      }
+        modal.classList.add("open");
+        modal.setAttribute("aria-hidden","false");
 
-      for (const item of filtered){
-        const card = document.createElement("div");
-        card.className = "card";
-        card.style.padding = "12px 12px";
-
-        if (item.type === "station"){
-          card.innerHTML = `
-            <div style="font-weight:900;">${item.name}</div>
-            <div class="tiny" style="margin-top:6px;">${item.desc}</div>
-          `;
+        if(which === "hello"){
+          modalTitle.textContent = "Hello";
+          modalSub.textContent = "MAP E.D.E.N.";
+          modalBody.innerHTML = helloHTML;
+          seen.hello = true; setLed(ledHello, true);
+        } else if(which === "mission"){
+          modalTitle.textContent = "Mission";
+          modalSub.textContent = "Project E.D.E.N.";
+          modalBody.innerHTML = missionHTML;
+          seen.mission = true; setLed(ledMission, true);
         } else {
-          card.innerHTML = `
-            <div class="rowBetween">
-              <div style="min-width:0;">
-                <div style="font-weight:900;">${item.symbol} ${item.name}</div>
-                <div class="tiny" style="margin-top:6px;">Role: ${item.role} • ${item.note}</div>
-              </div>
-              <button class="btn compact ghost" type="button" disabled>View</button>
-            </div>
-          `;
+          modalTitle.textContent = "Switchboard";
+          modalSub.textContent = "Operations";
+          modalBody.innerHTML = switchboardHTML;
+          seen.switchboard = true; setLed(ledSwitchboard, true);
         }
-        stationSearchResults.appendChild(card);
-      }
-    }
 
-    stationSearch?.addEventListener("input", ()=> renderStationSearchResults(stationSearch.value));
-
-    // ============================
-    // Station Integrity + spots + loadout (local prototype)
-    // ============================
-    const stationConfigDefault = {
-      coordPrivacy: "public",
-      replicationBeacon: false,
-      spots: [{ name:"Origin Pin", note:"Primary anchor (reference point)" }],
-      loadout: [{ name:"Phone internal sensors", note:"Magnetometer / accelerometer (as available)" }]
-    };
-
-    function getStationConfig(){ return store.get("station_config", stationConfigDefault); }
-    function setStationConfig(cfg){
-      store.set("station_config", cfg);
-      if (stationIntegrityTiny) stationIntegrityTiny.textContent = "Saved.";
-    }
-
-    function refreshStationIntegrityUI(){
-      const cfg = getStationConfig();
-      if (coordPrivacySelect) coordPrivacySelect.value = cfg.coordPrivacy || "public";
-      if (replicationToggle) replicationToggle.classList.toggle("on", !!cfg.replicationBeacon);
-    }
-
-    coordPrivacySelect?.addEventListener("change", ()=>{
-      const cfg = getStationConfig();
-      cfg.coordPrivacy = coordPrivacySelect.value;
-      setStationConfig(cfg);
-    });
-
-    replicationToggle?.addEventListener("click", ()=>{
-      const cfg = getStationConfig();
-      cfg.replicationBeacon = !cfg.replicationBeacon;
-      setStationConfig(cfg);
-      refreshStationIntegrityUI();
-    });
-
-    function escapeHtml(s){
-      return String(s ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    function renderSpots(){
-      if (!spotsList) return;
-      const cfg = getStationConfig();
-      spotsList.innerHTML = "";
-
-      cfg.spots.forEach((s, idx)=>{
-        const card = document.createElement("div");
-        card.className = "card";
-        card.style.padding = "12px 12px";
-        card.innerHTML = `
-          <div class="rowBetween">
-            <div style="min-width:0;">
-              <div style="font-weight:900;">${escapeHtml(s.name || "Test Spot")}</div>
-              <div class="tiny" style="margin-top:6px;">${escapeHtml(s.note || "—")}</div>
-            </div>
-            <button class="btn compact danger" type="button" data-i="${idx}">−</button>
-          </div>
-        `;
-        card.querySelector("button").addEventListener("click", (e)=>{
-          const i = Number(e.currentTarget.dataset.i);
-          const cfg2 = getStationConfig();
-          cfg2.spots.splice(i,1);
-          setStationConfig(cfg2);
-          renderSpots();
-        });
-        spotsList.appendChild(card);
-      });
-    }
-
-    spotAddBtn?.addEventListener("click", ()=>{
-      const name = prompt("New Test Spot name (e.g., Porch, Yard, Hilltop):");
-      if (!name) return;
-      const note = prompt("Optional note (repeatability / setup):") || "";
-      const cfg = getStationConfig();
-      cfg.spots.push({ name: name.trim(), note: note.trim() });
-      setStationConfig(cfg);
-      renderSpots();
-    });
-
-    function renderLoadout(){
-      if (!loadoutList) return;
-      const cfg = getStationConfig();
-      loadoutList.innerHTML = "";
-
-      cfg.loadout.forEach((it, idx)=>{
-        const card = document.createElement("div");
-        card.className = "card";
-        card.style.padding = "12px 12px";
-        card.innerHTML = `
-          <div class="rowBetween">
-            <div style="min-width:0;">
-              <div style="font-weight:900;">${escapeHtml(it.name || "Loadout item")}</div>
-              <div class="tiny" style="margin-top:6px;">${escapeHtml(it.note || "—")}</div>
-            </div>
-            <button class="btn compact danger" type="button" data-i="${idx}">−</button>
-          </div>
-        `;
-        card.querySelector("button").addEventListener("click", (e)=>{
-          const i = Number(e.currentTarget.dataset.i);
-          const cfg2 = getStationConfig();
-          cfg2.loadout.splice(i,1);
-          setStationConfig(cfg2);
-          renderLoadout();
-        });
-        loadoutList.appendChild(card);
-      });
-    }
-
-    loadoutAddBtn?.addEventListener("click", ()=>{
-      const v = (loadoutInput.value || "").trim();
-      if (!v) return;
-      const cfg = getStationConfig();
-      cfg.loadout.push({ name: v, note: "Calibration: N/A (prototype)" });
-      setStationConfig(cfg);
-      loadoutInput.value = "";
-      renderLoadout();
-    });
-
-    // ============================
-    // Profile
-    // ============================
-    function initialsFromName(n){
-      const s = (n || "").trim();
-      if (!s) return "ED";
-      const parts = s.split(/\s+/).slice(0,2);
-      return parts.map(p=>p[0]?.toUpperCase() || "").join("") || "ED";
-    }
-
-    function refreshProfileUI(){
-      const name = store.get("profile_name", "Member");
-      const isPrivate = store.get("profile_private", false);
-      const posts = store.get("profile_posts", 0);
-      const likes = store.get("profile_likes", 0);
-      const msgs  = store.get("profile_msgs", 0);
-      const photo = store.get("profile_photo", null);
-
-      const v = store.get("profile_verify", { basic:true, station:false, research:false });
-
-      displayNameInput.value = name;
-      profileCounts.textContent = `Posts: ${posts} • Likes: ${likes} • Messages: ${msgs}`;
-
-      visibilityToggle.classList.toggle("on", !isPrivate);
-
-      badgeBasic.classList.toggle("warn", !!v.basic);
-      badgeBasic.classList.toggle("ghost", !v.basic);
-
-      badgeStation.classList.toggle("good", !!v.station);
-      badgeStation.classList.toggle("ghost", !v.station);
-
-      badgeResearch.classList.toggle("good", !!v.research);
-      badgeResearch.classList.toggle("ghost", !v.research);
-
-      if (photo){
-        avatarImg.src = photo;
-        avatarImg.style.display = "block";
-        avatarText.style.display = "none";
-      } else {
-        avatarImg.style.display = "none";
-        avatarText.style.display = "block";
-        avatarText.textContent = initialsFromName(name);
+        saveSeen(seen);
+        $("#btnClose").focus({ preventScroll:true });
       }
 
-      if (threadStation) threadStation.value = store.get("thread_station_default", "Exit222•Station1");
-      if (threadStack) threadStack.value = store.get("thread_stack_default", "Core");
-    }
-
-    displayNameInput.addEventListener("input", ()=>{
-      store.set("profile_name", displayNameInput.value);
-      refreshProfileUI();
-    });
-
-    visibilityToggle.addEventListener("click", ()=>{
-      const isPrivate = store.get("profile_private", false);
-      store.set("profile_private", !isPrivate);
-      refreshProfileUI();
-    });
-
-    uploadPhotoBtn.addEventListener("click", ()=> photoInput.click());
-    photoInput.addEventListener("change", ()=>{
-      const f = photoInput.files?.[0];
-      if (!f) return;
-      const reader = new FileReader();
-      reader.onload = ()=>{
-        store.set("profile_photo", reader.result);
-        refreshProfileUI();
-      };
-      reader.readAsDataURL(f);
-    });
-
-    removePhotoBtn.addEventListener("click", ()=>{
-      store.set("profile_photo", null);
-      refreshProfileUI();
-    });
-
-    verifyBtn?.addEventListener("click", ()=>{
-      const cur = store.get("profile_verify", { basic:true, station:false, research:false });
-      const next = confirm("Toggle Station Verified? (OK toggles, Cancel leaves)") ? { ...cur, station: !cur.station } : cur;
-      store.set("profile_verify", next);
-      refreshProfileUI();
-      alert("Prototype: verification updated locally.");
-    });
-
-    function getThreads(){ return store.get("research_threads", []); }
-    function setThreads(arr){ store.set("research_threads", arr); }
-
-    function renderThreads(){
-      if (!threadsList) return;
-      const arr = getThreads();
-      threadsList.innerHTML = "";
-
-      if (!arr.length){
-        const empty = document.createElement("div");
-        empty.className = "card";
-        empty.style.padding = "12px 12px";
-        empty.innerHTML = `<div style="font-weight:900;">No threads yet</div><div class="tiny" style="margin-top:6px;">Post your first Research Thread above.</div>`;
-        threadsList.appendChild(empty);
-        return;
+      function closePanel(){
+        modal.classList.remove("open");
+        modal.setAttribute("aria-hidden","true");
+        sysDot.style.background = "rgba(255,255,255,.35)";
+        sysText.textContent = "Ready";
       }
 
-      arr.slice().reverse().forEach((t, iRev)=>{
-        const i = arr.length - 1 - iRev;
-        const card = document.createElement("div");
-        card.className = "card";
-        card.style.padding = "12px 12px";
-
-        const expanded = !!t.expanded;
-        card.innerHTML = `
-          <div class="rowBetween">
-            <div style="min-width:0;">
-              <div style="font-weight:900;">${escapeHtml(t.text || "(empty)")}</div>
-              <div class="tiny" style="margin-top:6px;">${escapeHtml(t.ts || "")} • ${escapeHtml(t.station || "—")} • Stack: ${escapeHtml(t.stack || "—")}</div>
-            </div>
-            <div class="row" style="gap:8px;">
-              <button class="btn compact ${expanded ? "warn" : "ghost"}" type="button" data-act="toggle" data-i="${i}">${expanded ? "Hide" : "Expand"}</button>
-              <button class="btn compact danger" type="button" data-act="del" data-i="${i}">−</button>
-            </div>
-          </div>
-          <div class="divider" style="display:${expanded ? "block" : "none"};"></div>
-          <div style="display:${expanded ? "block" : "none"};">
-            <div class="tiny">Protocol: ${escapeHtml(t.protocol || "—")} • v${escapeHtml(t.protocolVer || "—")}</div>
-            <div class="tiny" style="margin-top:8px;">Integrity: (future) signed post • evidence bundle • replication prompt</div>
-          </div>
-        `;
-
-        card.querySelectorAll("button").forEach(btn=>{
-          btn.addEventListener("click", ()=>{
-            const act = btn.dataset.act;
-            const idx = Number(btn.dataset.i);
-            const cur = getThreads();
-            if (act === "del"){
-              cur.splice(idx,1);
-              setThreads(cur);
-              renderThreads();
-              return;
-            }
-            if (act === "toggle"){
-              cur[idx].expanded = !cur[idx].expanded;
-              setThreads(cur);
-              renderThreads();
-              return;
-            }
-          });
-        });
-
-        threadsList.appendChild(card);
-      });
-    }
-
-    threadPostBtn?.addEventListener("click", ()=>{
-      const text = (threadText.value || "").trim();
-      if (!text) return;
-
-      const station = (threadStation.value || "Exit222•Station1").trim();
-      const stack = (threadStack.value || "Core").trim();
-      const protocol = (threadProtocol.value || "").trim();
-      const protocolVer = (threadProtocolVer.value || "").trim();
-
-      store.set("thread_station_default", station);
-      store.set("thread_stack_default", stack);
-
-      const arr = getThreads();
-      arr.push({
-        ts: new Date().toISOString(),
-        text,
-        station,
-        stack,
-        protocol,
-        protocolVer,
-        expanded: false
-      });
-      setThreads(arr);
-
-      const posts = store.get("profile_posts", 0) + 1;
-      store.set("profile_posts", posts);
-
-      threadText.value = "";
-      threadProtocol.value = "";
-      threadProtocolVer.value = "";
-      refreshProfileUI();
-      renderThreads();
-    });
-
-    threadClearBtn?.addEventListener("click", ()=>{
-      if (!confirm("Clear all threads (local only)?")) return;
-      setThreads([]);
-      renderThreads();
-    });
-
-    // ============================
-    // Hub rail tabs
-    // ============================
-    const railBtns = Array.from(document.querySelectorAll(".railBtn"));
-    function setHubTab(tab){
-      for (const b of railBtns){
-        b.classList.toggle("on", b.dataset.tab === tab);
+      function setLed(el, on){
+        el.classList.toggle("on", !!on);
       }
-      ["feed","data","chat","files"].forEach(k=>{
-        const el = document.getElementById("hubTab_"+k);
-        if (el) el.style.display = (k===tab) ? "block" : "none";
-      });
-    }
-    railBtns.forEach(b=> b.addEventListener("click", ()=> setHubTab(b.dataset.tab)));
-    setHubTab("feed");
 
-    // ============================
-    // Overlay math helpers
-    // ============================
-    const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
-    const DEG = Math.PI/180;
-    const RAD = 180/Math.PI;
-
-    function latLonToVec3(latDeg, lonDeg, radius=1.0){
-      const lat = latDeg * DEG;
-      const lon = lonDeg * DEG;
-      return new THREE.Vector3(
-        radius * Math.cos(lat) * Math.cos(lon),
-        radius * Math.sin(lat),
-        radius * Math.cos(lat) * Math.sin(lon)
-      );
-    }
-
-    function greatCirclePoints(lat0Deg, lon0Deg, bearingDeg, stepDeg=1.0){
-      const lat0 = lat0Deg * DEG;
-      const lon0 = lon0Deg * DEG;
-      const brng = bearingDeg * DEG;
-
-      const pts = [];
-      for(let d=-180; d<=180; d+=stepDeg){
-        const δ = d * DEG;
-        const sinLat = Math.sin(lat0)*Math.cos(δ) + Math.cos(lat0)*Math.sin(δ)*Math.cos(brng);
-        const lat = Math.asin(clamp(sinLat, -1, 1));
-        const y = Math.sin(brng)*Math.sin(δ)*Math.cos(lat0);
-        const x = Math.cos(δ) - Math.sin(lat0)*Math.sin(lat);
-        const lon = lon0 + Math.atan2(y, x);
-        pts.push({ lat: lat*RAD, lon: ((lon*RAD + 540) % 360) - 180 });
-      }
-      return pts;
-    }
-
-    function rhumbPoints(lat0Deg, lon0Deg, bearingDeg, stepKm=240){
-      const R=6371;
-      const φ1=lat0Deg*DEG;
-      const λ1=lon0Deg*DEG;
-      const θ=bearingDeg*DEG;
-
-      const pts=[];
-      const maxSteps=120;
-      for (const dir of [-1,+1]){
-        let φ=φ1, λ=λ1;
-        for (let i=0;i<maxSteps;i++){
-          const d = dir*(stepKm/R);
-          const Δφ = d*Math.cos(θ);
-          let φ2 = clamp(φ+Δφ, -Math.PI/2+1e-6, Math.PI/2-1e-6);
-
-          const Δψ = Math.log(Math.tan(Math.PI/4+φ2/2)/Math.tan(Math.PI/4+φ/2));
-          const q = Math.abs(Δψ)>1e-12 ? (Δφ/Δψ) : Math.cos(φ);
-
-          const Δλ = d*Math.sin(θ)/q;
-          let λ2 = ((λ+Δλ+Math.PI)%(2*Math.PI))-Math.PI;
-
-          pts.push({ lat: φ2*RAD, lon: λ2*RAD });
-          φ=φ2; λ=λ2;
-        }
-      }
-      return pts;
-    }
-
-    function makeGlowTube(pointsVec3, radius, coreColor, haloColor, coreOpacity=1.0, haloOpacity=0.28){
-      if (!pointsVec3 || pointsVec3.length < 4) return new THREE.Group();
-      const curve = new THREE.CatmullRomCurve3(pointsVec3, false, "catmullrom", 0.15);
-      const segs = Math.max(320, pointsVec3.length*2);
-
-      const coreGeom = new THREE.TubeGeometry(curve, segs, radius, 10, false);
-      const haloGeom = new THREE.TubeGeometry(curve, segs, radius*2.6, 10, false);
-
-      const coreMat = new THREE.MeshBasicMaterial({ color: coreColor, transparent: coreOpacity<1, opacity: coreOpacity, depthWrite:false });
-      const haloMat = new THREE.MeshBasicMaterial({ color: haloColor, transparent:true, opacity: haloOpacity, blending: THREE.AdditiveBlending, depthWrite:false });
-
-      const g = new THREE.Group();
-      g.add(new THREE.Mesh(haloGeom, haloMat));
-      g.add(new THREE.Mesh(coreGeom, coreMat));
-      return g;
-    }
-
-    function makeTextSprite(text, {
-      fontSize=22,
-      color="rgba(255,255,255,0.92)",
-      glow="rgba(255,255,255,0.16)",
-      glowBlur=5,
-      padding=8,
-      scale=0.0048
-    } = {}){
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      ctx.font = `900 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
-      const m = ctx.measureText(text);
-      const w = Math.ceil(m.width + padding*2);
-      const h = Math.ceil(fontSize + padding*2);
-
-      canvas.width = w; canvas.height = h;
-
-      ctx.font = `900 ${fontSize}px -apple-system, system-ui, Segoe UI, Roboto, Arial`;
-      ctx.textBaseline = "middle";
-      ctx.textAlign = "left";
-      ctx.shadowColor = glow;
-      ctx.shadowBlur = glowBlur;
-      ctx.fillStyle = color;
-      ctx.fillText(text, padding, h/2);
-
-      const tex = new THREE.CanvasTexture(canvas);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.minFilter = THREE.LinearFilter;
-      tex.magFilter = THREE.LinearFilter;
-
-      const mat = new THREE.SpriteMaterial({ map: tex, transparent:true, depthWrite:false, opacity: 1.0 });
-      const spr = new THREE.Sprite(mat);
-      spr.scale.set(w*scale, h*scale, 1);
-      return spr;
-    }
-
-    function solidTexture(hex="#222"){
-      const c=document.createElement("canvas");
-      c.width=2; c.height=2;
-      const ctx=c.getContext("2d");
-      ctx.fillStyle=hex; ctx.fillRect(0,0,2,2);
-      const t=new THREE.CanvasTexture(c);
-      t.colorSpace=THREE.SRGBColorSpace;
-      return t;
-    }
-
-    function makeFallbackStars(){
-      const c=document.createElement("canvas");
-      c.width=1024; c.height=1024;
-      const ctx=c.getContext("2d");
-      ctx.fillStyle="#000"; ctx.fillRect(0,0,c.width,c.height);
-      for(let i=0;i<2400;i++){
-        const x=Math.random()*c.width, y=Math.random()*c.height;
-        const a=0.2+Math.random()*0.8;
-        const s=Math.random()>0.995?2:1;
-        ctx.fillStyle=`rgba(255,255,255,${a})`;
-        ctx.fillRect(x,y,s,s);
-      }
-      const t=new THREE.CanvasTexture(c);
-      t.colorSpace=THREE.SRGBColorSpace;
-      return t;
-    }
-
-    function makeFallbackEarthDay(){
-      const c=document.createElement("canvas");
-      c.width=1024; c.height=512;
-      const ctx=c.getContext("2d");
-      ctx.fillStyle="#0b0b0c"; ctx.fillRect(0,0,c.width,c.height);
-      ctx.globalAlpha=0.35; ctx.fillStyle="#d9d9d9";
-      for(let i=0;i<35;i++){
-        const x=Math.random()*c.width, y=Math.random()*c.height;
-        const r=20+Math.random()*90;
-        ctx.beginPath(); ctx.ellipse(x,y,r,r*0.65,Math.random()*Math.PI,0,Math.PI*2); ctx.fill();
-      }
-      const t=new THREE.CanvasTexture(c);
-      t.colorSpace=THREE.SRGBColorSpace;
-      return t;
-    }
-
-    function makeFallbackNight(){
-      const c=document.createElement("canvas");
-      c.width=1024; c.height=512;
-      const ctx=c.getContext("2d");
-      ctx.fillStyle="#000"; ctx.fillRect(0,0,c.width,c.height);
-      ctx.fillStyle="rgba(255,210,120,0.9)";
-      for(let i=0;i<2400;i++){
-        const x=Math.random()*c.width, y=Math.random()*c.height;
-        if(Math.random()<0.985) continue;
-        ctx.fillRect(x,y,1,1);
-      }
-      const t=new THREE.CanvasTexture(c);
-      t.colorSpace=THREE.SRGBColorSpace;
-      return t;
-    }
-
-    function makeFallbackClouds(){
-      const c=document.createElement("canvas");
-      c.width=1024; c.height=512;
-      const ctx=c.getContext("2d");
-      ctx.clearRect(0,0,c.width,c.height);
-      ctx.fillStyle="rgba(255,255,255,0.40)";
-      for(let i=0;i<140;i++){
-        const x=Math.random()*c.width, y=Math.random()*c.height;
-        const r=30+Math.random()*120;
-        ctx.beginPath(); ctx.ellipse(x,y,r,r*0.5,0,0,Math.PI*2); ctx.fill();
-      }
-      const t=new THREE.CanvasTexture(c);
-      t.colorSpace=THREE.SRGBColorSpace;
-      return t;
-    }
-
-    async function loadTextureWithFallback(urls, fallbackTex, label){
-      const loader = new THREE.TextureLoader();
-      loader.setCrossOrigin("anonymous");
-      const tryOne = (url) => new Promise((resolve, reject) => {
-        loader.load(url, resolve, undefined, () => reject(new Error("failed: " + url)));
-      });
-
-      for (const u of urls){
+      function loadSeen(){
         try{
-          const tex = await tryOne(u);
-          tex.colorSpace = THREE.SRGBColorSpace;
-          return tex;
-        } catch { /* try next */ }
-      }
-
-      addNotice(label);
-      return fallbackTex;
-    }
-
-    // ============================
-    // ✅ Overlay Library metadata
-    // ============================
-    const OVERLAY_CATS = [
-      { id:"A", title:"A) Planetary Physics & Geophysics", hint:"geomagnetic • ionosphere • seismic • terrain" },
-      { id:"B", title:"B) Atmosphere, Ocean, Cryosphere", hint:"weather • lightning • currents • tides" },
-      { id:"C", title:"C) Space Weather & Astronomy Context", hint:"aurora • Kp risk • night sky" },
-      { id:"D", title:"D) Biology & Navigation", hint:"migration • magnetoreception prompts" },
-      { id:"E", title:"E) Human Infrastructure & Noise", hint:"grid • RF quiet • interference stats" },
-      { id:"F", title:"F) E.D.E.N. Network Overlays", hint:"42/222 suite • stations • clusters" },
-    ];
-
-    const overlayMeta = [
-      { cat:"F", key:"rhumb222", label:"Rhumb 222 SW", source:"Local", version:"v1", confidence:"High" },
-      { cat:"F", key:"gc222",    label:"Great Circle 222 SW", source:"Local", version:"v1", confidence:"High" },
-      { cat:"F", key:"rhumb42",  label:"Rhumb 42 NE", source:"Local", version:"v1", confidence:"Med" },
-      { cat:"F", key:"gc42",     label:"Great Circle 42 NE", source:"Local", version:"v1", confidence:"Med" },
-      { cat:"F", key:"corridors", label:"Corridor Offsets ±1/±5/±10 km", source:"Local", version:"v1", confidence:"Med" },
-      { cat:"F", key:"perpLine", label:"Perpendicular Controls 132°/312°", source:"Local", version:"v1", confidence:"Med" },
-      { cat:"F", key:"stations", label:"Stations (pins)", source:"Local", version:"v1", confidence:"High" },
-
-      { cat:"F", key:"names222", label:"Axis Label: 222 SW", source:"Local", version:"v1", confidence:"High" },
-      { cat:"F", key:"names42",  label:"Axis Label: 42 NE", source:"Local", version:"v1", confidence:"High" },
-      { cat:"F", key:"perpName", label:"Label: 132° / 312°", source:"Local", version:"v1", confidence:"Med" },
-
-      { cat:"A", key:"magField", label:"Magnetic Field (dipole demo)", source:"Local", version:"v1", confidence:"Low (demo)" },
-      { cat:"C", key:"aurora", label:"Auroral Oval (belt demo)", source:"Local", version:"v1", confidence:"Low (demo)" },
-      { cat:"A", key:"continents", label:"Continents (labels)", source:"Local", version:"v1", confidence:"Med" },
-      { cat:"B", key:"nightLights", label:"Night Lights", source:"Three.js texture", version:"r161", confidence:"High" },
-    ];
-
-    // Default state
-    const state = store.get("overlay_state", {
-      rhumb222: true,
-      rhumb42:  false,
-      gc222:    true,
-      gc42:     false,
-      names222: false,
-      names42:  false,
-      perpLine: false,
-      perpName: false,
-      continents:false,
-      stations: true,
-      corridors:false,
-      magField: false,
-      aurora:   false,
-      nightLights: true
-    });
-    function saveState(){ store.set("overlay_state", state); }
-
-    // Built-in stacks + user stacks
-    const BUILTIN_STACKS = [
-      { id:"core", name:"Core", note:"Minimal overlays", state:{
-        rhumb222:true, gc222:true, stations:true, nightLights:true,
-        rhumb42:false, gc42:false, names222:false, names42:false, perpLine:false, perpName:false,
-        continents:false, corridors:false, magField:false, aurora:false
-      }},
-      { id:"stack", name:"Stack", note:"Maximum overlays", state:"ALL_ON" },
-      { id:"clear", name:"Clear", note:"Everything off", state:"ALL_OFF" },
-    ];
-
-    function getUserStacks(){ return store.get("overlay_stacks", []); }
-    function setUserStacks(arr){ store.set("overlay_stacks", arr); }
-
-    function buildStackOptions(){
-      const user = getUserStacks();
-      return [
-        ...BUILTIN_STACKS.map(s=>({ kind:"builtin", id:s.id, name:s.name, note:s.note })),
-        ...user.map((s,i)=>({ kind:"user", id:`user_${i}`, name:s.name, note:"Saved stack" }))
-      ];
-    }
-
-    function refreshStacksUI(){
-      if (!stackSelect) return;
-      const opts = buildStackOptions();
-      const savedSel = store.get("overlay_stack_selected", "core");
-
-      stackSelect.innerHTML = "";
-      opts.forEach(o=>{
-        const op = document.createElement("option");
-        op.value = o.id;
-        op.textContent = o.name;
-        stackSelect.appendChild(op);
-      });
-
-      const exists = opts.some(o=>o.id===savedSel);
-      stackSelect.value = exists ? savedSel : "core";
-      store.set("overlay_stack_selected", stackSelect.value);
-
-      const label = opts.find(o=>o.id===stackSelect.value)?.name || "Core";
-      if (stackMetaTiny) stackMetaTiny.textContent = `Stack: ${label}`;
-    }
-
-    function applyStackById(id){
-      const user = getUserStacks();
-      const builtin = BUILTIN_STACKS.find(s=>s.id===id);
-
-      if (builtin){
-        if (builtin.state === "ALL_ON"){
-          Object.keys(state).forEach(k=> state[k]=true);
-        } else if (builtin.state === "ALL_OFF"){
-          Object.keys(state).forEach(k=> state[k]=false);
-        } else {
-          Object.keys(state).forEach(k=> state[k]=false);
-          Object.assign(state, builtin.state);
-        }
-      } else if (id.startsWith("user_")){
-        const idx = Number(id.replace("user_",""));
-        const s = user[idx];
-        if (s && s.state){
-          Object.keys(state).forEach(k=> state[k]=false);
-          Object.assign(state, s.state);
+          const raw = localStorage.getItem(stateKey);
+          if(!raw) return { hello:false, mission:false, switchboard:false };
+          const v = JSON.parse(raw);
+          return {
+            hello: !!v.hello,
+            mission: !!v.mission,
+            switchboard: !!v.switchboard
+          };
+        }catch(_){
+          return { hello:false, mission:false, switchboard:false };
         }
       }
 
-      applyVisibility();
-      saveState();
-      renderOverlayLibrary(overlaySearch?.value || "");
-    }
-
-    stackApplyBtn?.addEventListener("click", ()=>{
-      const id = stackSelect.value;
-      store.set("overlay_stack_selected", id);
-      applyStackById(id);
-      refreshStacksUI();
-    });
-
-    stackSaveBtn?.addEventListener("click", ()=>{
-      const name = prompt("Name this Stack preset:");
-      if (!name) return;
-
-      const user = getUserStacks();
-      user.push({ name: name.trim(), state: { ...state } });
-      setUserStacks(user);
-
-      store.set("overlay_stack_selected", `user_${user.length-1}`);
-      refreshStacksUI();
-      alert("Stack saved (local prototype).");
-    });
-
-    stackDeleteBtn?.addEventListener("click", ()=>{
-      const id = stackSelect.value;
-      if (!id.startsWith("user_")){
-        alert("Only user-saved stacks can be deleted.");
-        return;
-      }
-      if (!confirm("Delete this saved stack?")) return;
-
-      const idx = Number(id.replace("user_",""));
-      const user = getUserStacks();
-      user.splice(idx,1);
-      setUserStacks(user);
-
-      store.set("overlay_stack_selected", "core");
-      refreshStacksUI();
-      applyStackById("core");
-    });
-
-    function setPreset(p){
-      if (p === "core"){
-        applyStackById("core");
-        store.set("overlay_stack_selected", "core");
-      } else if (p === "stack"){
-        applyStackById("stack");
-        store.set("overlay_stack_selected", "stack");
-      } else if (p === "clear"){
-        applyStackById("clear");
-        store.set("overlay_stack_selected", "clear");
-      }
-      refreshStacksUI();
-    }
-
-    // ✅ overlay search filter + categorized render
-    function renderOverlayLibrary(queryRaw=""){
-      if (!overlayCats) return;
-      overlayCats.innerHTML = "";
-
-      const q = (queryRaw || "").trim().toLowerCase();
-      const all = overlayMeta.slice();
-      const filtered = !q ? all : all.filter(o=>{
-        const hay = `${o.label} ${o.key} ${o.cat} ${o.source}`.toLowerCase();
-        return hay.includes(q);
-      });
-
-      if (overlaySearchCount){
-        overlaySearchCount.textContent = q
-          ? `Showing ${filtered.length} / ${all.length} overlays`
-          : "Showing all overlays";
-      }
-
-      OVERLAY_CATS.forEach(cat=>{
-        const items = filtered.filter(o=>o.cat===cat.id);
-        if (q && !items.length) return;
-
-        const acc = document.createElement("div");
-        acc.className = "acc";
-        if (q) acc.classList.add("on");
-        if (!q && cat.id==="F") acc.classList.add("on");
-
-        acc.innerHTML = `
-          <div class="accTop">
-            <div style="min-width:0;">
-              <div class="accTitle">${cat.title}</div>
-              <div class="accHint">${cat.hint}</div>
-            </div>
-            <div class="tiny">(${items.length})</div>
-          </div>
-          <div class="accBody"></div>
-        `;
-
-        acc.querySelector(".accTop").addEventListener("click", ()=> acc.classList.toggle("on"));
-        const body = acc.querySelector(".accBody");
-
-        if (!items.length){
-          const empty = document.createElement("div");
-          empty.className = "card";
-          empty.style.marginTop = "10px";
-          empty.style.padding = "12px 12px";
-          empty.innerHTML = `<div style="font-weight:900;">No overlays here</div><div class="tiny" style="margin-top:6px;">Search to reveal more.</div>`;
-          body.appendChild(empty);
-          overlayCats.appendChild(acc);
-          return;
-        }
-
-        items.forEach(o=>{
-          const on = !!state[o.key];
-          const row = document.createElement("div");
-          row.className = "card";
-          row.style.marginTop = "10px";
-          row.style.padding = "12px 12px";
-          row.innerHTML = `
-            <div class="rowBetween">
-              <div style="min-width:0;">
-                <div style="font-weight:900;">${escapeHtml(o.label)}</div>
-                <div class="tiny" style="margin-top:6px;">
-                  Source: ${escapeHtml(o.source || "N/A")} • ${escapeHtml(o.version || "N/A")} • Confidence: ${escapeHtml(o.confidence || "N/A")}
-                </div>
-              </div>
-              <button class="btn compact ${on ? "danger" : "good"}" data-k="${o.key}">
-                ${on ? "−" : "+"}
-              </button>
-            </div>
-          `;
-
-          row.querySelector("button").addEventListener("click", (e)=>{
-            const k = e.currentTarget.dataset.k;
-            state[k] = !state[k];
-            applyVisibility();
-            saveState();
-            renderOverlayLibrary(overlaySearch?.value || "");
-          });
-
-          body.appendChild(row);
-        });
-
-        overlayCats.appendChild(acc);
-      });
-
-      if (q && !filtered.length){
-        const empty = document.createElement("div");
-        empty.className = "card";
-        empty.style.padding = "12px 12px";
-        empty.innerHTML = `<div style="font-weight:900;">No overlays found</div><div class="tiny" style="margin-top:6px;">Try: rhumb, great circle, aurora, stations, magnetic, corridors</div>`;
-        overlayCats.appendChild(empty);
-      }
-    }
-
-    overlaySearch?.addEventListener("input", ()=> renderOverlayLibrary(overlaySearch.value));
-    overlayAllOnBtn?.addEventListener("click", ()=>{
-      Object.keys(state).forEach(k=> state[k]=true);
-      applyVisibility(); saveState(); renderOverlayLibrary(overlaySearch?.value || "");
-    });
-    overlayAllOffBtn?.addEventListener("click", ()=>{
-      Object.keys(state).forEach(k=> state[k]=false);
-      applyVisibility(); saveState(); renderOverlayLibrary(overlaySearch?.value || "");
-    });
-
-    // ============================
-    // ✅ Three.js boot
-    // ============================
-    let renderer, camera, scene, controls;
-    let composer, bloomPass;
-    let earthMesh, nightMesh, cloudsMesh, starMesh;
-    let overlays = {};
-    const earthRadius = 1.0;
-
-    function applyVisibility(){
-      if (!overlays) return;
-      for (const k of Object.keys(overlays)){
-        const obj = overlays[k];
-        if (obj) obj.visible = !!state[k];
-      }
-      if (nightMesh) nightMesh.visible = !!state.nightLights;
-    }
-
-    function makePin(lat, lon, color=0x7fffd4){
-      const g = new THREE.SphereGeometry(0.018, 16, 16);
-      const m = new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.95, depthWrite:false });
-      const s = new THREE.Mesh(g, m);
-      const v = latLonToVec3(lat, lon, earthRadius*1.01);
-      s.position.copy(v);
-      return s;
-    }
-
-    function makeRingTilted(radius=1.08, tiltDeg=23.4, color=0xa078ff, opacity=0.55){
-      const g = new THREE.TorusGeometry(radius, 0.008, 10, 220);
-      const m = new THREE.MeshBasicMaterial({ color, transparent:true, opacity, blending:THREE.AdditiveBlending, depthWrite:false });
-      const tor = new THREE.Mesh(g, m);
-      tor.rotation.x = tiltDeg*DEG;
-      tor.rotation.y = 35*DEG;
-      return tor;
-    }
-
-    function makeDipoleDemo(){
-      const grp = new THREE.Group();
-      const ring1 = makeRingTilted(1.08, 60, 0x5bbcff, 0.25);
-      const ring2 = makeRingTilted(1.08, -60, 0x5bbcff, 0.25);
-      grp.add(ring1);
-      grp.add(ring2);
-      return grp;
-    }
-
-    function makeAuroraDemo(){
-      // simple aurora “oval” demo: two tilted rings
-      const grp = new THREE.Group();
-      grp.add(makeRingTilted(1.06, 16, 0xa078ff, 0.30));
-      grp.add(makeRingTilted(1.06, -16, 0xa078ff, 0.22));
-      return grp;
-    }
-
-    function makeCorridorBands(){
-      // visual placeholder (still matches UI + stack behavior)
-      const grp = new THREE.Group();
-      const base = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 222, 1.0).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
-      const colors = [0xf6c24a, 0x7fffd4, 0xa078ff];
-      const radii  = [0.002, 0.0016, 0.0012];
-      for (let i=0;i<3;i++){
-        const tube = makeGlowTube(base, radii[i], colors[i], colors[i], 0.70, 0.14);
-        grp.add(tube);
-      }
-      return grp;
-    }
-
-    function makeContinentLabels(){
-      const grp = new THREE.Group();
-      const labels = [
-        { t:"N. America", lat: 40, lon: -100 },
-        { t:"S. America", lat: -15, lon: -60 },
-        { t:"Europe", lat: 52, lon: 10 },
-        { t:"Africa", lat: 5, lon: 20 },
-        { t:"Asia", lat: 35, lon: 90 },
-        { t:"Australia", lat: -25, lon: 135 },
-        { t:"Antarctica", lat: -82, lon: 0 },
-      ];
-      labels.forEach(l=>{
-        const spr = makeTextSprite(l.t, { fontSize: 22, glowBlur: 6, scale: 0.0046 });
-        spr.position.copy(latLonToVec3(l.lat, l.lon, earthRadius*1.07));
-        grp.add(spr);
-      });
-      return grp;
-    }
-
-    function makeAxisLabel(text, lat, lon){
-      const spr = makeTextSprite(text, { fontSize: 24, glowBlur: 8, scale: 0.0052 });
-      spr.position.copy(latLonToVec3(lat, lon, earthRadius*1.08));
-      return spr;
-    }
-
-    (async ()=>{
-      try{
-        setStatusBase("Starting…");
-        scene = new THREE.Scene();
-
-        camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 5000);
-        camera.position.set(0, 0, 4.15);
-
-        renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false, powerPreference: "high-performance" });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-        renderer.setSize(innerWidth, innerHeight);
-        renderer.outputColorSpace = THREE.SRGBColorSpace;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.15;
-        document.body.appendChild(renderer.domElement);
-
-        controls = new OrbitControls(camera, renderer.domElement);
-        controls.enablePan = false;
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.06;
-        controls.minDistance = 2.2;
-        controls.maxDistance = 7.0;
-        controls.rotateSpeed = 0.45;
-        controls.zoomSpeed = 0.75;
-
-        const ambient = new THREE.AmbientLight(0xffffff, 0.22);
-        scene.add(ambient);
-
-        const sunLight = new THREE.DirectionalLight(0xffffff, 1.45);
-        sunLight.position.set(5, 1.5, 2.5);
-        scene.add(sunLight);
-
-        // Post-processing (bloom)
-        composer = new EffectComposer(renderer);
-        composer.addPass(new RenderPass(scene, camera));
-        bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.85, 0.35, 0.90);
-        composer.addPass(bloomPass);
-        composer.addPass(new OutputPass());
-
-        const BASES = [
-          "https://threejs.org/examples/textures/",
-          "https://unpkg.com/three@0.161.0/examples/textures/",
-          "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/"
-        ];
-        const urls = (path)=>BASES.map(b=>b+path);
-
-        setStatusBase("Loading textures…");
-
-        // ✅ Day map tries your local B/W globe FIRST, then falls back to Earth day.
-        const dayMap = await loadTextureWithFallback(
-          [BW_GLOBE_TEXTURE, ...urls("planets/earth_atmos_2048.jpg")],
-          makeFallbackEarthDay(),
-          "earth day (bw local)"
-        );
-
-        const nightMap = await loadTextureWithFallback(urls("planets/earth_lights_2048.png"), makeFallbackNight(), "earth night lights");
-        const cloudMap = await loadTextureWithFallback(urls("planets/earth_clouds_1024.png"), makeFallbackClouds(), "earth clouds");
-        const starMap  = await loadTextureWithFallback(urls("galaxy_starfield.png"), makeFallbackStars(), "stars");
-
-        const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
-        [dayMap, nightMap, cloudMap, starMap].forEach((t)=>{
-          t.anisotropy = maxAniso;
-          t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
-        });
-
-        // Stars
-        {
-          const starGeo = new THREE.SphereGeometry(90, 64, 64);
-          const starMat = new THREE.MeshBasicMaterial({ map: starMap, side: THREE.BackSide });
-          starMesh = new THREE.Mesh(starGeo, starMat);
-          scene.add(starMesh);
-        }
-
-        // Earth (B/W)
-        {
-          const geo = new THREE.SphereGeometry(earthRadius, 96, 96);
-          const mat = new THREE.MeshStandardMaterial({
-            map: dayMap,
-            roughness: 0.95,
-            metalness: 0.02,
-            emissive: new THREE.Color(0x000000),
-          });
-          earthMesh = new THREE.Mesh(geo, mat);
-          scene.add(earthMesh);
-        }
-
-        // Night lights overlay (additive)
-        {
-          const geo = new THREE.SphereGeometry(earthRadius*1.001, 96, 96);
-          const mat = new THREE.MeshBasicMaterial({
-            map: nightMap,
-            transparent: true,
-            opacity: 0.85,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false
-          });
-          nightMesh = new THREE.Mesh(geo, mat);
-          scene.add(nightMesh);
-        }
-
-        // Clouds
-        {
-          const geo = new THREE.SphereGeometry(earthRadius*1.012, 96, 96);
-          const mat = new THREE.MeshBasicMaterial({
-            map: cloudMap,
-            transparent: true,
-            opacity: 0.24,
-            depthWrite: false
-          });
-          cloudsMesh = new THREE.Mesh(geo, mat);
-          scene.add(cloudsMesh);
-        }
-
-        // ============================
-        // ✅ Build overlays (keys match overlay_state)
-        // ============================
-        overlays = {};
-
-        // Rhumb 222 SW (gold)
-        {
-          const pts = rhumbPoints(ANCHOR.lat, ANCHOR.lon, 222, 240).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
-          const tube = makeGlowTube(pts, 0.0021, 0xf6c24a, 0xf6c24a, 0.85, 0.18);
-          scene.add(tube);
-          overlays.rhumb222 = tube;
-        }
-
-        // Great Circle 222 SW (blue)
-        {
-          const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 222, 1.0).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.012));
-          const tube = makeGlowTube(pts, 0.0019, 0x5bbcff, 0x5bbcff, 0.82, 0.16);
-          scene.add(tube);
-          overlays.gc222 = tube;
-        }
-
-        // Rhumb 42 NE (soft gold)
-        {
-          const pts = rhumbPoints(ANCHOR.lat, ANCHOR.lon, 42, 240).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
-          const tube = makeGlowTube(pts, 0.0018, 0xf6c24a, 0xf6c24a, 0.55, 0.12);
-          scene.add(tube);
-          overlays.rhumb42 = tube;
-        }
-
-        // Great Circle 42 NE (soft blue)
-        {
-          const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 42, 1.0).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.012));
-          const tube = makeGlowTube(pts, 0.0017, 0x5bbcff, 0x5bbcff, 0.55, 0.12);
-          scene.add(tube);
-          overlays.gc42 = tube;
-        }
-
-        // Perpendicular controls 132/312 (violet)
-        {
-          const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 132, 1.0).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.011));
-          const tube = makeGlowTube(pts, 0.0016, 0xa078ff, 0xa078ff, 0.60, 0.14);
-          scene.add(tube);
-          overlays.perpLine = tube;
-        }
-
-        // Corridor placeholder bands
-        {
-          const grp = makeCorridorBands();
-          scene.add(grp);
-          overlays.corridors = grp;
-        }
-
-        // Stations pin(s)
-        {
-          const grp = new THREE.Group();
-          grp.add(makePin(ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
-          scene.add(grp);
-          overlays.stations = grp;
-        }
-
-        // Labels
-        {
-          const grp222 = new THREE.Group();
-          grp222.add(makeAxisLabel("222° SW", 10, -40));
-          scene.add(grp222);
-          overlays.names222 = grp222;
-
-          const grp42 = new THREE.Group();
-          grp42.add(makeAxisLabel("42° NE", 35, 20));
-          scene.add(grp42);
-          overlays.names42 = grp42;
-
-          const grpPerp = new THREE.Group();
-          grpPerp.add(makeAxisLabel("132° / 312°", -5, 110));
-          scene.add(grpPerp);
-          overlays.perpName = grpPerp;
-        }
-
-        // Continents labels
-        {
-          const grp = makeContinentLabels();
-          scene.add(grp);
-          overlays.continents = grp;
-        }
-
-        // Magnetic field demo
-        {
-          const grp = makeDipoleDemo();
-          scene.add(grp);
-          overlays.magField = grp;
-        }
-
-        // Aurora demo
-        {
-          const grp = makeAuroraDemo();
-          scene.add(grp);
-          overlays.aurora = grp;
-        }
-
-        // Apply initial visibility
-        applyVisibility();
-
-        // Bootstrap overlay library + stack selector
-        refreshStacksUI();
-        renderOverlayLibrary("");
-
-        setStatusBase("Ready");
-        refreshStationUI();
-
-        // Resize
-        function onResize(){
-          if (!renderer || !camera || !composer) return;
-          const w = innerWidth, h = innerHeight;
-          camera.aspect = w/h;
-          camera.updateProjectionMatrix();
-          renderer.setSize(w,h);
-          composer.setSize(w,h);
-          if (bloomPass) bloomPass.setSize(w,h);
-        }
-        window.addEventListener("resize", onResize, { passive:true });
-        window.addEventListener("orientationchange", onResize, { passive:true });
-
-        // Animate
-        const clock = new THREE.Clock();
-        function tick(){
-          const dt = clock.getDelta();
-          if (cloudsMesh) cloudsMesh.rotation.y += dt * 0.03;
-          if (starMesh) starMesh.rotation.y += dt * 0.004;
-          controls.update();
-          composer.render();
-          requestAnimationFrame(tick);
-        }
-        tick();
-
-      } catch (e){
-        showError("Three.js boot failed:\n" + (e?.message || e));
+      function saveSeen(v){
+        try{ localStorage.setItem(stateKey, JSON.stringify(v)); }catch(_){}
       }
     })();
   </script>
