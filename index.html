@@ -1140,6 +1140,8 @@
     const stationSearch = document.getElementById("stationSearch");
     const stationSearchResults = document.getElementById("stationSearchResults");
     const stationSearchModeTiny = document.getElementById("stationSearchModeTiny");
+    const stationCreateBtn = document.getElementById("stationCreateBtn");
+    const stationDeleteBtn = document.getElementById("stationDeleteBtn");
 
     const distanceText = document.getElementById("distanceText");
     const accessText   = document.getElementById("accessText");
@@ -1487,11 +1489,29 @@
     });
 
     // ============================
-    // ✅ Stations search
+    // ✅ Stations storage + search
     // ============================
-    const STATIONS = [
-      { type:"station", name:"Exit222•Station1", desc:"Axis 42/222 • 38°9′39″ N, 79°4′24″ W" }
-    ];
+    const DEFAULT_STATION = { type:"station", name:"Exit222•Station1", desc:"Axis 42/222 • 38°9′39″ N, 79°4′24″ W", lat:ANCHOR.lat, lon:ANCHOR.lon };
+
+    function getStations(){
+      const saved = store.get("eden_stations", null);
+      if (!Array.isArray(saved) || !saved.length){
+        store.set("eden_stations", [DEFAULT_STATION]);
+        return [DEFAULT_STATION];
+      }
+      // ensure default exists
+      if (!saved.some(s=>s?.name === DEFAULT_STATION.name)){
+        saved.unshift(DEFAULT_STATION);
+        store.set("eden_stations", saved);
+      }
+      return saved;
+    }
+    function setStations(arr){
+      // never delete default station
+      const cleaned = (arr || []).filter(Boolean);
+      if (!cleaned.some(s=>s.name === DEFAULT_STATION.name)) cleaned.unshift(DEFAULT_STATION);
+      store.set("eden_stations", cleaned);
+    }
 
     const STATION_DIRECTORY = [
       { type:"person", name:"Owner", role:"Owner", symbol:"⊙", note:"Owner approval required" },
@@ -1513,7 +1533,7 @@
         ? (roleMode ? "Mode: People/Roles" : "Mode: Stations")
         : "Mode: Stations";
 
-      const pool = roleMode ? STATION_DIRECTORY : STATIONS;
+      const pool = roleMode ? STATION_DIRECTORY : getStations();
 
       const filtered = !q ? pool : pool.filter(item=>{
         const hay = `${item.name} ${item.role || ""} ${item.desc || ""} ${item.note || ""}`.toLowerCase();
@@ -1521,15 +1541,17 @@
       });
 
       if (!q){
-        const s = STATIONS[0];
-        const card = document.createElement("div");
-        card.className = "card";
-        card.style.padding = "12px 12px";
-        card.innerHTML = `
-          <div style="font-weight:900;">${s.name}</div>
-          <div class="tiny" style="margin-top:6px;">${s.desc}</div>
-        `;
-        stationSearchResults.appendChild(card);
+        // show all stations overview
+        getStations().forEach(s=>{
+          const card = document.createElement("div");
+          card.className = "card";
+          card.style.padding = "12px 12px";
+          card.innerHTML = `
+            <div style="font-weight:900;">${escapeHtml(s.name)}</div>
+            <div class="tiny" style="margin-top:6px;">${escapeHtml(s.desc || "")}</div>
+          `;
+          stationSearchResults.appendChild(card);
+        });
 
         const hint = document.createElement("div");
         hint.className = "tiny";
@@ -1555,15 +1577,15 @@
 
         if (item.type === "station"){
           card.innerHTML = `
-            <div style="font-weight:900;">${item.name}</div>
-            <div class="tiny" style="margin-top:6px;">${item.desc}</div>
+            <div style="font-weight:900;">${escapeHtml(item.name)}</div>
+            <div class="tiny" style="margin-top:6px;">${escapeHtml(item.desc || "")}</div>
           `;
         } else {
           card.innerHTML = `
             <div class="rowBetween">
               <div style="min-width:0;">
-                <div style="font-weight:900;">${item.symbol} ${item.name}</div>
-                <div class="tiny" style="margin-top:6px;">Role: ${item.role} • ${item.note}</div>
+                <div style="font-weight:900;">${escapeHtml(item.symbol)} ${escapeHtml(item.name)}</div>
+                <div class="tiny" style="margin-top:6px;">Role: ${escapeHtml(item.role)} • ${escapeHtml(item.note)}</div>
               </div>
               <button class="btn compact ghost" type="button" disabled>View</button>
             </div>
@@ -1574,6 +1596,62 @@
     }
 
     stationSearch?.addEventListener("input", ()=> renderStationSearchResults(stationSearch.value));
+
+    stationCreateBtn?.addEventListener("click", ()=>{
+      const name = prompt("Station name (e.g., Ridge•Station2):");
+      if (!name) return;
+      const latRaw = prompt("Latitude (optional). Leave blank for approximate/demo:") || "";
+      const lonRaw = prompt("Longitude (optional). Leave blank for approximate/demo:") || "";
+
+      const stations = getStations();
+      const trimmed = name.trim();
+      if (!trimmed) return;
+
+      if (stations.some(s=>s?.name?.toLowerCase() === trimmed.toLowerCase())){
+        alert("A station with that name already exists.");
+        return;
+      }
+
+      const lat = latRaw.trim() ? Number(latRaw) : null;
+      const lon = lonRaw.trim() ? Number(lonRaw) : null;
+
+      const desc = (lat!=null && lon!=null && Number.isFinite(lat) && Number.isFinite(lon))
+        ? `Custom • ${lat.toFixed(4)}, ${lon.toFixed(4)}`
+        : "Custom • Coordinates: N/A (prototype)";
+
+      stations.push({ type:"station", name: trimmed, desc, lat: Number.isFinite(lat) ? lat : null, lon: Number.isFinite(lon) ? lon : null });
+      setStations(stations);
+
+      alert("Station created (local prototype).");
+      renderStationSearchResults(stationSearch?.value || "");
+      // Rebuild pins if globe already running:
+      tryRebuildStationPins();
+    });
+
+    stationDeleteBtn?.addEventListener("click", ()=>{
+      const name = prompt("Type the station name to delete:");
+      if (!name) return;
+      const n = name.trim().toLowerCase();
+      if (n === DEFAULT_STATION.name.toLowerCase()){
+        alert("Default station cannot be deleted.");
+        return;
+      }
+
+      const stations = getStations();
+      const idx = stations.findIndex(s=>s?.name?.toLowerCase() === n);
+      if (idx < 0){
+        alert("Station not found.");
+        return;
+      }
+      if (!confirm(`Delete "${stations[idx].name}"?`)) return;
+
+      stations.splice(idx, 1);
+      setStations(stations);
+
+      alert("Station deleted (local prototype).");
+      renderStationSearchResults(stationSearch?.value || "");
+      tryRebuildStationPins();
+    });
 
     // ============================
     // Station Integrity + spots + loadout (local prototype)
@@ -2444,8 +2522,8 @@
     }
 
     function makeCorridorBands(){
-      // lightweight "corridor" demo: 3 thin tubes around gc222 (±1/5/10 km not to scale)
-      // This is a visual placeholder, still matches UI + stack behavior.
+      // lightweight "corridor" demo: 3 thin tubes around gc222 (±1/5/±10 km not to scale)
+      // visual placeholder that matches UI + stack behavior
       const grp = new THREE.Group();
       const base = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 222, 1.0).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
       const colors = [0xf6c24a, 0x7fffd4, 0xa078ff];
@@ -2458,6 +2536,179 @@
         grp.add(tube);
       }
       return grp;
+    }
+
+    // Rebuild stations pins if user adds/deletes stations after globe boots
+    function tryRebuildStationPins(){
+      if (!scene || !overlays?.stations) return;
+      const old = overlays.stations;
+      scene.remove(old);
+      const next = buildStationPins();
+      overlays.stations = next;
+      scene.add(next);
+      applyVisibility();
+    }
+
+    function buildStationPins(){
+      const grp = new THREE.Group();
+      const sts = getStations();
+
+      sts.forEach((s, idx)=>{
+        const lat = (typeof s.lat === "number") ? s.lat : (idx===0 ? ANCHOR.lat : null);
+        const lon = (typeof s.lon === "number") ? s.lon : (idx===0 ? ANCHOR.lon : null);
+
+        // If no coords, drop a demo pin near anchor
+        const lat2 = (lat!=null) ? lat : (ANCHOR.lat + (Math.random()*2-1)*1.2);
+        const lon2 = (lon!=null) ? lon : (ANCHOR.lon + (Math.random()*2-1)*1.2);
+
+        const pin = makePin(lat2, lon2, idx===0 ? 0x7fffd4 : 0xf6c24a);
+        grp.add(pin);
+
+        // label sprite
+        const spr = makeTextSprite(s.name, { fontSize: 18, glow:"rgba(127,255,212,0.18)", glowBlur:6, scale:0.0044 });
+        spr.position.copy(latLonToVec3(lat2, lon2, earthRadius*1.08));
+        grp.add(spr);
+      });
+
+      return grp;
+    }
+
+    function buildContinentLabels(){
+      const grp = new THREE.Group();
+      const labels = [
+        { name:"North America", lat: 40, lon: -100 },
+        { name:"South America", lat: -15, lon: -60 },
+        { name:"Europe", lat: 52, lon: 15 },
+        { name:"Africa", lat: 5, lon: 20 },
+        { name:"Asia", lat: 35, lon: 95 },
+        { name:"Australia", lat: -25, lon: 135 },
+        { name:"Antarctica", lat: -80, lon: 0 }
+      ];
+      labels.forEach(l=>{
+        const spr = makeTextSprite(l.name, { fontSize: 18, glow:"rgba(255,255,255,0.12)", glowBlur:5, scale:0.0045 });
+        spr.position.copy(latLonToVec3(l.lat, l.lon, earthRadius*1.08));
+        grp.add(spr);
+      });
+      return grp;
+    }
+
+    function buildAxisLabelSprites(){
+      const grp222 = new THREE.Group();
+      const grp42 = new THREE.Group();
+      const grpPerp = new THREE.Group();
+
+      // place labels a short distance from anchor along each bearing
+      const gc222 = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 222, 2.0);
+      const gc42  = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 42, 2.0);
+      const gc132 = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 132, 2.0);
+
+      const pick = (arr, idx)=> arr[Math.max(0, Math.min(arr.length-1, idx))];
+
+      const p222 = pick(gc222, gc222.length/2 + 6);
+      const p42  = pick(gc42,  gc42.length/2 + 6);
+      const p132 = pick(gc132, gc132.length/2 + 6);
+
+      const s222 = makeTextSprite("222° SW", { fontSize: 20, glow:"rgba(246,194,74,0.18)", glowBlur:6, scale:0.0048 });
+      s222.position.copy(latLonToVec3(p222.lat, p222.lon, earthRadius*1.10));
+      grp222.add(s222);
+
+      const s42 = makeTextSprite("42° NE", { fontSize: 20, glow:"rgba(91,188,255,0.18)", glowBlur:6, scale:0.0048 });
+      s42.position.copy(latLonToVec3(p42.lat, p42.lon, earthRadius*1.10));
+      grp42.add(s42);
+
+      const sperp = makeTextSprite("132° / 312°", { fontSize: 18, glow:"rgba(160,120,255,0.18)", glowBlur:6, scale:0.0046 });
+      sperp.position.copy(latLonToVec3(p132.lat, p132.lon, earthRadius*1.10));
+      grpPerp.add(sperp);
+
+      return { grp222, grp42, grpPerp };
+    }
+
+    function buildAuroraDemo(){
+      const grp = new THREE.Group();
+      // simple auroral belt demo: two thin rings near poles
+      const ringN = makeRingTilted(1.07, 78, 0xa078ff);
+      const ringS = makeRingTilted(1.07, -78, 0xa078ff);
+      ringN.material.opacity = 0.18;
+      ringS.material.opacity = 0.18;
+      grp.add(ringN);
+      grp.add(ringS);
+      return grp;
+    }
+
+    function buildOverlays(){
+      // clear any previous
+      Object.values(overlays).forEach(o=>{ try{ scene.remove(o); }catch{} });
+      overlays = {};
+
+      // Rhumb 222 (gold)
+      {
+        const pts = rhumbPoints(ANCHOR.lat, ANCHOR.lon, 222, 240)
+          .map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
+        overlays.rhumb222 = makeGlowTube(pts, 0.0022, 0xf6c24a, 0xf6c24a, 0.82, 0.18);
+        scene.add(overlays.rhumb222);
+      }
+
+      // Great Circle 222 (blue)
+      {
+        const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 222, 1.0)
+          .map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+        overlays.gc222 = makeGlowTube(pts, 0.0018, 0x5bbcff, 0x5bbcff, 0.80, 0.18);
+        scene.add(overlays.gc222);
+      }
+
+      // Rhumb 42 (gold dim)
+      {
+        const pts = rhumbPoints(ANCHOR.lat, ANCHOR.lon, 42, 240)
+          .map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
+        overlays.rhumb42 = makeGlowTube(pts, 0.0018, 0xf6c24a, 0xf6c24a, 0.50, 0.14);
+        scene.add(overlays.rhumb42);
+      }
+
+      // Great Circle 42 (blue dim)
+      {
+        const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 42, 1.0)
+          .map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+        overlays.gc42 = makeGlowTube(pts, 0.0016, 0x5bbcff, 0x5bbcff, 0.50, 0.14);
+        scene.add(overlays.gc42);
+      }
+
+      // Perpendicular Controls 132/312 (violet)
+      {
+        const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 132, 1.0)
+          .map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.014));
+        overlays.perpLine = makeGlowTube(pts, 0.0016, 0xa078ff, 0xa078ff, 0.58, 0.14);
+        scene.add(overlays.perpLine);
+      }
+
+      // Corridor offsets (visual placeholder)
+      overlays.corridors = makeCorridorBands();
+      scene.add(overlays.corridors);
+
+      // Stations pins
+      overlays.stations = buildStationPins();
+      scene.add(overlays.stations);
+
+      // Axis labels
+      {
+        const { grp222, grp42, grpPerp } = buildAxisLabelSprites();
+        overlays.names222 = grp222; scene.add(grp222);
+        overlays.names42  = grp42;  scene.add(grp42);
+        overlays.perpName = grpPerp; scene.add(grpPerp);
+      }
+
+      // Continents labels
+      overlays.continents = buildContinentLabels();
+      scene.add(overlays.continents);
+
+      // Magnetic field demo
+      overlays.magField = makeDipoleDemo();
+      scene.add(overlays.magField);
+
+      // Aurora demo
+      overlays.aurora = buildAuroraDemo();
+      scene.add(overlays.aurora);
+
+      applyVisibility();
     }
 
     (async ()=>{
@@ -2529,7 +2780,11 @@
             roughness: 0.92,
             metalness: 0.02,
             emissive: new THREE.Color(0x000000),
+            emissiveMap: null
           });
+
+          // Subtle specular via roughness trick (keep lightweight)
+          // (We keep specMap loaded for future upgrades; leaving it unused avoids shader surprises on mobile.)
           earthMesh = new THREE.Mesh(geo, mat);
           scene.add(earthMesh);
         }
@@ -2564,152 +2819,64 @@
         // Postprocessing (bloom)
         composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene, camera));
-        bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.55, 0.45, 0.90);
+        bloomPass = new UnrealBloomPass(
+          new THREE.Vector2(innerWidth, innerHeight),
+          0.65,   // strength
+          0.35,   // radius
+          0.15    // threshold
+        );
         composer.addPass(bloomPass);
         composer.addPass(new OutputPass());
 
-        // ============================
-        // Build overlays
-        // ============================
-        const overlayGroup = new THREE.Group();
-        scene.add(overlayGroup);
+        // Build overlays (lines/pins/labels)
+        setStatusBase("Building overlays…");
+        buildOverlays();
 
-        const rh222Pts = rhumbPoints(ANCHOR.lat, ANCHOR.lon, 222, 220).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
-        const gc222Pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 222, 1.0).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
-        const rh42Pts  = rhumbPoints(ANCHOR.lat, ANCHOR.lon, 42, 220).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
-        const gc42Pts  = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 42, 1.0).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
-
-        overlays.rhumb222 = makeGlowTube(rh222Pts, 0.0022, 0xf6c24a, 0xf6c24a, 0.95, 0.20);
-        overlays.gc222    = makeGlowTube(gc222Pts, 0.0022, 0x5bbcff, 0x5bbcff, 0.90, 0.18);
-        overlays.rhumb42  = makeGlowTube(rh42Pts,  0.0019, 0xf6c24a, 0xf6c24a, 0.55, 0.12);
-        overlays.gc42     = makeGlowTube(gc42Pts,  0.0019, 0x5bbcff, 0x5bbcff, 0.55, 0.12);
-
-        // Perpendicular controls (visual placeholder: great circles at 132 / 312)
-        const perp132 = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 132, 1.2).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
-        overlays.perpLine = makeGlowTube(perp132, 0.0016, 0x7fffd4, 0x7fffd4, 0.55, 0.14);
-
-        // Corridors demo
-        overlays.corridors = makeCorridorBands();
-
-        // Stations
-        {
-          const g = new THREE.Group();
-          g.add(makePin(ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
-          const label = makeTextSprite("Exit222•Station1", { fontSize: 24, glow:"rgba(127,255,212,0.22)", glowBlur:7 });
-          label.position.copy(latLonToVec3(ANCHOR.lat, ANCHOR.lon, earthRadius*1.09));
-          g.add(label);
-          overlays.stations = g;
-        }
-
-        // Axis labels
-        {
-          const a = new THREE.Group();
-          const s1 = makeTextSprite("222° SW", { fontSize: 28, glow:"rgba(91,188,255,0.22)", glowBlur:8 });
-          s1.position.copy(latLonToVec3(ANCHOR.lat-8, ANCHOR.lon+12, earthRadius*1.12));
-          a.add(s1);
-          overlays.names222 = a;
-        }
-        {
-          const a = new THREE.Group();
-          const s1 = makeTextSprite("42° NE", { fontSize: 28, glow:"rgba(246,194,74,0.22)", glowBlur:8 });
-          s1.position.copy(latLonToVec3(ANCHOR.lat+16, ANCHOR.lon-18, earthRadius*1.12));
-          a.add(s1);
-          overlays.names42 = a;
-        }
-        {
-          const a = new THREE.Group();
-          const s1 = makeTextSprite("132° / 312°", { fontSize: 22, glow:"rgba(127,255,212,0.18)", glowBlur:6 });
-          s1.position.copy(latLonToVec3(ANCHOR.lat+4, ANCHOR.lon+42, earthRadius*1.12));
-          a.add(s1);
-          overlays.perpName = a;
-        }
-
-        // Continents (simple label set, demo)
-        {
-          const g = new THREE.Group();
-          const labels = [
-            ["N. America", 40, -100],
-            ["S. America", -15, -60],
-            ["Europe", 52, 10],
-            ["Africa", 5, 20],
-            ["Asia", 40, 90],
-            ["Australia", -24, 133],
-            ["Antarctica", -78, 0],
-          ];
-          for (const [t, la, lo] of labels){
-            const spr = makeTextSprite(t, { fontSize: 18, glow:"rgba(255,255,255,0.10)", glowBlur:5, scale:0.0045 });
-            spr.position.copy(latLonToVec3(la, lo, earthRadius*1.08));
-            g.add(spr);
-          }
-          overlays.continents = g;
-        }
-
-        // Magnetic field demo
-        overlays.magField = makeDipoleDemo();
-
-        // Aurora demo belt (near poles)
-        {
-          const g = new THREE.Group();
-          const belt1 = new THREE.TorusGeometry(1.03, 0.010, 10, 240);
-          const mat1 = new THREE.MeshBasicMaterial({ color:0xa078ff, transparent:true, opacity:0.26, blending:THREE.AdditiveBlending, depthWrite:false });
-          const t1 = new THREE.Mesh(belt1, mat1);
-          t1.rotation.x = 1.06; // tilt
-          g.add(t1);
-          const t2 = t1.clone();
-          t2.rotation.x = -1.06;
-          t2.material = mat1.clone();
-          t2.material.opacity = 0.22;
-          g.add(t2);
-          overlays.aurora = g;
-        }
-
-        // Attach overlays to scene
-        for (const k of Object.keys(overlays)){
-          overlayGroup.add(overlays[k]);
-        }
-
-        applyVisibility();
-
-        setStatusBase("Running");
-
-        // First renders for UI
-        refreshStationUI();
-
-        // Overlay UI init
+        // Apply current stack selection (if any)
         refreshStacksUI();
+        const sel = store.get("overlay_stack_selected", "core");
+        applyStackById(sel);
+
+        // Ensure UI has sane initial data
+        refreshStationUI();
+        refreshProfileUI();
+
+        setStatusBase("Ready");
         renderOverlayLibrary("");
 
-        // ============================
-        // Render loop
-        // ============================
+        // Animation loop
+        const clock = new THREE.Clock();
         function animate(){
           requestAnimationFrame(animate);
-          controls.update();
-          if (cloudsMesh) cloudsMesh.rotation.y += 0.00025;
-          composer.render();
+          const dt = clock.getDelta();
+
+          if (earthMesh) earthMesh.rotation.y += dt * 0.035;
+          if (cloudsMesh) cloudsMesh.rotation.y += dt * 0.055;
+          if (starMesh) starMesh.rotation.y += dt * 0.0025;
+
+          if (controls) controls.update();
+          if (composer) composer.render();
+          else renderer.render(scene, camera);
         }
         animate();
 
         // Resize
-        window.addEventListener("resize", ()=>{
-          if (!renderer || !camera || !composer) return;
-          camera.aspect = innerWidth/innerHeight;
+        function onResize(){
+          if (!renderer || !camera) return;
+          const w = innerWidth, h = innerHeight;
+          camera.aspect = w/h;
           camera.updateProjectionMatrix();
-          renderer.setSize(innerWidth, innerHeight);
-          composer.setSize(innerWidth, innerHeight);
-          bloomPass.setSize(innerWidth, innerHeight);
-        }, { passive:true });
+          renderer.setSize(w, h);
+          if (composer) composer.setSize(w, h);
+          if (bloomPass) bloomPass.setSize(w, h);
+        }
+        window.addEventListener("resize", onResize, { passive:true });
+        window.addEventListener("orientationchange", onResize, { passive:true });
 
-      } catch (e){
-        showError("Boot failure:\n" + (e?.message || e));
+      } catch (err){
+        showError("Boot failed:\n" + (err?.stack || err?.message || String(err)));
       }
     })();
-
-    // ============================
-    // Hub tab init (kept)
-    // ============================
-    // (already setHubTab("feed") above)
-
   </script>
 </body>
 </html>
