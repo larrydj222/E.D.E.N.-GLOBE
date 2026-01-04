@@ -6,6 +6,16 @@
   <meta name="referrer" content="no-referrer" />
   <title>MAP E.D.E.N. — Globe</title>
 
+  <!-- Optional CSP (safe for GitHub Pages + unpkg three.js). Remove if it blocks anything you add later. -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    img-src 'self' data: https:;
+    style-src 'self' 'unsafe-inline';
+    script-src 'self' https://unpkg.com 'unsafe-inline';
+    connect-src 'self' https://unpkg.com;
+    font-src 'self' data:;
+  " />
+
   <style>
     :root{
       --bg:#050508;                 /* space black */
@@ -14,7 +24,6 @@
       --muted2:rgba(255,255,255,.55);
       --stroke:rgba(255,255,255,.12);
       --card:rgba(255,255,255,.06);
-      --card2:rgba(255,255,255,.08);
       --shadow: 0 18px 60px rgba(0,0,0,.55);
       --r:16px;
 
@@ -33,91 +42,27 @@
       -moz-osx-font-smoothing:grayscale;
       text-rendering:geometricPrecision;
       overflow:hidden;
+      touch-action:none;
     }
 
-    /* ====== PLANET LAYER ====== */
-    .planet-wrap{
+    /* FULLSCREEN CANVAS */
+    canvas{
       position:fixed;
       inset:0;
-      display:grid;
-      place-items:center;
-      pointer-events:none;
-      z-index:0;
-      background:
-        radial-gradient(1200px 600px at 50% 40%, rgba(255,255,255,.06), transparent 60%),
-        radial-gradient(900px 900px at 50% 60%, rgba(255,255,255,.04), transparent 55%),
-        radial-gradient(1200px 900px at 50% 90%, rgba(0,0,0,.0), rgba(0,0,0,.35) 60%, rgba(0,0,0,.70) 100%);
-    }
-
-    .planet{
-      width:min(86vmin, 820px);
-      aspect-ratio: 1 / 1;
-      position:relative;
-      filter: drop-shadow(0 35px 70px rgba(0,0,0,.72));
-      transform: translateZ(0);
-    }
-
-    .planet img{
-      width:100%;
-      height:100%;
+      width:100vw !important;
+      height:100vh !important;
       display:block;
-      border-radius:999px; /* keeps edge clean if image has alpha */
-      user-select:none;
-      -webkit-user-drag:none;
-      opacity:.98;
-      transform-origin:center;
-      animation: planetSpin 160s linear infinite;
+      z-index:0;
     }
 
-    /* soft edge vignette so globe sits into space-black nicely */
-    .planet::after{
-      content:"";
-      position:absolute;
-      inset:-2%;
-      border-radius:999px;
-      background:
-        radial-gradient(circle at 50% 50%,
-          rgba(255,255,255,0) 56%,
-          rgba(0,0,0,.10) 62%,
-          rgba(0,0,0,.30) 72%,
-          rgba(0,0,0,.62) 86%,
-          rgba(0,0,0,.90) 100%);
-      mix-blend-mode:multiply;
-      pointer-events:none;
-    }
-
-    /* subtle highlight */
-    .planet::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      border-radius:999px;
-      background:
-        radial-gradient(circle at 35% 28%,
-          rgba(255,255,255,.10),
-          rgba(255,255,255,.04) 30%,
-          rgba(255,255,255,0) 55%);
-      pointer-events:none;
-      opacity:.9;
-    }
-
-    @keyframes planetSpin{
-      from{ transform: rotate(0deg) }
-      to  { transform: rotate(360deg) }
-    }
-
-    @media (prefers-reduced-motion: reduce){
-      .planet img{ animation:none; }
-    }
-
-    /* ====== APP UI ====== */
+    /* ====== UI OVERLAY (from your first design) ====== */
     .ui{
       position:fixed;
       inset:0;
       display:flex;
       flex-direction:column;
       z-index:2;
-      pointer-events:none;
+      pointer-events:none; /* allow globe drag; re-enable on interactive elements */
     }
 
     header{
@@ -126,6 +71,7 @@
       align-items:center;
       justify-content:space-between;
       padding: max(14px, env(safe-area-inset-top)) 14px 10px 14px;
+      gap:10px;
     }
 
     .brand{
@@ -141,17 +87,19 @@
       -webkit-backdrop-filter: blur(10px);
     }
     .brand .title{
-      font-weight:700;
+      font-weight:800;
       letter-spacing:.14em;
       font-size:12px;
       text-transform:uppercase;
       line-height:1;
+      white-space:nowrap;
     }
     .brand .sub{
       font-size:12px;
       color:var(--muted);
       line-height:1.15;
       margin-top:3px;
+      white-space:nowrap;
     }
 
     .status{
@@ -164,6 +112,8 @@
       border:1px solid var(--stroke);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
+      min-width: 124px;
+      justify-content:center;
     }
     .pill{
       display:flex;
@@ -187,6 +137,7 @@
       display:flex;
       flex-direction:column;
       gap:10px;
+      z-index:3;
     }
 
     .btn{
@@ -209,7 +160,7 @@
     }
     .btn:active{ transform: translateY(1px); }
     .btn .label{
-      font-weight:650;
+      font-weight:750;
       letter-spacing:.08em;
       font-size:12px;
       text-transform:uppercase;
@@ -242,6 +193,7 @@
       line-height:1.35;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
+      z-index:3;
     }
 
     /* ====== MODAL ====== */
@@ -278,6 +230,7 @@
       padding: 12px 12px;
       border-bottom:1px solid rgba(255,255,255,.10);
       background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      gap:12px;
     }
 
     .sheet-title{
@@ -285,15 +238,22 @@
       flex-direction:column;
       gap:2px;
       padding-left:6px;
+      min-width:0;
     }
     .sheet-title strong{
       font-size:12px;
       letter-spacing:.14em;
       text-transform:uppercase;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
     .sheet-title span{
       font-size:12px;
       color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
     .close{
@@ -304,6 +264,7 @@
       padding:10px 12px;
       cursor:pointer;
       -webkit-tap-highlight-color: transparent;
+      flex:0 0 auto;
     }
     .close:active{ transform: translateY(1px); }
 
@@ -318,6 +279,7 @@
       background: rgba(255,255,255,.04);
       border-radius: 16px;
       padding: 14px;
+      overflow:hidden;
     }
 
     .prose{
@@ -346,28 +308,37 @@
       color: rgba(255,255,255,.92);
       text-decoration:none;
       font-size:13px;
+      -webkit-tap-highlight-color: transparent;
     }
     .link:active{ transform: translateY(1px); }
 
-    /* better touch layout on small screens */
+    /* Small screens */
     @media (max-width: 520px){
       .controls{ left:12px; top: calc(max(74px, env(safe-area-inset-top) + 60px)); }
       .btn{ min-width: 160px; }
       .hint{ display:none; }
       .sheet-bd{ padding:12px; }
       .prose{ font-size:13.5px; }
+      .status{ min-width: 108px; }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .hint::after{ content:""; }
     }
   </style>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+      }
+    }
+  </script>
 </head>
 
 <body>
-  <!-- PLANET / GLOBE IMAGE LAYER -->
-  <div class="planet-wrap" aria-hidden="true">
-    <div class="planet">
-      <!-- Prefer assets/eden-globe-bw.png, fallback to root eden-globe-bw.png -->
-      <img id="planetImg" src="assets/eden-globe-bw.png" alt="" />
-    </div>
-  </div>
+  <!-- three.js canvas injected by renderer -->
 
   <!-- UI OVERLAY -->
   <div class="ui">
@@ -402,7 +373,8 @@
     </nav>
 
     <div class="hint">
-      Tip: Tap <b>Hello</b>, <b>Mission</b>, or <b>Switchboard</b>. The indicator lights turn green after each one is opened.
+      Tip: Drag the globe to orbit. The globe keeps a <b>24-hour Earth spin</b> while also rotating gently across other axes.
+      Tap <b>Hello</b>, <b>Mission</b>, or <b>Switchboard</b>. Indicator lights turn green after each is opened.
     </div>
   </div>
 
@@ -418,20 +390,262 @@
       </div>
 
       <div class="sheet-bd">
-        <div class="card" id="modalBody">
-          <!-- injected -->
-        </div>
+        <div class="card" id="modalBody"><!-- injected --></div>
       </div>
     </div>
   </section>
 
+  <script type="module">
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+    // ============================
+    // TEXTURES (keep your existing files)
+    // ============================
+    // Put your globe texture at either:
+    //   /assets/eden-globe-bw.png   (recommended)
+    // or:
+    //   /eden-globe-bw.png
+    const TEX_PRIMARY   = "assets/eden-globe-bw.png";
+    const TEX_FALLBACK  = "eden-globe-bw.png";
+
+    // 24-hour spin (seconds). If you want sidereal day, use 86164.
+    const EARTH_DAY_SECONDS = 86400;
+
+    // “All axis” gentle motion (does NOT change the 24-hour main spin)
+    const WOBBLE_AMPL_X = 0.12;   // radians, small
+    const WOBBLE_AMPL_Z = 0.10;   // radians, small
+    const WOBBLE_PERIOD_X = 70;   // seconds
+    const WOBBLE_PERIOD_Z = 95;   // seconds
+
+    // Axial tilt (Earth) ~23.44°
+    const AXIAL_TILT = THREE.MathUtils.degToRad(23.44);
+
+    // Reduce-motion support
+    const PREFERS_REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // ============================
+    // RENDERER / SCENE / CAMERA
+    // ============================
+    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    document.body.prepend(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050508);
+
+    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 2000);
+    camera.position.set(0, 0.9, 3.1);
+
+    // Orbit (drag)
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.enablePan = false;
+    controls.minDistance = 2.0;
+    controls.maxDistance = 6.5;
+    controls.rotateSpeed = 0.55;
+
+    // ============================
+    // LIGHTS (subtle “space studio”)
+    // ============================
+    const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+    scene.add(ambient);
+
+    const key = new THREE.DirectionalLight(0xffffff, 1.15);
+    key.position.set(3, 1.8, 2.5);
+    scene.add(key);
+
+    const rim = new THREE.DirectionalLight(0x9dd6ff, 0.35);
+    rim.position.set(-3, 1.0, -3);
+    scene.add(rim);
+
+    // ============================
+    // STARFIELD (procedural texture on a huge sphere)
+    // ============================
+    function makeStarTexture(){
+      const c = document.createElement("canvas");
+      c.width = 1024; c.height = 1024;
+      const ctx = c.getContext("2d");
+      ctx.fillStyle = "#000"; ctx.fillRect(0,0,c.width,c.height);
+      for(let i=0;i<2600;i++){
+        const x=Math.random()*c.width, y=Math.random()*c.height;
+        const a=0.18+Math.random()*0.9;
+        const s=Math.random()>0.993?2:1;
+        ctx.fillStyle=`rgba(255,255,255,${a})`;
+        ctx.fillRect(x,y,s,s);
+      }
+      const t = new THREE.CanvasTexture(c);
+      t.colorSpace = THREE.SRGBColorSpace;
+      return t;
+    }
+
+    const starsGeo = new THREE.SphereGeometry(120, 48, 48);
+    const starsMat = new THREE.MeshBasicMaterial({
+      map: makeStarTexture(),
+      side: THREE.BackSide,
+      transparent: true,
+      opacity: 0.95
+    });
+    const stars = new THREE.Mesh(starsGeo, starsMat);
+    scene.add(stars);
+
+    // ============================
+    // EARTH RIG (keeps 24h spin + “all axis” motion)
+    // ============================
+    const earthRig = new THREE.Group();       // wobble / secondary axis motion
+    const tiltGroup = new THREE.Group();      // constant axial tilt
+    const spinGroup = new THREE.Group();      // main 24h spin (around local axis)
+    earthRig.add(tiltGroup);
+    tiltGroup.add(spinGroup);
+    scene.add(earthRig);
+
+    tiltGroup.rotation.z = AXIAL_TILT;
+
+    // Earth sphere
+    const earthGeo = new THREE.SphereGeometry(1.0, 96, 96);
+
+    // A clean “ink” material (your B/W globe will look crisp)
+    const earthMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      roughness: 0.95,
+      metalness: 0.02,
+      emissive: new THREE.Color(0x000000),
+      emissiveIntensity: 0.15
+    });
+
+    const earthMesh = new THREE.Mesh(earthGeo, earthMat);
+    spinGroup.add(earthMesh);
+
+    // Subtle atmosphere glow (optional)
+    const atmoGeo = new THREE.SphereGeometry(1.02, 64, 64);
+    const atmoMat = new THREE.MeshBasicMaterial({
+      color: 0x8bdcff,
+      transparent: true,
+      opacity: 0.06,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const atmo = new THREE.Mesh(atmoGeo, atmoMat);
+    spinGroup.add(atmo);
+
+    // ============================
+    // TEXTURE LOADING (assets -> root fallback)
+    // ============================
+    const loader = new THREE.TextureLoader();
+    function applyEarthTexture(tex){
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.ClampToEdgeWrapping;
+      tex.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+      earthMat.map = tex;
+      earthMat.needsUpdate = true;
+    }
+
+    function makeFallbackEarthTexture(){
+      const c = document.createElement("canvas");
+      c.width = 1024; c.height = 512;
+      const ctx = c.getContext("2d");
+
+      // dark base
+      ctx.fillStyle = "#0a0a0d";
+      ctx.fillRect(0,0,c.width,c.height);
+
+      // light “continents” noise (so it still looks alive if texture missing)
+      ctx.globalAlpha = 0.35;
+      ctx.fillStyle = "#d8d8d8";
+      for(let i=0;i<42;i++){
+        const x = Math.random()*c.width;
+        const y = Math.random()*c.height;
+        const r = 18 + Math.random()*110;
+        ctx.beginPath();
+        ctx.arc(x,y,r,0,Math.PI*2);
+        ctx.fill();
+      }
+
+      // vignette bands (hint of latitude)
+      ctx.globalAlpha = 0.10;
+      for(let y=0;y<c.height;y+=10){
+        ctx.fillStyle = (y%20===0) ? "#ffffff" : "#000000";
+        ctx.fillRect(0,y,c.width,2);
+      }
+      ctx.globalAlpha = 1.0;
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    function loadEarthTexture(){
+      loader.load(
+        TEX_PRIMARY,
+        (tex)=> applyEarthTexture(tex),
+        undefined,
+        ()=> {
+          // try root fallback
+          loader.load(
+            TEX_FALLBACK,
+            (tex)=> applyEarthTexture(tex),
+            undefined,
+            ()=> {
+              // procedural fallback
+              applyEarthTexture(makeFallbackEarthTexture());
+            }
+          );
+        }
+      );
+    }
+    loadEarthTexture();
+
+    // ============================
+    // RESIZE
+    // ============================
+    window.addEventListener("resize", ()=>{
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }, { passive:true });
+
+    // ============================
+    // ANIMATION (24-hour spin + “all axis” wobble)
+    // ============================
+    const startPerf = performance.now();
+    function animate(){
+      requestAnimationFrame(animate);
+
+      const t = (performance.now() - startPerf) / 1000; // seconds since start
+
+      // 24-hour Earth spin (exactly 360° per 86400 seconds)
+      // Keep this on the "spinGroup" so tilt remains stable.
+      if (!PREFERS_REDUCED){
+        const spin = (t / EARTH_DAY_SECONDS) * Math.PI * 2;
+        spinGroup.rotation.y = spin;
+      }
+
+      // “Spin on all axis” feel (gentle, independent of main 24h spin)
+      // This rotates the rig slightly on X/Z so the globe feels alive in 3D.
+      if (!PREFERS_REDUCED){
+        earthRig.rotation.x = WOBBLE_AMPL_X * Math.sin((t * Math.PI * 2) / WOBBLE_PERIOD_X);
+        earthRig.rotation.z = WOBBLE_AMPL_Z * Math.cos((t * Math.PI * 2) / WOBBLE_PERIOD_Z);
+      }
+
+      // very slow star drift (nice subtle motion)
+      stars.rotation.y += 0.00025;
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+
   <script>
+    // ============================
+    // UI + Modal logic (your first design)
+    // ============================
     (function(){
       const $ = (sel) => document.querySelector(sel);
-
-      // Globe image fallback (assets/ -> root)
-      const img = $("#planetImg");
-      img.addEventListener("error", () => { img.src = "eden-globe-bw.png"; }, { once:true });
 
       const modal = $("#modal");
       const modalTitle = $("#modalTitle");
@@ -499,8 +713,7 @@
           <a class="link" href="fieldnotes.html" target="_self" rel="noopener">Field Notes</a>
         </div>
         <p class="prose" style="margin-top:12px;">
-          <span class="muted">Note:</span> If you haven’t created these pages yet, you can keep this button as your placeholder
-          until the modules are added.
+          <span class="muted">Note:</span> Keep this as your placeholder until the modules are added.
         </p>
       `;
 
@@ -511,9 +724,7 @@
       $("#btnClose").addEventListener("click", closePanel);
 
       // close on backdrop click
-      modal.addEventListener("click", (e) => {
-        if(e.target === modal) closePanel();
-      });
+      modal.addEventListener("click", (e) => { if(e.target === modal) closePanel(); });
 
       // esc to close
       window.addEventListener("keydown", (e) => {
@@ -521,7 +732,6 @@
       });
 
       function openPanel(which){
-        // system "activity"
         sysDot.style.background = "#35ff6b";
         sysText.textContent = "Active";
 
@@ -533,11 +743,13 @@
           modalSub.textContent = "MAP E.D.E.N.";
           modalBody.innerHTML = helloHTML;
           seen.hello = true; setLed(ledHello, true);
+
         } else if(which === "mission"){
           modalTitle.textContent = "Mission";
           modalSub.textContent = "Project E.D.E.N.";
           modalBody.innerHTML = missionHTML;
           seen.mission = true; setLed(ledMission, true);
+
         } else {
           modalTitle.textContent = "Switchboard";
           modalSub.textContent = "Operations";
@@ -556,20 +768,14 @@
         sysText.textContent = "Ready";
       }
 
-      function setLed(el, on){
-        el.classList.toggle("on", !!on);
-      }
+      function setLed(el, on){ el.classList.toggle("on", !!on); }
 
       function loadSeen(){
         try{
           const raw = localStorage.getItem(stateKey);
           if(!raw) return { hello:false, mission:false, switchboard:false };
           const v = JSON.parse(raw);
-          return {
-            hello: !!v.hello,
-            mission: !!v.mission,
-            switchboard: !!v.switchboard
-          };
+          return { hello: !!v.hello, mission: !!v.mission, switchboard: !!v.switchboard };
         }catch(_){
           return { hello:false, mission:false, switchboard:false };
         }
