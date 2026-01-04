@@ -4,18 +4,38 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="referrer" content="no-referrer" />
+
+  <!-- ✅ Hardened security headers (works on GitHub Pages via meta CSP) -->
+  <!-- NOTE: nonce must match the nonce="" attributes below -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
-    img-src 'self' data: https:;
-    style-src 'self' 'unsafe-inline';
-    script-src 'self' https://unpkg.com https://cdn.jsdelivr.net https://threejs.org 'unsafe-inline';
-    connect-src 'self' https://unpkg.com https://cdn.jsdelivr.net https://threejs.org;
-    frame-src 'self';
+    base-uri 'self';
+    object-src 'none';
+    frame-ancestors 'self';
+    form-action 'self';
+    img-src 'self' data: blob: https:;
     font-src 'self' data:;
+    style-src 'self' 'nonce-eden2026';
+    script-src 'self' https://unpkg.com https://cdn.jsdelivr.net https://threejs.org 'nonce-eden2026';
+    connect-src 'self' https://unpkg.com https://cdn.jsdelivr.net https://threejs.org;
+    frame-src 'self' about:;
+    upgrade-insecure-requests;
+    block-all-mixed-content;
   " />
+
+  <!-- Optional but helpful: limit powerful APIs -->
+  <meta http-equiv="Permissions-Policy" content="
+    geolocation=(self),
+    camera=(),
+    microphone=(),
+    usb=(),
+    payment=(),
+    interest-cohort=()
+  " />
+
   <title>MAP E.D.E.N. Globe</title>
 
-  <style>
+  <style nonce="eden2026">
     :root{
       --glass: rgba(12,14,18,0.60);
       --stroke: rgba(255,255,255,0.12);
@@ -34,8 +54,8 @@
     }
 
     *{ box-sizing:border-box; }
-    html, body { height: 100%; margin: 0; background:#000; overflow:hidden; }
-    canvas { display:block; width:100vw !important; height:100vh !important; touch-action:none; }
+    html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
+    canvas { display:block; width:100vw !important; height:100vh !important; }
 
     /* iOS safe vh helper */
     body{ --vh: 1vh; }
@@ -253,7 +273,7 @@
     #stationGroup{ display:none; }
     #stationGroup.on{ display:block; }
 
-    /* ===== Modal (full-screen feel, fixes iOS sizing + welcome scaling) ===== */
+    /* ===== Modal ===== */
     #modalMask{
       position: fixed;
       inset: 0;
@@ -317,7 +337,6 @@
       background: rgba(0,0,0,0.15);
     }
 
-    /* ✅ Welcome scaling fix */
     #welcomeFrame{
       width: 100%;
       height: 100%;
@@ -327,7 +346,6 @@
       background: #000;
     }
 
-    /* ===== Content blocks ===== */
     .page{
       padding: 18px 18px 24px;
       max-width: 920px;
@@ -343,7 +361,6 @@
     }
     .page p{ margin: 0 0 12px; color: rgba(255,255,255,0.80); }
 
-    /* ===== Cards / inputs ===== */
     .card{
       border-radius: 18px;
       border: 1px solid rgba(255,255,255,0.14);
@@ -396,16 +413,8 @@
     .btn.warn{ background: rgba(246,194,74,0.10); border-color: rgba(246,194,74,0.22); }
     .btn.ghost{ background: rgba(255,255,255,0.04); }
     .btn[disabled]{ opacity:0.55; cursor:not-allowed; }
+    .btn.compact{ padding: 10px 12px; border-radius: 14px; min-width: 0; font-size: 13px; letter-spacing: 0.15px; }
 
-    .btn.compact{
-      padding: 10px 12px;
-      border-radius: 14px;
-      min-width: 0;
-      font-size: 13px;
-      letter-spacing: 0.15px;
-    }
-
-    /* ===== Toggle ===== */
     .toggle{
       width: 54px; height: 32px;
       border-radius: 999px;
@@ -426,7 +435,6 @@
     .toggle.on{ background: rgba(120,255,200,0.18); border-color: rgba(120,255,200,0.30); }
     .toggle.on .knob{ transform: translateX(22px); background: rgba(120,255,200,0.92); }
 
-    /* ===== Segmented (Modes) ===== */
     .seg{
       display:flex;
       gap:0;
@@ -453,7 +461,6 @@
     }
     .seg button:active{ transform: translateY(1px); }
 
-    /* ===== Accordions ===== */
     .acc{
       border-radius: 18px;
       border: 1px solid rgba(255,255,255,0.14);
@@ -480,14 +487,10 @@
       white-space:nowrap;
     }
     .accHint{ font: 800 11px/1.2 -apple-system,system-ui,Segoe UI,Roboto,Arial; color: rgba(255,255,255,0.55); }
-    .accBody{
-      display:none;
-      padding: 0 14px 14px;
-    }
+    .accBody{ display:none; padding: 0 14px 14px; }
     .acc.on .accBody{ display:block; }
     .accTop:active{ transform: translateY(1px); }
 
-    /* ===== Badges ===== */
     .badgeRow{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
     .badge{
       display:inline-flex;
@@ -505,7 +508,6 @@
     .badge.warn{ border-color: rgba(246,194,74,0.22); background: rgba(246,194,74,0.08); }
     .badge.ghost{ background: rgba(255,255,255,0.04); }
 
-    /* ===== Hub ===== */
     .hubWrap{ display:flex; min-height: calc(var(--vh) * 92 - 56px); }
     .rail{
       width: 58px;
@@ -539,7 +541,6 @@
       box-shadow: 0 0 20px rgba(120,255,200,0.08);
     }
     .hubMain{ flex: 1 1 auto; padding: 16px 16px 24px; color: rgba(255,255,255,0.88); }
-
     .divider{ height:1px; background: rgba(255,255,255,0.10); margin: 12px 0; }
 
     @media (max-width: 520px){
@@ -591,14 +592,9 @@
       -webkit-text-fill-color: rgba(255,255,255,0.92) !important;
       transition: background-color 99999s ease-out 0s;
     }
-
-    [style*="color: #000"], [style*="color:#000"],
-    [style*="color: black"], [style*="color:black"]{
-      color: rgba(255,255,255,0.92) !important;
-    }
   </style>
 
-  <script type="importmap">
+  <script nonce="eden2026" type="importmap">
     {
       "imports": {
         "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
@@ -770,8 +766,8 @@
 
             <div class="rowBetween" style="margin-top:12px;">
               <div class="row" style="gap:8px;">
-                <button class="btn compact good" id="stationCreateBtn">+ Create</button>
-                <button class="btn compact danger" id="stationDeleteBtn">− Delete</button>
+                <button class="btn compact good" id="stationCreateBtn" disabled>+ Create</button>
+                <button class="btn compact danger" id="stationDeleteBtn" disabled>− Delete</button>
               </div>
               <div class="tiny" id="stationSearchModeTiny">Mode: Stations</div>
             </div>
@@ -1050,12 +1046,11 @@
             <div class="tiny" style="margin-top:10px;">Next: threaded messages + approvals.</div>
           </div>
         </div>
-
       </div>
     </div>
   </div>
 
-  <script type="module">
+  <script nonce="eden2026" type="module">
     import * as THREE from "three";
     import { OrbitControls } from "three/addons/controls/OrbitControls.js";
     import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
@@ -1067,7 +1062,8 @@
     // ✅ SETTINGS
     // ============================
     const WELCOME_FILE = "assets/welcome6.html";
-    const BW_GLOBE_TEXTURE = "eden-globe-bw.png"; // or "assets/eden-globe-bw.png"
+    const BW_GLOBE_TEXTURE = "eden-globe-bw.png"; // put in repo root (or change path)
+
     const DEMO_DISTANCE_MODE = true;
     const JOIN_RADIUS_KM = 100;
     const ANCHOR = { name: "Exit 222 • Station 1", lat: 38.1608333333, lon: -79.0733333333 };
@@ -1187,15 +1183,21 @@
     const threadPostBtn = document.getElementById("threadPostBtn");
     const threadClearBtn = document.getElementById("threadClearBtn");
     const threadsList = document.getElementById("threadsList");
-
     const profileCounts = document.getElementById("profileCounts");
 
     // ============================
-    // Storage helper
+    // Storage helper (safe)
     // ============================
     const store = {
-      get(k, d=null){ try{ const v = localStorage.getItem(k); return v==null ? d : JSON.parse(v);}catch{ return d; } },
-      set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} }
+      get(k, d=null){
+        try{
+          const v = localStorage.getItem(k);
+          return v==null ? d : JSON.parse(v);
+        } catch { return d; }
+      },
+      set(k, v){
+        try{ localStorage.setItem(k, JSON.stringify(v)); } catch {}
+      }
     };
 
     // ============================
@@ -1299,9 +1301,7 @@
     ];
 
     function hideAllViews(){
-      for (const v of views){
-        v.el.style.display = "none";
-      }
+      for (const v of views) v.el.style.display = "none";
     }
 
     function openModal(kind){
@@ -1311,7 +1311,12 @@
       if (kind === "welcome"){
         modalTitle.textContent = "HELLO";
         welcomeFrame.style.display = "block";
+
+        // ✅ security: force same-origin and a clean relative path
         const u = new URL(WELCOME_FILE, window.location.href);
+        if (u.origin !== window.location.origin) {
+          throw new Error("Welcome file must be same-origin.");
+        }
         u.searchParams.set("v", Date.now().toString());
         welcomeFrame.src = u.toString();
 
@@ -1368,17 +1373,17 @@
     welcomeBtn.addEventListener("click", ()=>{ setTopOn(welcomeBtn); openModal("welcome"); });
     missionBtn.addEventListener("click", ()=>{ setTopOn(missionBtn); openModal("mission"); });
 
+    function flashOn(btn){
+      btn.classList.add("on");
+      setTimeout(()=>btn.classList.remove("on"), 450);
+    }
+
     coreBtn.addEventListener("click", ()=>{ setPreset("core"); flashOn(coreBtn); });
     stackBtn.addEventListener("click", ()=>{ setPreset("stack"); flashOn(stackBtn); });
     stationsBtn.addEventListener("click", ()=>{ flashOn(stationsBtn); openModal("stations"); });
     overlayPlusBtn.addEventListener("click", ()=>{ flashOn(overlayPlusBtn); openModal("overlay"); });
     clearBtn.addEventListener("click", ()=>{ setPreset("clear"); flashOn(clearBtn); });
     profileBtn.addEventListener("click", ()=>{ flashOn(profileBtn); openModal("profile"); });
-
-    function flashOn(btn){
-      btn.classList.add("on");
-      setTimeout(()=>btn.classList.remove("on"), 450);
-    }
 
     // ============================
     // Station access + location gating (prototype-local)
@@ -1524,8 +1529,8 @@
         card.className = "card";
         card.style.padding = "12px 12px";
         card.innerHTML = `
-          <div style="font-weight:900;">${s.name}</div>
-          <div class="tiny" style="margin-top:6px;">${s.desc}</div>
+          <div style="font-weight:900;">${escapeHtml(s.name)}</div>
+          <div class="tiny" style="margin-top:6px;">${escapeHtml(s.desc)}</div>
         `;
         stationSearchResults.appendChild(card);
 
@@ -1553,15 +1558,15 @@
 
         if (item.type === "station"){
           card.innerHTML = `
-            <div style="font-weight:900;">${item.name}</div>
-            <div class="tiny" style="margin-top:6px;">${item.desc}</div>
+            <div style="font-weight:900;">${escapeHtml(item.name)}</div>
+            <div class="tiny" style="margin-top:6px;">${escapeHtml(item.desc)}</div>
           `;
         } else {
           card.innerHTML = `
             <div class="rowBetween">
               <div style="min-width:0;">
-                <div style="font-weight:900;">${item.symbol} ${item.name}</div>
-                <div class="tiny" style="margin-top:6px;">Role: ${item.role} • ${item.note}</div>
+                <div style="font-weight:900;">${escapeHtml(item.symbol)} ${escapeHtml(item.name)}</div>
+                <div class="tiny" style="margin-top:6px;">Role: ${escapeHtml(item.role)} • ${escapeHtml(item.note)}</div>
               </div>
               <button class="btn compact ghost" type="button" disabled>View</button>
             </div>
@@ -1570,7 +1575,6 @@
         stationSearchResults.appendChild(card);
       }
     }
-
     stationSearch?.addEventListener("input", ()=> renderStationSearchResults(stationSearch.value));
 
     // ============================
@@ -1696,7 +1700,7 @@
     });
 
     // ============================
-    // Profile
+    // Profile (hardened photo import: type + size limit)
     // ============================
     function initialsFromName(n){
       const s = (n || "").trim();
@@ -1758,6 +1762,20 @@
     photoInput.addEventListener("change", ()=>{
       const f = photoInput.files?.[0];
       if (!f) return;
+
+      const isImage = /^image\//.test(f.type || "");
+      const maxBytes = 4 * 1024 * 1024; // 4MB
+      if (!isImage){
+        alert("Please upload an image file.");
+        photoInput.value = "";
+        return;
+      }
+      if (f.size > maxBytes){
+        alert("Image too large. Please use an image under 4MB.");
+        photoInput.value = "";
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = ()=>{
         store.set("profile_photo", reader.result);
@@ -2085,6 +2103,7 @@
     async function loadTextureWithFallback(urls, fallbackTex, label){
       const loader = new THREE.TextureLoader();
       loader.setCrossOrigin("anonymous");
+
       const tryOne = (url) => new Promise((resolve, reject) => {
         loader.load(url, resolve, undefined, () => reject(new Error("failed: " + url)));
       });
@@ -2151,7 +2170,6 @@
     });
     function saveState(){ store.set("overlay_state", state); }
 
-    // Built-in stacks + user stacks
     const BUILTIN_STACKS = [
       { id:"core", name:"Core", note:"Minimal overlays", state:{
         rhumb222:true, gc222:true, stations:true, nightLights:true,
@@ -2303,8 +2321,8 @@
         acc.innerHTML = `
           <div class="accTop">
             <div style="min-width:0;">
-              <div class="accTitle">${cat.title}</div>
-              <div class="accHint">${cat.hint}</div>
+              <div class="accTitle">${escapeHtml(cat.title)}</div>
+              <div class="accHint">${escapeHtml(cat.hint)}</div>
             </div>
             <div class="tiny">(${items.length})</div>
           </div>
@@ -2339,7 +2357,7 @@
                   Source: ${escapeHtml(o.source || "N/A")} • ${escapeHtml(o.version || "N/A")} • Confidence: ${escapeHtml(o.confidence || "N/A")}
                 </div>
               </div>
-              <button class="btn compact ${on ? "danger" : "good"}" data-k="${o.key}">
+              <button class="btn compact ${on ? "danger" : "good"}" data-k="${escapeHtml(o.key)}">
                 ${on ? "−" : "+"}
               </button>
             </div>
@@ -2465,152 +2483,6 @@
       return spr;
     }
 
-    function makeStars(starTex){
-      const starGeo = new THREE.SphereGeometry(90, 64, 64);
-      const starMat = new THREE.MeshBasicMaterial({
-        map: starTex,
-        side: THREE.BackSide,
-        transparent: true,
-        opacity: 1.0
-      });
-      const m = new THREE.Mesh(starGeo, starMat);
-      return m;
-    }
-
-    function makeEarth(dayTex){
-      const g = new THREE.SphereGeometry(earthRadius, 96, 96);
-      const m = new THREE.MeshStandardMaterial({
-        map: dayTex,
-        roughness: 1.0,
-        metalness: 0.0
-      });
-      return new THREE.Mesh(g, m);
-    }
-
-    function makeNightLights(nightTex){
-      const g = new THREE.SphereGeometry(earthRadius*1.002, 96, 96);
-      const m = new THREE.MeshBasicMaterial({
-        map: nightTex,
-        transparent: true,
-        opacity: 0.85,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
-      });
-      return new THREE.Mesh(g, m);
-    }
-
-    function makeClouds(cloudTex){
-      const g = new THREE.SphereGeometry(earthRadius*1.01, 96, 96);
-      const m = new THREE.MeshBasicMaterial({
-        map: cloudTex,
-        transparent: true,
-        opacity: 0.26,
-        depthWrite: false
-      });
-      return new THREE.Mesh(g, m);
-    }
-
-    function buildOverlays(){
-      // Rhumb 222 (gold)
-      {
-        const pts = rhumbPoints(ANCHOR.lat, ANCHOR.lon, 222, 240).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
-        const tube = makeGlowTube(pts, 0.0021, 0xf6c24a, 0xf6c24a, 0.78, 0.18);
-        overlays.rhumb222 = tube;
-        scene.add(tube);
-      }
-
-      // Great Circle 222 (blue)
-      {
-        const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 222, 1.0).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.012));
-        const tube = makeGlowTube(pts, 0.0019, 0x5bbcff, 0x5bbcff, 0.75, 0.18);
-        overlays.gc222 = tube;
-        scene.add(tube);
-      }
-
-      // Rhumb 42 (soft gold)
-      {
-        const pts = rhumbPoints(ANCHOR.lat, ANCHOR.lon, 42, 240).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
-        const tube = makeGlowTube(pts, 0.0016, 0xf6c24a, 0xf6c24a, 0.40, 0.12);
-        overlays.rhumb42 = tube;
-        scene.add(tube);
-      }
-
-      // Great Circle 42 (soft blue)
-      {
-        const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 42, 1.0).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.012));
-        const tube = makeGlowTube(pts, 0.0015, 0x5bbcff, 0x5bbcff, 0.40, 0.12);
-        overlays.gc42 = tube;
-        scene.add(tube);
-      }
-
-      // Perpendicular control line (132/312)
-      {
-        const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 132, 1.0).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.013));
-        const tube = makeGlowTube(pts, 0.0013, 0x7fffd4, 0x7fffd4, 0.55, 0.14);
-        overlays.perpLine = tube;
-        scene.add(tube);
-      }
-
-      // Corridor offsets (placeholder bands)
-      {
-        const grp = makeCorridorBands();
-        overlays.corridors = grp;
-        scene.add(grp);
-      }
-
-      // Stations
-      {
-        const grp = new THREE.Group();
-        grp.add(makePin(ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
-        overlays.stations = grp;
-        scene.add(grp);
-      }
-
-      // Labels
-      {
-        const grp222 = new THREE.Group();
-        grp222.add(makeAxisLabel("222° SW", 30, -20));
-        overlays.names222 = grp222;
-        scene.add(grp222);
-
-        const grp42 = new THREE.Group();
-        grp42.add(makeAxisLabel("42° NE", 60, -150));
-        overlays.names42 = grp42;
-        scene.add(grp42);
-
-        const grpPerp = new THREE.Group();
-        grpPerp.add(makeAxisLabel("132° / 312°", 0, 90));
-        overlays.perpName = grpPerp;
-        scene.add(grpPerp);
-      }
-
-      // Continents
-      {
-        const grp = makeContinentLabels();
-        overlays.continents = grp;
-        scene.add(grp);
-      }
-
-      // Mag field demo
-      {
-        const grp = makeDipoleDemo();
-        overlays.magField = grp;
-        scene.add(grp);
-      }
-
-      // Aurora demo
-      {
-        const grp = makeAuroraDemo();
-        overlays.aurora = grp;
-        scene.add(grp);
-      }
-
-      applyVisibility();
-    }
-
-    // ============================
-    // Boot
-    // ============================
     (async ()=>{
       try{
         setStatusBase("Starting…");
@@ -2625,7 +2497,11 @@
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.15;
+        renderer.setClearColor(0x000000, 1);
         document.body.appendChild(renderer.domElement);
+
+        // prevent long-press context menu on iOS
+        window.addEventListener("contextmenu", (e)=>e.preventDefault());
 
         controls = new OrbitControls(camera, renderer.domElement);
         controls.enablePan = false;
@@ -2659,6 +2535,7 @@
 
         setStatusBase("Loading textures…");
 
+        // ✅ Day map tries your local B/W globe FIRST, then falls back
         const dayMap = await loadTextureWithFallback(
           [BW_GLOBE_TEXTURE, ...urls("planets/earth_atmos_2048.jpg")],
           makeFallbackEarthDay(),
@@ -2675,29 +2552,212 @@
           t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
         });
 
-        // Scene objects
-        starMesh = makeStars(starMap);
-        scene.add(starMesh);
+        // Stars
+        {
+          const starGeo = new THREE.SphereGeometry(90, 64, 64);
+          const starMat = new THREE.MeshBasicMaterial({ map: starMap, side: THREE.BackSide });
+          starMesh = new THREE.Mesh(starGeo, starMat);
+          scene.add(starMesh);
+        }
 
-        earthMesh = makeEarth(dayMap);
-        scene.add(earthMesh);
+        // Earth (day)
+        {
+          const earthGeo = new THREE.SphereGeometry(earthRadius, 64, 64);
+          const earthMat = new THREE.MeshStandardMaterial({
+            map: dayMap,
+            roughness: 1.0,
+            metalness: 0.0
+          });
+          earthMesh = new THREE.Mesh(earthGeo, earthMat);
+          scene.add(earthMesh);
+        }
 
-        nightMesh = makeNightLights(nightMap);
-        scene.add(nightMesh);
+        // Night lights (masked by sun direction)
+        {
+          const geo = new THREE.SphereGeometry(earthRadius*1.0015, 64, 64);
+          const nightMat = new THREE.ShaderMaterial({
+            uniforms: {
+              map: { value: nightMap },
+              uSunDir: { value: new THREE.Vector3(1,0,0) },
+              uOpacity: { value: 0.95 }
+            },
+            vertexShader: `
+              varying vec2 vUv;
+              varying vec3 vNormal;
+              void main(){
+                vUv = uv;
+                vNormal = normalize(normalMatrix * normal);
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+              }
+            `,
+            fragmentShader: `
+              uniform sampler2D map;
+              uniform vec3 uSunDir;
+              uniform float uOpacity;
+              varying vec2 vUv;
+              varying vec3 vNormal;
+              void main(){
+                vec4 c = texture2D(map, vUv);
+                float lit = clamp(dot(normalize(vNormal), normalize(uSunDir)), 0.0, 1.0);
+                float night = smoothstep(0.15, 0.55, 1.0 - lit);
+                vec3 rgb = c.rgb * night;
+                float a = c.a * night * uOpacity;
+                gl_FragColor = vec4(rgb, a);
+              }
+            `,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+          });
+          nightMesh = new THREE.Mesh(geo, nightMat);
+          scene.add(nightMesh);
+        }
 
-        cloudsMesh = makeClouds(cloudMap);
-        scene.add(cloudsMesh);
+        // Clouds
+        {
+          const geo = new THREE.SphereGeometry(earthRadius*1.01, 64, 64);
+          const mat = new THREE.MeshStandardMaterial({
+            map: cloudMap,
+            transparent: true,
+            opacity: 0.32,
+            roughness: 1.0,
+            metalness: 0.0
+          });
+          cloudsMesh = new THREE.Mesh(geo, mat);
+          scene.add(cloudsMesh);
+        }
 
-        buildOverlays();
-        refreshStacksUI();
+        // ============================
+        // Build overlays
+        // ============================
+        overlays = {};
+
+        // Rhumb 222
+        {
+          const pts = rhumbPoints(ANCHOR.lat, ANCHOR.lon, 222, 240)
+            .map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+          overlays.rhumb222 = makeGlowTube(pts, 0.0024, 0xf6c24a, 0xf6c24a, 0.78, 0.18);
+          scene.add(overlays.rhumb222);
+        }
+
+        // Great circle 222
+        {
+          const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 222, 1.0)
+            .map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.013));
+          overlays.gc222 = makeGlowTube(pts, 0.0020, 0x5bbcff, 0x5bbcff, 0.78, 0.16);
+          scene.add(overlays.gc222);
+        }
+
+        // Rhumb 42
+        {
+          const pts = rhumbPoints(ANCHOR.lat, ANCHOR.lon, 42, 240)
+            .map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.012));
+          overlays.rhumb42 = makeGlowTube(pts, 0.0017, 0xf6c24a, 0xf6c24a, 0.55, 0.12);
+          scene.add(overlays.rhumb42);
+        }
+
+        // Great circle 42
+        {
+          const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 42, 1.0)
+            .map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.013));
+          overlays.gc42 = makeGlowTube(pts, 0.0016, 0x5bbcff, 0x5bbcff, 0.55, 0.12);
+          scene.add(overlays.gc42);
+        }
+
+        // Perpendicular controls 132/312 (one line is enough visually)
+        {
+          const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 132, 1.0)
+            .map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.0125));
+          overlays.perpLine = makeGlowTube(pts, 0.0014, 0xa078ff, 0xa078ff, 0.55, 0.12);
+          scene.add(overlays.perpLine);
+        }
+
+        // Corridor bands placeholder
+        overlays.corridors = makeCorridorBands();
+        scene.add(overlays.corridors);
+
+        // Continents labels
+        overlays.continents = makeContinentLabels();
+        scene.add(overlays.continents);
+
+        // Stations pins
+        {
+          const grp = new THREE.Group();
+          grp.add(makePin(ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
+          overlays.stations = grp;
+          scene.add(grp);
+        }
+
+        // Labels
+        {
+          const grp222 = new THREE.Group();
+          grp222.add(makeAxisLabel("222° SW", 0, 0));
+          grp222.children[0].position.copy(latLonToVec3(ANCHOR.lat, ANCHOR.lon, earthRadius*1.08));
+          overlays.names222 = grp222;
+          scene.add(grp222);
+        }
+        {
+          const grp42 = new THREE.Group();
+          grp42.add(makeAxisLabel("42° NE", 0, 0));
+          grp42.children[0].position.copy(latLonToVec3(ANCHOR.lat, ANCHOR.lon, earthRadius*1.10));
+          overlays.names42 = grp42;
+          scene.add(grp42);
+        }
+        {
+          const grp = new THREE.Group();
+          const spr = makeTextSprite("132° / 312°", { fontSize: 22, glowBlur: 7, scale: 0.005 });
+          spr.position.copy(latLonToVec3(ANCHOR.lat+6, ANCHOR.lon+6, earthRadius*1.08));
+          grp.add(spr);
+          overlays.perpName = grp;
+          scene.add(grp);
+        }
+
+        // Dipole demo + aurora demo
+        overlays.magField = makeDipoleDemo(); scene.add(overlays.magField);
+        overlays.aurora   = makeAuroraDemo(); scene.add(overlays.aurora);
+
+        // Apply saved visibility
         applyVisibility();
+
+        // Initial UI
+        refreshStacksUI();
+        refreshStationUI();
+        refreshProfileUI();
+        renderStationSearchResults("");
+        renderOverlayLibrary("");
+        renderSpots();
+        renderLoadout();
 
         setStatusBase("Ready");
 
+        // Animation loop
+        let lastT = performance.now();
+        function tick(now){
+          const dt = Math.min(0.05, (now - lastT) / 1000);
+          lastT = now;
+
+          controls?.update();
+
+          // gentle motion
+          if (earthMesh) earthMesh.rotation.y += dt * 0.045;
+          if (cloudsMesh) cloudsMesh.rotation.y += dt * 0.065;
+          if (starMesh) starMesh.rotation.y += dt * 0.006;
+
+          // update sun direction for night shader
+          if (nightMesh && nightMesh.material && nightMesh.material.uniforms?.uSunDir){
+            const u = nightMesh.material.uniforms.uSunDir.value;
+            // direction from surface toward light (approx)
+            u.copy(sunLight.position).normalize();
+          }
+
+          composer.render();
+          requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+
         // Resize
         function onResize(){
-          const w = window.innerWidth;
-          const h = window.innerHeight;
+          const w = innerWidth, h = innerHeight;
           camera.aspect = w / h;
           camera.updateProjectionMatrix();
           renderer.setSize(w, h);
@@ -2707,22 +2767,8 @@
         window.addEventListener("resize", onResize, { passive:true });
         window.addEventListener("orientationchange", onResize, { passive:true });
 
-        // Animate
-        const clock = new THREE.Clock();
-        function tick(){
-          const dt = clock.getDelta();
-
-          if (cloudsMesh) cloudsMesh.rotation.y += dt * 0.02;
-          if (earthMesh) earthMesh.rotation.y += dt * 0.006;
-
-          controls.update();
-          composer.render();
-          requestAnimationFrame(tick);
-        }
-        tick();
-
-      } catch (e){
-        showError("Boot failed:\n" + (e?.message || e));
+      } catch (err){
+        showError(String(err?.message || err));
       }
     })();
   </script>
