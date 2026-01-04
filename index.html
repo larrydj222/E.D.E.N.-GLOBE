@@ -54,8 +54,20 @@
     }
 
     *{ box-sizing:border-box; }
-    html, body { height: 100%; margin: 0; background:#000; overflow:hidden; touch-action:none; }
-    canvas { display:block; width:100vw !important; height:100vh !important; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background:#000;
+      overflow:hidden;
+      /* ✅ allow modal scrolling/pinch; canvas is locked separately */
+      touch-action: auto;
+    }
+    canvas {
+      display:block;
+      width:100vw !important;
+      height:100vh !important;
+      touch-action:none; /* ✅ lock globe gestures only */
+    }
 
     /* iOS safe vh helper */
     body{ --vh: 1vh; }
@@ -681,7 +693,13 @@
       </div>
       <div id="modalBody">
         <!-- Welcome / Hello -->
-        <iframe id="welcomeFrame" title="MAP E.D.E.N. Hello" loading="eager" style="display:none;"></iframe>
+        <iframe
+          id="welcomeFrame"
+          title="MAP E.D.E.N. Hello"
+          loading="eager"
+          sandbox="allow-same-origin"
+          style="display:none;"
+        ></iframe>
 
         <!-- Mission -->
         <div id="missionContent" class="page" style="display:none;">
@@ -1061,8 +1079,8 @@
     // ============================
     // ✅ SETTINGS
     // ============================
-    const WELCOME_FILE = "assets/welcome6.html";
-    const BW_GLOBE_TEXTURE = "eden-globe-bw.png"; // put in repo root (or change path)
+    const WELCOME_FILE = "assets/welcome6.html";     // optional external file
+    const BW_GLOBE_TEXTURE = "eden-globe-bw.png";    // put in repo root (or change path)
 
     const DEMO_DISTANCE_MODE = true;
     const JOIN_RADIUS_KM = 100;
@@ -1288,6 +1306,118 @@
     setMode(mode);
 
     // ============================
+    // ✅ “Drop-in” Hello: load assets/welcome6.html if present, else use embedded fallback
+    // ============================
+    const WELCOME_FALLBACK_HTML = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=yes, maximum-scale=5"/>
+<title>MAP E.D.E.N. — Hello</title>
+<style>
+  :root{
+    --bg:#000;
+    --fg:rgba(255,255,255,.92);
+    --mut:rgba(255,255,255,.66);
+    --stroke:rgba(255,255,255,.12);
+    --card:rgba(255,255,255,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    text-rendering:geometricPrecision;
+  }
+  .wrap{max-width:980px;margin:0 auto;padding:18px 18px 28px;}
+  .hero{
+    border:1px solid var(--stroke);
+    background:rgba(12,14,18,.52);
+    border-radius:22px;
+    padding:16px 16px 14px;
+  }
+  .title{font-weight:900;letter-spacing:.3px;font-size:20px;line-height:1.15}
+  .sub{margin-top:6px;color:var(--mut);font-weight:700;font-size:12px;line-height:1.35}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .slot{
+    flex:1 1 160px;
+    min-height:54px;
+    border-radius:18px;
+    border:1px solid var(--stroke);
+    background:rgba(255,255,255,.04);
+  }
+  h2{margin:16px 2px 8px;font-size:16px;letter-spacing:.2px}
+  p{margin:0 2px 10px;color:rgba(255,255,255,.80);line-height:1.55;font-weight:650}
+  .card{
+    border-radius:18px;
+    border:1px solid var(--stroke);
+    background:var(--card);
+    padding:14px;
+    margin-top:10px;
+  }
+  .tiny{color:var(--mut);font-size:12px;font-weight:700;line-height:1.4}
+  ul{margin:8px 0 0 18px;color:rgba(255,255,255,.80);line-height:1.55}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="title">MAP E.D.E.N.</div>
+      <div class="sub">Earth Diametric Energy Network • 42° / 222° axis • evidence-first field platform</div>
+
+      <!-- Logo spaces (blank by design) -->
+      <div class="row" aria-hidden="true">
+        <div class="slot"></div>
+        <div class="slot"></div>
+        <div class="slot"></div>
+      </div>
+      <div class="sub" style="margin-top:10px;">(Logo spaces intentionally blank.)</div>
+    </div>
+
+    <h2>Hello</h2>
+    <p>
+      MAP E.D.E.N. is a globe-based switchboard for running repeatable field tests along defined Earth corridors,
+      beginning with the 42° / 222° diametric axis.
+    </p>
+
+    <div class="card">
+      <div style="font-weight:900;margin-bottom:6px;">Tap flow</div>
+      <ul>
+        <li><b>Hello</b> — this page</li>
+        <li><b>Mission</b> — the aim (one paragraph, public-facing)</li>
+        <li><b>Start</b> — open the station controls (stations / overlays / profile)</li>
+      </ul>
+    </div>
+
+    <h2>Research stance</h2>
+    <p class="tiny">
+      E.D.E.N. measures pattern-salience and context-fit while remaining open-minded to hypotheses; it does not assert
+      external causality or a proven mechanism. Metrics support replication—not claims.
+    </p>
+  </div>
+</body>
+</html>`;
+
+    async function loadWelcomeIntoFrame(){
+      // Always keep same-origin. Prefer fetching the file and using srcdoc for stability.
+      try{
+        const u = new URL(WELCOME_FILE, window.location.href);
+        if (u.origin !== window.location.origin) throw new Error("Welcome file must be same-origin.");
+
+        const res = await fetch(u.toString(), { cache: "no-store" });
+        if (!res.ok) throw new Error("Missing welcome file");
+        const html = await res.text();
+        welcomeFrame.srcdoc = html;
+      } catch {
+        welcomeFrame.srcdoc = WELCOME_FALLBACK_HTML;
+      }
+    }
+
+    // ============================
     // Modal routing
     // ============================
     const views = [
@@ -1304,21 +1434,14 @@
       for (const v of views) v.el.style.display = "none";
     }
 
-    function openModal(kind){
+    async function openModal(kind){
       modalMask.classList.add("on");
       hideAllViews();
 
       if (kind === "welcome"){
         modalTitle.textContent = "HELLO";
         welcomeFrame.style.display = "block";
-
-        // ✅ security: force same-origin and a clean relative path
-        const u = new URL(WELCOME_FILE, window.location.href);
-        if (u.origin !== window.location.origin) {
-          throw new Error("Welcome file must be same-origin.");
-        }
-        u.searchParams.set("v", Date.now().toString());
-        welcomeFrame.src = u.toString();
+        await loadWelcomeIntoFrame();
 
       } else if (kind === "mission"){
         modalTitle.textContent = "MISSION";
@@ -1359,7 +1482,7 @@
 
     function closeModal(){
       modalMask.classList.remove("on");
-      welcomeFrame.src = "about:blank";
+      welcomeFrame.srcdoc = "";
       hideAllViews();
     }
     modalClose.addEventListener("click", closeModal);
@@ -1370,8 +1493,8 @@
       [welcomeBtn, missionBtn].forEach(b => b.classList.remove("on"));
       btn.classList.add("on");
     }
-    welcomeBtn.addEventListener("click", ()=>{ setTopOn(welcomeBtn); openModal("welcome"); });
-    missionBtn.addEventListener("click", ()=>{ setTopOn(missionBtn); openModal("mission"); });
+    welcomeBtn.addEventListener("click", async ()=>{ setTopOn(welcomeBtn); await openModal("welcome"); });
+    missionBtn.addEventListener("click", async ()=>{ setTopOn(missionBtn); await openModal("mission"); });
 
     function flashOn(btn){
       btn.classList.add("on");
@@ -1380,10 +1503,10 @@
 
     coreBtn.addEventListener("click", ()=>{ setPreset("core"); flashOn(coreBtn); });
     stackBtn.addEventListener("click", ()=>{ setPreset("stack"); flashOn(stackBtn); });
-    stationsBtn.addEventListener("click", ()=>{ flashOn(stationsBtn); openModal("stations"); });
-    overlayPlusBtn.addEventListener("click", ()=>{ flashOn(overlayPlusBtn); openModal("overlay"); });
+    stationsBtn.addEventListener("click", async ()=>{ flashOn(stationsBtn); await openModal("stations"); });
+    overlayPlusBtn.addEventListener("click", async ()=>{ flashOn(overlayPlusBtn); await openModal("overlay"); });
     clearBtn.addEventListener("click", ()=>{ setPreset("clear"); flashOn(clearBtn); });
-    profileBtn.addEventListener("click", ()=>{ flashOn(profileBtn); openModal("profile"); });
+    profileBtn.addEventListener("click", async ()=>{ flashOn(profileBtn); await openModal("profile"); });
 
     // ============================
     // Station access + location gating (prototype-local)
@@ -1449,8 +1572,8 @@
       );
     });
 
-    previewStationBtn.addEventListener("click", ()=> openModal("preview"));
-    viewHubBtn.addEventListener("click", ()=> openModal("hub"));
+    previewStationBtn.addEventListener("click", async ()=> openModal("preview"));
+    viewHubBtn.addEventListener("click", async ()=> openModal("hub"));
 
     let followed = store.get("station_followed", false);
     function refreshFollow(){
@@ -1502,6 +1625,15 @@
       { type:"person", name:"Analyst-01", role:"Analyst", symbol:"Σ", note:"Review / compare datasets" },
       { type:"person", name:"Observer-01", role:"Observer", symbol:"◌", note:"Read-only / follow" }
     ];
+
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
 
     function renderStationSearchResults(qRaw){
       if (!stationSearchResults) return;
@@ -1611,15 +1743,6 @@
       setStationConfig(cfg);
       refreshStationIntegrityUI();
     });
-
-    function escapeHtml(s){
-      return String(s ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
 
     function renderSpots(){
       if (!spotsList) return;
@@ -2446,18 +2569,6 @@
       return grp;
     }
 
-    function makeCorridorBands(){
-      const grp = new THREE.Group();
-      const base = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 222, 1.0).map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.01));
-      const colors = [0xf6c24a, 0x7fffd4, 0xa078ff];
-      const radii  = [0.002, 0.0016, 0.0012];
-      for (let i=0;i<3;i++){
-        const tube = makeGlowTube(base, radii[i], colors[i], colors[i], 0.70, 0.14);
-        grp.add(tube);
-      }
-      return grp;
-    }
-
     function makeContinentLabels(){
       const grp = new THREE.Group();
       const labels = [
@@ -2481,6 +2592,10 @@
       const spr = makeTextSprite(text, { fontSize: 24, glowBlur: 8, scale: 0.0052 });
       spr.position.copy(latLonToVec3(lat, lon, earthRadius*1.08));
       return spr;
+    }
+
+    function ptsToVecs(pts, r=earthRadius*1.012){
+      return pts.map(p=>latLonToVec3(p.lat, p.lon, r));
     }
 
     (async ()=>{
@@ -2542,25 +2657,47 @@
           "earth day (bw local)"
         );
 
-        const nightMap = await loadTextureWithFallback(urls("planets/earth_lights_2048.png"), makeFallbackNight(), "earth night lights");
-        const cloudMap = await loadTextureWithFallback(urls("planets/earth_clouds_1024.png"), makeFallbackClouds(), "earth clouds");
-        const starMap  = await loadTextureWithFallback(urls("galaxy_starfield.png"), makeFallbackStars(), "stars");
+        const nightMap = await loadTextureWithFallback(
+          urls("planets/earth_lights_2048.png"),
+          makeFallbackNight(),
+          "earth night lights"
+        );
 
+        const cloudMap = await loadTextureWithFallback(
+          urls("planets/earth_clouds_1024.png"),
+          makeFallbackClouds(),
+          "earth clouds"
+        );
+
+        const starMap  = await loadTextureWithFallback(
+          urls("galaxy_starfield.png"),
+          makeFallbackStars(),
+          "stars"
+        );
+
+        // Texture tuning
         const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
         [dayMap, nightMap, cloudMap, starMap].forEach((t)=>{
           t.anisotropy = maxAniso;
-          t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+          t.wrapS = THREE.ClampToEdgeWrapping;
+          t.wrapT = THREE.ClampToEdgeWrapping;
+          t.minFilter = THREE.LinearMipmapLinearFilter;
+          t.magFilter = THREE.LinearFilter;
+          t.generateMipmaps = true;
+          t.needsUpdate = true;
         });
 
-        // Stars
+        setStatusBase("Building globe…");
+
+        // Stars background sphere
         {
-          const starGeo = new THREE.SphereGeometry(90, 64, 64);
+          const starGeo = new THREE.SphereGeometry(90, 48, 48);
           const starMat = new THREE.MeshBasicMaterial({ map: starMap, side: THREE.BackSide });
           starMesh = new THREE.Mesh(starGeo, starMat);
           scene.add(starMesh);
         }
 
-        // Earth (day)
+        // Earth
         {
           const earthGeo = new THREE.SphereGeometry(earthRadius, 64, 64);
           const earthMat = new THREE.MeshStandardMaterial({
@@ -2572,200 +2709,154 @@
           scene.add(earthMesh);
         }
 
-        // Night lights (masked by sun direction)
+        // Night lights layer (toggleable)
         {
-          const geo = new THREE.SphereGeometry(earthRadius*1.0015, 64, 64);
-          const nightMat = new THREE.ShaderMaterial({
-            uniforms: {
-              map: { value: nightMap },
-              uSunDir: { value: new THREE.Vector3(1,0,0) },
-              uOpacity: { value: 0.95 }
-            },
-            vertexShader: `
-              varying vec2 vUv;
-              varying vec3 vNormal;
-              void main(){
-                vUv = uv;
-                vNormal = normalize(normalMatrix * normal);
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-              }
-            `,
-            fragmentShader: `
-              uniform sampler2D map;
-              uniform vec3 uSunDir;
-              uniform float uOpacity;
-              varying vec2 vUv;
-              varying vec3 vNormal;
-              void main(){
-                vec4 c = texture2D(map, vUv);
-                float lit = clamp(dot(normalize(vNormal), normalize(uSunDir)), 0.0, 1.0);
-                float night = smoothstep(0.15, 0.55, 1.0 - lit);
-                vec3 rgb = c.rgb * night;
-                float a = c.a * night * uOpacity;
-                gl_FragColor = vec4(rgb, a);
-              }
-            `,
+          const nightGeo = new THREE.SphereGeometry(earthRadius*1.001, 64, 64);
+          const nightMat = new THREE.MeshBasicMaterial({
+            map: nightMap,
             transparent: true,
+            opacity: 0.85,
             blending: THREE.AdditiveBlending,
             depthWrite: false
           });
-          nightMesh = new THREE.Mesh(geo, nightMat);
+          nightMesh = new THREE.Mesh(nightGeo, nightMat);
           scene.add(nightMesh);
         }
 
-        // Clouds
+        // Clouds layer (subtle)
         {
-          const geo = new THREE.SphereGeometry(earthRadius*1.01, 64, 64);
-          const mat = new THREE.MeshStandardMaterial({
+          const cloudGeo = new THREE.SphereGeometry(earthRadius*1.01, 64, 64);
+          const cloudMat = new THREE.MeshBasicMaterial({
             map: cloudMap,
             transparent: true,
-            opacity: 0.32,
-            roughness: 1.0,
-            metalness: 0.0
+            opacity: 0.18,
+            depthWrite: false
           });
-          cloudsMesh = new THREE.Mesh(geo, mat);
+          cloudsMesh = new THREE.Mesh(cloudGeo, cloudMat);
           scene.add(cloudsMesh);
         }
 
         // ============================
-        // Build overlays
+        // Overlays
         // ============================
         overlays = {};
 
-        // Rhumb 222
+        // Rhumb 222 SW
         {
-          const pts = rhumbPoints(ANCHOR.lat, ANCHOR.lon, 222, 240)
-            .map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.012));
-          overlays.rhumb222 = makeGlowTube(pts, 0.0024, 0xf6c24a, 0xf6c24a, 0.78, 0.18);
+          const pts = ptsToVecs(rhumbPoints(ANCHOR.lat, ANCHOR.lon, 222, 240), earthRadius*1.012);
+          overlays.rhumb222 = makeGlowTube(pts, 0.0032, 0xf6c24a, 0xf6c24a, 0.85, 0.18);
           scene.add(overlays.rhumb222);
         }
 
-        // Great circle 222
+        // Great Circle 222 SW
         {
-          const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 222, 1.0)
-            .map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.013));
-          overlays.gc222 = makeGlowTube(pts, 0.0020, 0x5bbcff, 0x5bbcff, 0.78, 0.16);
+          const pts = ptsToVecs(greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 222, 1.0), earthRadius*1.014);
+          overlays.gc222 = makeGlowTube(pts, 0.0026, 0x5bbcff, 0x5bbcff, 0.85, 0.18);
           scene.add(overlays.gc222);
         }
 
-        // Rhumb 42
+        // Rhumb 42 NE (lighter)
         {
-          const pts = rhumbPoints(ANCHOR.lat, ANCHOR.lon, 42, 240)
-            .map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.012));
-          overlays.rhumb42 = makeGlowTube(pts, 0.0017, 0xf6c24a, 0xf6c24a, 0.55, 0.12);
+          const pts = ptsToVecs(rhumbPoints(ANCHOR.lat, ANCHOR.lon, 42, 240), earthRadius*1.012);
+          overlays.rhumb42 = makeGlowTube(pts, 0.0022, 0xf6c24a, 0xf6c24a, 0.45, 0.10);
           scene.add(overlays.rhumb42);
         }
 
-        // Great circle 42
+        // Great Circle 42 NE (lighter)
         {
-          const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 42, 1.0)
-            .map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.013));
-          overlays.gc42 = makeGlowTube(pts, 0.0016, 0x5bbcff, 0x5bbcff, 0.55, 0.12);
+          const pts = ptsToVecs(greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 42, 1.0), earthRadius*1.014);
+          overlays.gc42 = makeGlowTube(pts, 0.0020, 0x5bbcff, 0x5bbcff, 0.45, 0.10);
           scene.add(overlays.gc42);
         }
 
-        // Perpendicular controls 132/312 (one line is enough visually)
+        // Perpendicular controls 132°/312°
         {
-          const pts = greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 132, 1.0)
-            .map(p=>latLonToVec3(p.lat, p.lon, earthRadius*1.0125));
-          overlays.perpLine = makeGlowTube(pts, 0.0014, 0xa078ff, 0xa078ff, 0.55, 0.12);
+          const pts = ptsToVecs(greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 132, 1.0), earthRadius*1.016);
+          overlays.perpLine = makeGlowTube(pts, 0.0018, 0x7fffd4, 0x7fffd4, 0.55, 0.14);
           scene.add(overlays.perpLine);
         }
 
-        // Corridor bands placeholder
-        overlays.corridors = makeCorridorBands();
-        scene.add(overlays.corridors);
-
-        // Continents labels
-        overlays.continents = makeContinentLabels();
-        scene.add(overlays.continents);
+        // Corridor offsets (visual demo bands)
+        {
+          const grp = new THREE.Group();
+          const base = ptsToVecs(greatCirclePoints(ANCHOR.lat, ANCHOR.lon, 222, 1.0), earthRadius*1.018);
+          const colors = [0xf6c24a, 0x7fffd4, 0xa078ff];
+          const radii  = [0.0018, 0.0014, 0.0010];
+          for (let i=0;i<3;i++){
+            grp.add(makeGlowTube(base, radii[i], colors[i], colors[i], 0.55, 0.10));
+          }
+          overlays.corridors = grp;
+          scene.add(overlays.corridors);
+        }
 
         // Stations pins
         {
           const grp = new THREE.Group();
           grp.add(makePin(ANCHOR.lat, ANCHOR.lon, 0x7fffd4));
+          const spr = makeTextSprite("Exit222•Station1", { fontSize: 22, glowBlur: 8, scale: 0.0050 });
+          spr.position.copy(latLonToVec3(ANCHOR.lat, ANCHOR.lon, earthRadius*1.08));
+          grp.add(spr);
           overlays.stations = grp;
-          scene.add(grp);
+          scene.add(overlays.stations);
         }
 
         // Labels
         {
-          const grp222 = new THREE.Group();
-          grp222.add(makeAxisLabel("222° SW", 0, 0));
-          grp222.children[0].position.copy(latLonToVec3(ANCHOR.lat, ANCHOR.lon, earthRadius*1.08));
-          overlays.names222 = grp222;
-          scene.add(grp222);
-        }
-        {
-          const grp42 = new THREE.Group();
-          grp42.add(makeAxisLabel("42° NE", 0, 0));
-          grp42.children[0].position.copy(latLonToVec3(ANCHOR.lat, ANCHOR.lon, earthRadius*1.10));
-          overlays.names42 = grp42;
-          scene.add(grp42);
-        }
-        {
-          const grp = new THREE.Group();
-          const spr = makeTextSprite("132° / 312°", { fontSize: 22, glowBlur: 7, scale: 0.005 });
-          spr.position.copy(latLonToVec3(ANCHOR.lat+6, ANCHOR.lon+6, earthRadius*1.08));
-          grp.add(spr);
-          overlays.perpName = grp;
-          scene.add(grp);
+          const g222 = new THREE.Group();
+          g222.add(makeAxisLabel("222° SW", 8, -30));
+          overlays.names222 = g222;
+          scene.add(overlays.names222);
+
+          const g42 = new THREE.Group();
+          g42.add(makeAxisLabel("42° NE", 40, 40));
+          overlays.names42 = g42;
+          scene.add(overlays.names42);
+
+          const gp = new THREE.Group();
+          gp.add(makeAxisLabel("132° / 312°", -10, 95));
+          overlays.perpName = gp;
+          scene.add(overlays.perpName);
         }
 
-        // Dipole demo + aurora demo
-        overlays.magField = makeDipoleDemo(); scene.add(overlays.magField);
-        overlays.aurora   = makeAuroraDemo(); scene.add(overlays.aurora);
+        // Continents labels
+        {
+          overlays.continents = makeContinentLabels();
+          scene.add(overlays.continents);
+        }
 
-        // Apply saved visibility
+        // Demo magnetic field + aurora
+        overlays.magField = makeDipoleDemo();
+        overlays.aurora   = makeAuroraDemo();
+        scene.add(overlays.magField);
+        scene.add(overlays.aurora);
+
+        // Apply saved overlay visibility
         applyVisibility();
-
-        // Initial UI
-        refreshStacksUI();
-        refreshStationUI();
-        refreshProfileUI();
-        renderStationSearchResults("");
-        renderOverlayLibrary("");
-        renderSpots();
-        renderLoadout();
 
         setStatusBase("Ready");
 
-        // Animation loop
-        let lastT = performance.now();
-        function tick(now){
-          const dt = Math.min(0.05, (now - lastT) / 1000);
-          lastT = now;
-
-          controls?.update();
-
-          // gentle motion
-          if (earthMesh) earthMesh.rotation.y += dt * 0.045;
-          if (cloudsMesh) cloudsMesh.rotation.y += dt * 0.065;
-          if (starMesh) starMesh.rotation.y += dt * 0.006;
-
-          // update sun direction for night shader
-          if (nightMesh && nightMesh.material && nightMesh.material.uniforms?.uSunDir){
-            const u = nightMesh.material.uniforms.uSunDir.value;
-            // direction from surface toward light (approx)
-            u.copy(sunLight.position).normalize();
-          }
-
-          composer.render();
-          requestAnimationFrame(tick);
-        }
-        requestAnimationFrame(tick);
-
-        // Resize
+        // Resize handler
         function onResize(){
-          const w = innerWidth, h = innerHeight;
-          camera.aspect = w / h;
+          if (!renderer || !camera || !composer) return;
+          camera.aspect = innerWidth / innerHeight;
           camera.updateProjectionMatrix();
-          renderer.setSize(w, h);
-          composer.setSize(w, h);
-          bloomPass.setSize(w, h);
+          renderer.setSize(innerWidth, innerHeight);
+          composer.setSize(innerWidth, innerHeight);
+          bloomPass?.setSize?.(innerWidth, innerHeight);
         }
         window.addEventListener("resize", onResize, { passive:true });
-        window.addEventListener("orientationchange", onResize, { passive:true });
+
+        // Animation loop
+        function tick(){
+          requestAnimationFrame(tick);
+          controls?.update();
+
+          if (cloudsMesh) cloudsMesh.rotation.y += 0.00035;
+          if (earthMesh)  earthMesh.rotation.y  += 0.00005;
+
+          composer.render();
+        }
+        tick();
 
       } catch (err){
         showError(String(err?.message || err));
