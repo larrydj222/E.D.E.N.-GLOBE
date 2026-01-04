@@ -2,653 +2,803 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=yes,maximum-scale=5" />
   <meta name="referrer" content="no-referrer" />
-  <title>MAP E.D.E.N.</title>
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    img-src 'self' data: https:;
+    style-src 'self' 'unsafe-inline';
+    script-src 'self' https://unpkg.com https://cdn.jsdelivr.net 'unsafe-inline';
+    connect-src 'self' https://unpkg.com https://cdn.jsdelivr.net;
+    frame-src 'self';
+    font-src 'self' data:;
+  " />
+  <title>MAP E.D.E.N. — Globe</title>
 
   <style>
     :root{
       --bg:#050508;
-      --glass: rgba(12,14,18,.58);
-      --glass2: rgba(12,14,18,.40);
-      --stroke: rgba(255,255,255,.12);
-      --stroke2: rgba(255,255,255,.18);
-      --fg: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.68);
-      --muted2: rgba(255,255,255,.52);
-      --accent: rgba(140,255,220,.85);
-      --shadow: 0 18px 60px rgba(0,0,0,.55);
-      --radius: 22px;
+      --fg:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.72);
+      --muted2:rgba(255,255,255,.55);
+      --glass: rgba(12,14,18,0.62);
+      --stroke: rgba(255,255,255,0.12);
+      --stroke2: rgba(255,255,255,0.16);
+      --shadow: 0 24px 70px rgba(0,0,0,.55);
+      --radius: 18px;
+      --safeT: env(safe-area-inset-top);
+      --safeB: env(safe-area-inset-bottom);
+      --safeL: env(safe-area-inset-left);
+      --safeR: env(safe-area-inset-right);
     }
 
     *{ box-sizing:border-box; }
-    html,body{ height:100%; margin:0; }
+    html,body{ height:100%; }
     body{
-      background: radial-gradient(1200px 800px at 70% 20%, rgba(90,140,255,.10), transparent 55%),
-                  radial-gradient(900px 700px at 25% 30%, rgba(140,255,220,.08), transparent 55%),
+      margin:0;
+      background: radial-gradient(1200px 800px at 70% 20%, rgba(255,255,255,.06), transparent 55%),
+                  radial-gradient(900px 600px at 30% 80%, rgba(255,255,255,.04), transparent 60%),
                   var(--bg);
-      color: var(--fg);
-      font-family: -apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+      color:var(--fg);
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
       overflow:hidden;
+      touch-action: manipulation;
     }
 
-    /* Canvas */
-    #stage{
-      position: fixed;
-      inset: 0;
+    /* full-screen canvas */
+    #globe{
+      position:fixed;
+      inset:0;
       width:100%;
       height:100%;
       display:block;
-      touch-action: none;
     }
 
-    /* Minimal top badge (optional, unobtrusive) */
-    .top-badge{
-      position: fixed;
-      top: calc(10px + env(safe-area-inset-top));
-      left: calc(12px + env(safe-area-inset-left));
-      z-index: 10;
-      padding: 10px 12px;
-      border: 1px solid rgba(255,255,255,.10);
-      border-radius: 14px;
-      background: rgba(0,0,0,.20);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      font-size: 12px;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,.75);
-      user-select:none;
-      pointer-events:none;
-    }
-
-    /* Bottom Sheet (single card, minimal) */
-    .sheet{
-      position: fixed;
-      left: 0; right: 0;
-      bottom: 0;
-      z-index: 20;
-      padding: 12px;
-      padding-bottom: calc(12px + env(safe-area-inset-bottom));
-    }
-
-    .card{
-      max-width: 920px;
-      margin: 0 auto;
-      border-radius: var(--radius);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      border: 1px solid rgba(255,255,255,.12);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      overflow:hidden;
-    }
-
-    .handle{
-      width: 56px;
-      height: 6px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.22);
-      margin: 10px auto 6px auto;
-      opacity:.8;
-    }
-
-    .card-inner{
-      padding: 14px 14px 12px 14px;
-    }
-
-    .brand-row{
+    /* top HUD */
+    .hud{
+      position:fixed;
+      top:calc(14px + var(--safeT));
+      left:calc(14px + var(--safeL));
+      right:calc(14px + var(--safeR));
       display:flex;
-      align-items:flex-start;
+      align-items:center;
       justify-content:space-between;
-      gap: 12px;
+      gap:12px;
+      pointer-events:none; /* allow globe interaction */
+      z-index:10;
     }
 
     .brand{
       display:flex;
-      gap: 12px;
       align-items:center;
-      min-width: 0;
-    }
-
-    .brand-mark{
-      width: 62px;
-      height: 62px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: radial-gradient(60px 60px at 30% 30%, rgba(255,255,255,.12), rgba(255,255,255,.02));
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
-      flex: 0 0 auto;
-    }
-
-    .brand-mark img{
-      width: 92px;
-      height: 92px;
-      object-fit: contain;
-      opacity: .95;
-      transform: translateY(2px);
-      filter: drop-shadow(0 8px 18px rgba(0,0,0,.45));
-    }
-
-    .brand-text{
-      min-width: 0;
-    }
-
-    .title{
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      margin: 2px 0 4px 0;
-      white-space: nowrap;
-      overflow:hidden;
-      text-overflow: ellipsis;
-    }
-
-    .subtitle{
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.35;
-      margin: 0;
-    }
-
-    .xbtn{
-      width: 42px;
-      height: 42px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.18);
-      color: rgba(255,255,255,.78);
-      font-size: 20px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      cursor:pointer;
-      flex: 0 0 auto;
-    }
-
-    /* Segmented tabs (Hello / Mission / Start) */
-    .tabs{
-      display:flex;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .tab{
-      flex: 1 1 auto;
-      padding: 12px 12px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.14);
-      color: rgba(255,255,255,.86);
-      font-weight: 650;
-      font-size: 14px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap: 8px;
-      cursor:pointer;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:999px;
+      background:var(--glass);
+      border:1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      pointer-events:auto;
       user-select:none;
-      -webkit-tap-highlight-color: transparent;
     }
 
-    .tab.active{
-      border-color: rgba(140,255,220,.24);
-      background: rgba(140,255,220,.10);
-      color: rgba(255,255,255,.95);
-      box-shadow: 0 0 0 1px rgba(140,255,220,.10) inset;
+    .brandDot{
+      width:10px;height:10px;border-radius:99px;
+      background: rgba(255,255,255,.28);
+      box-shadow: 0 0 18px rgba(255,255,255,.20);
+    }
+    .brandTitle{
+      font-size:12px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.86);
+      white-space:nowrap;
     }
 
-    /* Content */
-    .content{
-      margin-top: 12px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.12);
-      padding: 12px 12px;
+    .nav{
+      display:flex;
+      gap:10px;
+      pointer-events:auto;
     }
-
-    .content p{
-      margin: 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.55;
-    }
-
-    .content strong{ color: rgba(255,255,255,.90); }
-
-    /* Minimal action row (only visible in Start) */
-    .actions{
-      margin-top: 12px;
-      display:none;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .actions.show{ display:flex; }
 
     .btn{
-      flex: 1 1 140px;
-      padding: 12px 12px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.14);
-      color: rgba(255,255,255,.86);
-      font-weight: 650;
-      font-size: 13px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px;
+      border-radius:999px;
+      background:var(--glass);
+      border:1px solid var(--stroke);
+      color:rgba(255,255,255,.88);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       cursor:pointer;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+    }
+
+    .btn:active{ transform: scale(.98); }
+    .btn:hover{ border-color: var(--stroke2); }
+
+    .btn .label{
+      font-size:12px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+
+    .lamp{
+      width:10px;height:10px;border-radius:99px;
+      background: rgba(255,255,255,.18);
+      box-shadow: 0 0 14px rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .btn.active .lamp{
+      background: rgba(60,255,140,.92);
+      box-shadow: 0 0 18px rgba(60,255,140,.55), 0 0 42px rgba(60,255,140,.22);
+      border-color: rgba(60,255,140,.45);
+    }
+
+    /* bottom hint */
+    .hint{
+      position:fixed;
+      left:calc(14px + var(--safeL));
+      right:calc(14px + var(--safeR));
+      bottom:calc(14px + var(--safeB));
+      display:flex;
+      justify-content:center;
+      z-index:9;
+      pointer-events:none;
+    }
+    .hintPill{
+      pointer-events:auto;
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(12,14,18,.46);
+      border:1px solid rgba(255,255,255,.10);
+      color:rgba(255,255,255,.72);
+      font-size:12px;
+      letter-spacing:.06em;
+      box-shadow: 0 18px 50px rgba(0,0,0,.45);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      user-select:none;
+    }
+
+    /* side panel */
+    .panelWrap{
+      position:fixed;
+      inset:0;
+      display:none;
+      z-index:20;
+    }
+    .panelWrap.open{ display:block; }
+
+    .scrim{
+      position:absolute;
+      inset:0;
+      background: rgba(0,0,0,.45);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+    }
+
+    .panel{
+      position:absolute;
+      top:calc(14px + var(--safeT));
+      right:calc(14px + var(--safeR));
+      width:min(980px, calc(100vw - 28px - var(--safeL) - var(--safeR)));
+      height:calc(100vh - 28px - var(--safeT) - var(--safeB));
+      max-width: 980px;
+      border-radius: var(--radius);
+      background: rgba(12,14,18,.72);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: 0 30px 90px rgba(0,0,0,.70);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .panelHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 12px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background: rgba(12,14,18,.52);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .panelTitle{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      font-size:12px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.90);
+      user-select:none;
+      white-space:nowrap;
+      max-width: calc(100% - 70px);
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .panelClose{
       display:flex;
       align-items:center;
       justify-content:center;
-      gap: 8px;
+      width:40px;height:40px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      color:rgba(255,255,255,.85);
+      cursor:pointer;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .12s ease, border-color .12s ease;
+    }
+    .panelClose:active{ transform: scale(.98); }
+    .panelClose:hover{ border-color: rgba(255,255,255,.18); }
+
+    .panelBody{
+      position:relative;
+      flex:1;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+      padding:12px;
+    }
+
+    /* iframe (Welcome page) */
+    .frame{
+      width:100%;
+      height:100%;
+      border:0;
+      border-radius: 14px;
+      overflow:hidden;
+      background: rgba(255,255,255,.02);
+    }
+
+    /* content blocks (Mission / Switchboard) */
+    .cardGrid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+      max-width: 980px;
+      margin:0 auto;
+    }
+
+    .card{
+      background: rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+      padding:14px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+    }
+
+    .h2{
+      margin:0 0 10px;
+      font-size:12px;
+      letter-spacing:.22em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.92);
+    }
+
+    .p{
+      margin:0 0 10px;
+      color:rgba(255,255,255,.72);
+      font-size:14px;
+      line-height:1.75;
+    }
+
+    .muted{
+      color:rgba(255,255,255,.55);
+      font-size:12px;
+      line-height:1.6;
+    }
+
+    /* Switchboard UI */
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .pillBtn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      color:rgba(255,255,255,.85);
+      font-size:12px;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      cursor:pointer;
       user-select:none;
       -webkit-tap-highlight-color: transparent;
     }
 
-    .btn.primary{
-      border-color: rgba(140,255,220,.26);
-      background: rgba(140,255,220,.12);
+    .pillBtn:active{ transform: scale(.99); }
+
+    .input, .textarea{
+      width:100%;
+      max-width:100%;
+      min-width:0;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      color: rgba(255,255,255,.88);
+      padding:10px 12px;
+      outline:none;
+      font-size:14px;
     }
 
-    .foot{
+    .textarea{ min-height:120px; resize:vertical; }
+
+    .list{
+      margin:10px 0 0;
+      padding:0;
+      list-style:none;
       display:flex;
-      justify-content:space-between;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .item{
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.03);
+      display:flex;
       align-items:center;
-      gap: 12px;
-      padding: 10px 14px 14px 14px;
-      color: rgba(255,255,255,.55);
-      font-size: 12px;
-      border-top: 1px solid rgba(255,255,255,.08);
-      background: rgba(0,0,0,.10);
+      justify-content:space-between;
+      gap:10px;
     }
 
-    .mono{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      letter-spacing: .02em;
+    .tag{
+      font-size:11px;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.72);
+      padding:6px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      white-space:nowrap;
     }
 
-    /* Small screens */
-    @media (max-width: 420px){
-      .brand-mark{ width: 56px; height: 56px; }
-      .brand-mark img{ width: 86px; height: 86px; }
-      .title{ font-size: 16px; }
+    @media (max-width:520px){
+      .panel{ left:calc(14px + var(--safeL)); right:calc(14px + var(--safeR)); }
+      .brandTitle{ display:none; }
+      .btn .label{ letter-spacing:.12em; }
     }
   </style>
 </head>
 
 <body>
-  <canvas id="stage"></canvas>
-  <div class="top-badge">MAP E.D.E.N.</div>
+  <canvas id="globe" aria-label="MAP E.D.E.N. Globe Canvas"></canvas>
 
-  <div class="sheet" id="sheet">
-    <div class="card" role="dialog" aria-label="MAP E.D.E.N. Panel">
-      <div class="handle"></div>
+  <!-- HUD -->
+  <div class="hud" role="navigation" aria-label="MAP E.D.E.N. Navigation">
+    <div class="brand" aria-label="MAP E.D.E.N.">
+      <span class="brandDot" aria-hidden="true"></span>
+      <span class="brandTitle">MAP E.D.E.N.</span>
+    </div>
 
-      <div class="card-inner">
-        <div class="brand-row">
-          <div class="brand">
-            <div class="brand-mark" aria-hidden="true">
-              <!-- Logo Architecture (drop in your PNG here): assets/map-eden-logo.png -->
-              <img src="assets/map-eden-logo.png" alt="" onerror="this.style.display='none'; this.parentElement.style.opacity='.85'; this.parentElement.textContent='E.D.E.N.';" />
-            </div>
-            <div class="brand-text">
-              <div class="title">MAP E.D.E.N.</div>
-              <p class="subtitle">Earth Diametric Energy Network • <span class="mono">Signal &gt; Social</span></p>
-            </div>
-          </div>
-
-          <button class="xbtn" id="collapseBtn" title="Minimize panel" aria-label="Minimize panel">×</button>
-        </div>
-
-        <div class="tabs" role="tablist" aria-label="Sections">
-          <button class="tab active" id="tabHello" role="tab" aria-selected="true">Hello</button>
-          <button class="tab" id="tabMission" role="tab" aria-selected="false">Mission</button>
-          <button class="tab" id="tabStart" role="tab" aria-selected="false">Start</button>
-        </div>
-
-        <div class="content" id="content">
-          <p>
-            <strong>MAP E.D.E.N.</strong> is a signal network — not a social app with maps.
-            It’s built for repeatable field work: minimal UI, clean capture, and comparable results.
-            <br><br>
-            Default ranking is <strong>Signal Score</strong> (data quality), never “likes.” Social is optional.
-          </p>
-        </div>
-
-        <!-- Minimal actions only when Start is selected -->
-        <div class="actions" id="actions">
-          <button class="btn primary" id="toggleAxisBtn">Toggle 42° / 222° Axis</button>
-          <button class="btn" id="addStationBtn">Add Station</button>
-          <button class="btn" id="captureBtn">Capture Receipt</button>
-        </div>
+    <div class="nav">
+      <div class="btn" id="btnWelcome" role="button" tabindex="0" aria-label="Open Welcome">
+        <span class="lamp" aria-hidden="true"></span>
+        <span class="label">Welcome</span>
       </div>
-
-      <div class="foot">
-        <div>Local-first demo • storage: <strong class="mono">device only</strong></div>
-        <div class="mono" id="statusText">Ready</div>
+      <div class="btn" id="btnMission" role="button" tabindex="0" aria-label="Open Mission">
+        <span class="lamp" aria-hidden="true"></span>
+        <span class="label">Mission</span>
+      </div>
+      <div class="btn" id="btnSwitchboard" role="button" tabindex="0" aria-label="Open Switchboard">
+        <span class="lamp" aria-hidden="true"></span>
+        <span class="label">Switchboard</span>
       </div>
     </div>
   </div>
 
+  <!-- bottom hint -->
+  <div class="hint" aria-hidden="true">
+    <div class="hintPill">Drag to rotate • Pinch to zoom • Tap a button to open a panel</div>
+  </div>
+
+  <!-- SIDE PANEL -->
+  <div class="panelWrap" id="panelWrap" aria-hidden="true">
+    <div class="scrim" id="scrim"></div>
+
+    <div class="panel" role="dialog" aria-modal="true" aria-label="MAP E.D.E.N. Panel">
+      <div class="panelHeader">
+        <div class="panelTitle" id="panelTitle">WELCOME</div>
+        <div class="panelClose" id="panelClose" role="button" tabindex="0" aria-label="Close">✕</div>
+      </div>
+      <div class="panelBody" id="panelBody"></div>
+    </div>
+  </div>
+
   <!-- Three.js -->
-  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
 
   <script>
-    // =========================
-    // Minimal MAP E.D.E.N. Globe
-    // =========================
-    const $ = (id) => document.getElementById(id);
-
-    const statusText = $("statusText");
-    const canvas = $("stage");
-
-    // Panel behavior: tap × to shrink to a small bar (minimal)
-    const sheet = $("sheet");
-    const collapseBtn = $("collapseBtn");
-    let collapsed = false;
-
-    collapseBtn.addEventListener("click", () => {
-      collapsed = !collapsed;
-      if (collapsed){
-        sheet.style.transform = "translateY(calc(100% - 68px))";
-        collapseBtn.textContent = "▴";
-        collapseBtn.title = "Expand panel";
-        collapseBtn.setAttribute("aria-label","Expand panel");
-        statusText.textContent = "Panel minimized";
-      } else {
-        sheet.style.transform = "translateY(0)";
-        collapseBtn.textContent = "×";
-        collapseBtn.title = "Minimize panel";
-        collapseBtn.setAttribute("aria-label","Minimize panel");
-        statusText.textContent = "Ready";
-      }
-    });
-
-    // Tabs (Hello / Mission / Start)
-    const tabHello = $("tabHello");
-    const tabMission = $("tabMission");
-    const tabStart = $("tabStart");
-    const content = $("content");
-    const actions = $("actions");
-
-    function setActiveTab(which){
-      [tabHello, tabMission, tabStart].forEach(t => t.classList.remove("active"));
-      [tabHello, tabMission, tabStart].forEach(t => t.setAttribute("aria-selected","false"));
-
-      if (which === "hello"){
-        tabHello.classList.add("active");
-        tabHello.setAttribute("aria-selected","true");
-        actions.classList.remove("show");
-        content.innerHTML = `
-          <p>
-            <strong>MAP E.D.E.N.</strong> is a signal network — not a social app with maps.
-            It’s built for repeatable field work: minimal UI, clean capture, and comparable results.
-            <br><br>
-            Default ranking is <strong>Signal Score</strong> (data quality), never “likes.” Social is optional.
-          </p>
-        `;
-        statusText.textContent = "Hello";
-      }
-
-      if (which === "mission"){
-        tabMission.classList.add("active");
-        tabMission.setAttribute("aria-selected","true");
-        actions.classList.remove("show");
-        content.innerHTML = `
-          <p>
-            <strong>Mission:</strong> turn the 42° / 222° axis hypothesis into a coordinated, evidence-first experiment
-            by producing datasets that are repeatable, controlled, and comparable across stations and time.
-            <br><br>
-            The interface stays minimal so the work stays clean: <strong>capture → verify → replicate</strong>.
-          </p>
-        `;
-        statusText.textContent = "Mission";
-      }
-
-      if (which === "start"){
-        tabStart.classList.add("active");
-        tabStart.setAttribute("aria-selected","true");
-        actions.classList.add("show");
-        content.innerHTML = `
-          <p>
-            <strong>Start</strong> is intentionally simple:
-            <br>• Toggle the <strong>42° / 222°</strong> axis overlay
-            <br>• Add a <strong>Station</strong> (truth anchor)
-            <br>• Generate a <strong>Capture Receipt</strong> for replication
-          </p>
-        `;
-        statusText.textContent = "Start";
-      }
-    }
-
-    tabHello.addEventListener("click", () => setActiveTab("hello"));
-    tabMission.addEventListener("click", () => setActiveTab("mission"));
-    tabStart.addEventListener("click", () => setActiveTab("start"));
-
-    // =========================
-    // Three.js scene (minimal)
-    // =========================
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.01, 1000);
-    camera.position.set(0, 0, 3.2);
-
+    /***********************
+     * Globe (Three.js)
+     ***********************/
+    const canvas = document.getElementById("globe");
     const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
-    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x050508, 0.012);
+
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 2000);
+    camera.position.set(0, 0, 8.2);
 
     // Lights
-    const key = new THREE.DirectionalLight(0xffffff, 1.0);
-    key.position.set(2, 1.5, 2);
-    scene.add(key);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.05);
+    keyLight.position.set(6, 3, 8);
+    scene.add(keyLight);
 
-    const rim = new THREE.DirectionalLight(0x88ffee, 0.35);
-    rim.position.set(-2, 0.6, -2);
-    scene.add(rim);
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.35);
+    fillLight.position.set(-6, -2, 6);
+    scene.add(fillLight);
 
-    const amb = new THREE.AmbientLight(0xffffff, 0.15);
-    scene.add(amb);
+    const ambient = new THREE.AmbientLight(0xffffff, 0.28);
+    scene.add(ambient);
 
-    // Stars (subtle, not noisy)
-    function makeStars(count=1200){
-      const geo = new THREE.BufferGeometry();
-      const pos = new Float32Array(count * 3);
-      for (let i=0;i<count;i++){
-        const r = 70 * Math.random() + 10;
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(2*Math.random()-1);
-        pos[i*3+0] = r * Math.sin(phi) * Math.cos(theta);
-        pos[i*3+1] = r * Math.cos(phi);
-        pos[i*3+2] = r * Math.sin(phi) * Math.sin(theta);
-      }
-      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-      const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent:true, opacity:0.45 });
-      const pts = new THREE.Points(geo, mat);
-      return pts;
+    // Stars
+    const starCount = 1200;
+    const starGeo = new THREE.BufferGeometry();
+    const starPos = new Float32Array(starCount * 3);
+    for(let i=0;i<starCount;i++){
+      const r = 120 + Math.random()*380;
+      const theta = Math.random()*Math.PI*2;
+      const phi = Math.acos(2*Math.random()-1);
+      starPos[i*3+0] = r * Math.sin(phi) * Math.cos(theta);
+      starPos[i*3+1] = r * Math.cos(phi);
+      starPos[i*3+2] = r * Math.sin(phi) * Math.sin(theta);
     }
-    scene.add(makeStars());
+    starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
+    const stars = new THREE.Points(
+      starGeo,
+      new THREE.PointsMaterial({ color: 0xffffff, size: 0.85, transparent:true, opacity: 0.55, sizeAttenuation:true })
+    );
+    scene.add(stars);
 
-    // Globe (clean monochrome)
+    // Globe
     const globeGroup = new THREE.Group();
     scene.add(globeGroup);
 
-    const globeGeo = new THREE.SphereGeometry(1, 64, 64);
+    const globeRadius = 2.45;
+    const sphereGeo = new THREE.SphereGeometry(globeRadius, 96, 96);
+
+    // Base globe (no external textures required)
     const globeMat = new THREE.MeshStandardMaterial({
-      color: 0x0b0d11,
-      metalness: 0.2,
+      color: 0x0b1f2a,
       roughness: 0.85,
-      emissive: 0x000000
+      metalness: 0.15,
+      emissive: new THREE.Color(0x04060a),
+      emissiveIntensity: 0.8
     });
-    const globe = new THREE.Mesh(globeGeo, globeMat);
+    const globe = new THREE.Mesh(sphereGeo, globeMat);
     globeGroup.add(globe);
 
-    // Faint latitude/longitude grid (minimal)
-    const gridMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity: 0.06, wireframe:true });
-    const grid = new THREE.Mesh(new THREE.SphereGeometry(1.002, 36, 18), gridMat);
-    globeGroup.add(grid);
+    // Subtle wire overlay
+    const wire = new THREE.Mesh(
+      sphereGeo,
+      new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.06
+      })
+    );
+    globeGroup.add(wire);
 
-    // Atmosphere glow (subtle)
-    const atmMat = new THREE.MeshBasicMaterial({ color: 0x9adcff, transparent:true, opacity: 0.08 });
-    const atm = new THREE.Mesh(new THREE.SphereGeometry(1.03, 64, 64), atmMat);
-    globeGroup.add(atm);
+    // Atmosphere shell
+    const atmo = new THREE.Mesh(
+      new THREE.SphereGeometry(globeRadius * 1.02, 96, 96),
+      new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.06
+      })
+    );
+    globeGroup.add(atmo);
 
-    // Axis overlay (42° / 222°)
-    let axisOn = false;
-    let axisLine = null;
+    // Orientation
+    globeGroup.rotation.y = Math.PI * 0.12;
+    globeGroup.rotation.x = Math.PI * 0.03;
 
-    // Simple lat/lon marker (Station)
-    const stationGroup = new THREE.Group();
-    globeGroup.add(stationGroup);
-
-    function latLonToVec3(latDeg, lonDeg, radius=1.01){
-      const lat = THREE.MathUtils.degToRad(latDeg);
-      const lon = THREE.MathUtils.degToRad(lonDeg);
-      const x = radius * Math.cos(lat) * Math.sin(lon);
-      const y = radius * Math.sin(lat);
-      const z = radius * Math.cos(lat) * Math.cos(lon);
-      return new THREE.Vector3(x,y,z);
-    }
-
-    function makeGreatCircleLine(lat1, lon1, lat2, lon2){
-      const steps = 256;
-      const p1 = latLonToVec3(lat1, lon1, 1.02).normalize();
-      const p2 = latLonToVec3(lat2, lon2, 1.02).normalize();
-
-      // slerp points along arc
-      const pts = [];
-      for (let i=0;i<=steps;i++){
-        const t = i/steps;
-        const v = new THREE.Vector3().copy(p1).slerp(p2, t).multiplyScalar(1.02);
-        pts.push(v);
-      }
-
-      const geo = new THREE.BufferGeometry().setFromPoints(pts);
-      const mat = new THREE.LineBasicMaterial({ color: 0xb8fff0, transparent:true, opacity: 0.65 });
-      return new THREE.Line(geo, mat);
-    }
-
-    function toggleAxis(){
-      axisOn = !axisOn;
-      if (axisOn){
-        // Default demo anchor: Staunton-ish. Replace with your canonical origin if desired.
-        // Origin (lat, lon):
-        const originLat = 38.1608;
-        const originLon = -79.0730;
-
-        // Antipode:
-        const antiLat = -originLat;
-        const antiLon = (originLon + 180) > 180 ? (originLon - 180) : (originLon + 180);
-
-        axisLine = makeGreatCircleLine(originLat, originLon, antiLat, antiLon);
-        globeGroup.add(axisLine);
-        statusText.textContent = "Axis: ON";
-      } else {
-        if (axisLine) globeGroup.remove(axisLine);
-        axisLine = null;
-        statusText.textContent = "Axis: OFF";
-      }
-    }
-
-    function clearStations(){
-      while(stationGroup.children.length) stationGroup.remove(stationGroup.children[0]);
-    }
-
-    function addStation(lat, lon){
-      const dotGeo = new THREE.SphereGeometry(0.018, 16, 16);
-      const dotMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-      const dot = new THREE.Mesh(dotGeo, dotMat);
-      dot.position.copy(latLonToVec3(lat, lon, 1.03));
-      stationGroup.add(dot);
-
-      // small square frame behind (minimal “truth anchor” look)
-      const frameGeo = new THREE.RingGeometry(0.030, 0.034, 4);
-      const frameMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity: 0.8, side: THREE.DoubleSide });
-      const frame = new THREE.Mesh(frameGeo, frameMat);
-      frame.position.copy(latLonToVec3(lat, lon, 1.028));
-      frame.lookAt(frame.position.clone().multiplyScalar(2));
-      stationGroup.add(frame);
-
-      statusText.textContent = `Station set (${lat.toFixed(3)}, ${lon.toFixed(3)})`;
-    }
-
-    // Minimal “Capture Receipt”
-    function captureReceipt(){
-      const now = new Date();
-      const payload = {
-        app: "MAP E.D.E.N.",
-        ts: now.toISOString(),
-        axis: axisOn ? "ON" : "OFF",
-        stations: stationGroup.children.length ? "1+" : "0",
-        note: "Local-first demo receipt"
-      };
-      try{
-        localStorage.setItem("eden_last_receipt", JSON.stringify(payload, null, 2));
-      }catch(e){}
-      statusText.textContent = "Receipt captured";
-      // Keep it minimal: use alert once; replace later with a dedicated receipt view.
-      alert("Capture Receipt saved locally.\n\n" + JSON.stringify(payload, null, 2));
-    }
-
-    // Hook up buttons
-    $("toggleAxisBtn").addEventListener("click", toggleAxis);
-
-    $("addStationBtn").addEventListener("click", () => {
-      // Minimal input (fast, user-friendly). Replace later with “tap globe to drop pin”.
-      const lat = parseFloat(prompt("Station Latitude (e.g., 38.161):", "38.161"));
-      const lon = parseFloat(prompt("Station Longitude (e.g., -79.073):", "-79.073"));
-      if (Number.isFinite(lat) && Number.isFinite(lon)){
-        clearStations();
-        addStation(lat, lon);
-      } else {
-        statusText.textContent = "Station canceled";
-      }
-    });
-
-    $("captureBtn").addEventListener("click", captureReceipt);
-
-    // Touch/drag rotate (minimal, no heavy controls)
-    let dragging = false;
+    // Drag rotate
+    let isDown = false;
     let lastX = 0, lastY = 0;
+    let rotVelX = 0, rotVelY = 0;
 
-    function onDown(x,y){ dragging = true; lastX=x; lastY=y; }
-    function onMove(x,y){
-      if(!dragging) return;
-      const dx = (x-lastX)/window.innerWidth;
-      const dy = (y-lastY)/window.innerHeight;
-      lastX=x; lastY=y;
-
-      globeGroup.rotation.y += dx * 2.8;
-      globeGroup.rotation.x += dy * 1.6;
-      globeGroup.rotation.x = Math.max(-1.1, Math.min(1.1, globeGroup.rotation.x));
+    function onPointerDown(e){
+      isDown = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
     }
-    function onUp(){ dragging = false; }
+    function onPointerMove(e){
+      if(!isDown) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
 
-    window.addEventListener("pointerdown", (e)=> onDown(e.clientX, e.clientY), {passive:true});
-    window.addEventListener("pointermove", (e)=> onMove(e.clientX, e.clientY), {passive:true});
-    window.addEventListener("pointerup", onUp, {passive:true});
-    window.addEventListener("pointercancel", onUp, {passive:true});
+      const s = 0.0042;
+      globeGroup.rotation.y += dx * s;
+      globeGroup.rotation.x += dy * s;
+      globeGroup.rotation.x = Math.max(-Math.PI*0.46, Math.min(Math.PI*0.46, globeGroup.rotation.x));
 
-    // Gentle auto-drift (only when not dragging)
+      rotVelY = dx * s * 0.55;
+      rotVelX = dy * s * 0.55;
+    }
+    function onPointerUp(){
+      isDown = false;
+    }
+
+    // Pinch/scroll zoom
+    function onWheel(e){
+      e.preventDefault();
+      const delta = Math.sign(e.deltaY);
+      camera.position.z = Math.max(5.2, Math.min(13.5, camera.position.z + delta*0.55));
+    }
+
+    canvas.addEventListener("pointerdown", onPointerDown, { passive:true });
+    window.addEventListener("pointermove", onPointerMove, { passive:true });
+    window.addEventListener("pointerup", onPointerUp, { passive:true });
+
+    canvas.addEventListener("wheel", onWheel, { passive:false });
+
+    // Resize
+    function resize(){
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    // Render loop
     function animate(){
       requestAnimationFrame(animate);
-      if(!dragging) globeGroup.rotation.y += 0.0012;
+
+      // slow idle rotation + inertial drift
+      if(!isDown){
+        globeGroup.rotation.y += 0.0014 + rotVelY;
+        globeGroup.rotation.x += rotVelX;
+        globeGroup.rotation.x = Math.max(-Math.PI*0.46, Math.min(Math.PI*0.46, globeGroup.rotation.x));
+        rotVelY *= 0.92;
+        rotVelX *= 0.92;
+      }
+
+      wire.rotation.y += 0.0009;
+      stars.rotation.y += 0.00012;
+
       renderer.render(scene, camera);
     }
     animate();
 
-    // Resize
-    window.addEventListener("resize", () => {
-      camera.aspect = window.innerWidth/window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+    /***********************
+     * UI / Panels
+     ***********************/
+    const panelWrap = document.getElementById("panelWrap");
+    const panelBody = document.getElementById("panelBody");
+    const panelTitle = document.getElementById("panelTitle");
+    const scrim = document.getElementById("scrim");
+    const panelClose = document.getElementById("panelClose");
+
+    const btnWelcome = document.getElementById("btnWelcome");
+    const btnMission = document.getElementById("btnMission");
+    const btnSwitchboard = document.getElementById("btnSwitchboard");
+    const buttons = [btnWelcome, btnMission, btnSwitchboard];
+
+    function setActive(btn){
+      buttons.forEach(b => b.classList.toggle("active", b === btn));
+    }
+
+    function openPanel(title){
+      panelTitle.textContent = title;
+      panelWrap.classList.add("open");
+      panelWrap.setAttribute("aria-hidden","false");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closePanel(){
+      panelWrap.classList.remove("open");
+      panelWrap.setAttribute("aria-hidden","true");
+      // keep buttons active state (green lamps) even after close (as requested)
+      panelBody.innerHTML = "";
+    }
+
+    function renderWelcome(){
+      openPanel("WELCOME");
+      panelBody.innerHTML = `
+        <iframe class="frame" src="./welcome6.html" title="MAP E.D.E.N. — Welcome"></iframe>
+      `;
+    }
+
+    function renderMission(){
+      openPanel("MISSION");
+      panelBody.innerHTML = `
+        <div class="cardGrid">
+          <div class="card">
+            <div class="h2">MAP E.D.E.N.</div>
+            <p class="p">
+              MAP E.D.E.N. is the secure field platform for Project E.D.E.N. (Earth Diametric &amp; Energy Network)—
+              built to run repeatable, real-world tests along Earth corridors, beginning with the 42/222 diametric axis.
+              Powered by Mandorla.io and Mandorla.app, it equips trusted operators to capture measurements, events,
+              and evidence under disciplined protocols so every session remains comparable across time, operators, and corridors.
+            </p>
+            <p class="muted">
+              Measurement-first • Controls • Replication • Conservative interpretation
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="h2">Project E.D.E.N.</div>
+            <p class="p">
+              The program evaluates whether the 42°/222° corridor shows repeatable signal coherence distinguishable
+              from ordinary noise and known artifacts. Magnetically Responsive Materials (MRM) support calibration-first
+              work—ferrofluids and magnetorheological fluids provide “known response” references to validate sensors,
+              characterize local magnetic noise, and standardize interaction tests under defined field conditions.
+            </p>
+            <p class="p">
+              All hypotheses are treated as testable targets governed by defined controls and falsification criteria—never assumptions.
+              Until thresholds for repeatability and independent replication are met, the platform reports measurements, uncertainty,
+              and null results without attributing mechanism or agency.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="h2">Boundary + Ethics</div>
+            <p class="p">
+              Privacy and safety come first: operator identities, exact private locations, and sensitive site details are protected.
+              Fieldwork must follow all laws and respect wildlife, protected lands, and restricted areas.
+            </p>
+            <p class="muted">
+              This panel is a summary. The full Welcome page (and long-form Mission copy) is available under Welcome.
+            </p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSwitchboard(){
+      openPanel("SWITCHBOARD");
+      panelBody.innerHTML = `
+        <div class="cardGrid">
+
+          <div class="card">
+            <div class="row">
+              <div class="h2" style="margin:0;">Stations</div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <div class="pillBtn" id="stationAdd">+ Create</div>
+                <div class="pillBtn" id="stationDel">− Delete</div>
+              </div>
+            </div>
+            <div style="margin-top:10px;">
+              <input class="input" id="stationSearch" placeholder="Search stations (name, code, location)" />
+              <ul class="list" id="stationList">
+                <li class="item"><span>STAUNTON • Baseline (Exit 222)</span><span class="tag">Owner</span></li>
+                <li class="item"><span>EDEN-CORRIDOR • 42/222 Axis</span><span class="tag">Analyst</span></li>
+                <li class="item"><span>FIELD-MOBILE • Operator Kit</span><span class="tag">Operator</span></li>
+              </ul>
+              <div class="muted" style="margin-top:10px;">
+                Stations are placeholders here. Wire to your real station registry when ready.
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="row">
+              <div class="h2" style="margin:0;">Overlay</div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <div class="pillBtn" id="ovMinus">−</div>
+                <div class="pillBtn" id="ovPlus">+</div>
+              </div>
+            </div>
+            <div style="margin-top:10px;">
+              <input class="input" id="overlaySearch" placeholder="Search overlays (Group A/B/C, M-Bridge, E.D.E.N.)" />
+              <ul class="list" id="overlayList">
+                <li class="item"><span>Group A — Scripture &amp; Semitic Lens</span><span class="tag">ON</span></li>
+                <li class="item"><span>Group B — Esoteric / Numerology</span><span class="tag">ON</span></li>
+                <li class="item"><span>Group C — Personal / Therapeutic</span><span class="tag">ON</span></li>
+                <li class="item"><span>Group D — (Default OFF)</span><span class="tag">OFF</span></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="h2">Members</div>
+            <input class="input" id="memberSearch" placeholder="Search members by role (Owner / Operator / Observer / Analyst) or name" />
+            <ul class="list" id="memberList">
+              <li class="item"><span>Member</span><span class="tag">Owner</span></li>
+              <li class="item"><span>Operator Alpha</span><span class="tag">Operator</span></li>
+              <li class="item"><span>Observer One</span><span class="tag">Observer</span></li>
+              <li class="item"><span>Analyst Node</span><span class="tag">Analyst</span></li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <div class="h2">Field Note</div>
+            <textarea class="textarea" placeholder="Write a station note (UTC time, conditions, device state, controls, evidence)"></textarea>
+            <div class="muted" style="margin-top:10px;">
+              Tip: keep notes factual (what you did, what the instruments read, what evidence files exist).
+            </div>
+          </div>
+
+        </div>
+      `;
+
+      // Search filters (kept simple + safe)
+      const stationSearch = document.getElementById("stationSearch");
+      const stationList = document.getElementById("stationList");
+      const overlaySearch = document.getElementById("overlaySearch");
+      const overlayList = document.getElementById("overlayList");
+      const memberSearch = document.getElementById("memberSearch");
+      const memberList = document.getElementById("memberList");
+
+      function filterList(input, listEl){
+        const q = (input.value || "").toLowerCase().trim();
+        [...listEl.querySelectorAll(".item")].forEach(li=>{
+          const text = li.innerText.toLowerCase();
+          li.style.display = text.includes(q) ? "" : "none";
+        });
+      }
+
+      stationSearch.addEventListener("input", ()=>filterList(stationSearch, stationList));
+      overlaySearch.addEventListener("input", ()=>filterList(overlaySearch, overlayList));
+      memberSearch.addEventListener("input", ()=>filterList(memberSearch, memberList));
+    }
+
+    // Controls
+    function bindButton(btn, handler){
+      btn.addEventListener("click", handler);
+      btn.addEventListener("keydown", (e)=>{
+        if(e.key === "Enter" || e.key === " "){
+          e.preventDefault();
+          handler();
+        }
+      });
+    }
+
+    bindButton(btnWelcome, () => { setActive(btnWelcome); renderWelcome(); });
+    bindButton(btnMission, () => { setActive(btnMission); renderMission(); });
+    bindButton(btnSwitchboard, () => { setActive(btnSwitchboard); renderSwitchboard(); });
+
+    bindButton(panelClose, closePanel);
+    scrim.addEventListener("click", closePanel);
+
+    // ESC closes panel
+    window.addEventListener("keydown", (e)=>{
+      if(e.key === "Escape" && panelWrap.classList.contains("open")) closePanel();
     });
 
-    // Start view defaults
-    setActiveTab("hello");
-    statusText.textContent = "Ready";
+    // Optional: open Welcome by default on first load (comment out if you don't want auto-open)
+    // setActive(btnWelcome);
+    // renderWelcome();
   </script>
 </body>
 </html>
