@@ -3,1638 +3,652 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="color-scheme" content="dark" />
+  <meta name="referrer" content="no-referrer" />
   <title>MAP E.D.E.N.</title>
-
-  <!--
-    MAP E.D.E.N. — Index Architecture (LOCKED Noir Glass)
-    - 3 Super Surfaces: Member • Station • Overlay+
-    - The E.D.E.N. Loop: Capture → Verify → Share → Replicate → Compare → Learn
-    - Signal > Social: Signal Score is separate from Social Reach
-    - Stations: A/B/C accuracy grade + Survey Mode
-    - Overlay+: Library system + 3 controls (On/Off, Opacity, Mode)
-    - Privacy: Location/Time/Access "3 dials" everywhere + local-first storage
-  -->
 
   <style>
     :root{
-      --bg:#050508;                 /* space black */
-      --fg:rgba(255,255,255,.96);
-      --muted:rgba(255,255,255,.72);
-      --muted2:rgba(255,255,255,.55);
+      --bg:#050508;
+      --glass: rgba(12,14,18,.58);
+      --glass2: rgba(12,14,18,.40);
       --stroke: rgba(255,255,255,.12);
       --stroke2: rgba(255,255,255,.18);
-      --glass: rgba(12,14,18,.62);
-      --glass2: rgba(12,14,18,.42);
-      --shadow: 0 18px 60px rgba(0,0,0,.65);
-      --blur: 16px;
-
-      --ok: rgba(85,255,160,.95);      /* green status light */
-      --warn: rgba(255,210,85,.95);
-      --bad: rgba(255,95,95,.95);
-
-      --radius: 16px;
-      --radius2: 22px;
+      --fg: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.68);
+      --muted2: rgba(255,255,255,.52);
+      --accent: rgba(140,255,220,.85);
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --radius: 22px;
     }
 
     *{ box-sizing:border-box; }
     html,body{ height:100%; margin:0; }
     body{
-      background: var(--bg);
+      background: radial-gradient(1200px 800px at 70% 20%, rgba(90,140,255,.10), transparent 55%),
+                  radial-gradient(900px 700px at 25% 30%, rgba(140,255,220,.08), transparent 55%),
+                  var(--bg);
       color: var(--fg);
       font-family: -apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Segoe UI,Roboto,Helvetica,Arial,sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      overflow: hidden;
+      overflow:hidden;
     }
 
-    /* Background */
-    .stage{
+    /* Canvas */
+    #stage{
       position: fixed;
       inset: 0;
-      overflow: hidden;
-      background: radial-gradient(1200px 700px at 50% 45%, rgba(255,255,255,.06), transparent 65%),
-                  radial-gradient(900px 550px at 50% 50%, rgba(255,255,255,.05), transparent 70%),
-                  radial-gradient(1400px 900px at 50% 58%, rgba(255,255,255,.03), transparent 70%),
-                  var(--bg);
-    }
-    .stars{
-      position: absolute;
-      inset: -20%;
-      background-image:
-        radial-gradient(circle at 20% 30%, rgba(255,255,255,.35) 0 1px, transparent 2px),
-        radial-gradient(circle at 70% 20%, rgba(255,255,255,.25) 0 1px, transparent 2px),
-        radial-gradient(circle at 40% 80%, rgba(255,255,255,.25) 0 1px, transparent 2px),
-        radial-gradient(circle at 80% 70%, rgba(255,255,255,.20) 0 1px, transparent 2px),
-        radial-gradient(circle at 10% 65%, rgba(255,255,255,.18) 0 1px, transparent 2px);
-      background-size: 320px 320px, 420px 420px, 520px 520px, 620px 620px, 720px 720px;
-      filter: blur(.2px);
-      opacity: .55;
-      transform: translateZ(0);
-      animation: drift 26s linear infinite;
-    }
-    @keyframes drift{
-      0%{ transform: translate3d(0,0,0); }
-      100%{ transform: translate3d(-120px, 80px, 0); }
-    }
-
-    /* Three.js canvas */
-    #globe{
-      position:absolute;
-      inset:0;
       width:100%;
       height:100%;
       display:block;
-      outline:none;
+      touch-action: none;
     }
 
-    /* Top bar */
-    .topbar{
-      position:absolute;
-      top: env(safe-area-inset-top);
-      left: env(safe-area-inset-left);
-      right: env(safe-area-inset-right);
-      padding: 14px 14px 10px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
-      pointer-events: none;
-    }
-
-    .brand{
-      pointer-events: auto;
-      display:flex;
-      align-items:center;
-      gap:10px;
+    /* Minimal top badge (optional, unobtrusive) */
+    .top-badge{
+      position: fixed;
+      top: calc(10px + env(safe-area-inset-top));
+      left: calc(12px + env(safe-area-inset-left));
+      z-index: 10;
       padding: 10px 12px;
-      border-radius: 999px;
-      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
-      border: 1px solid var(--stroke);
-      backdrop-filter: blur(var(--blur));
-      box-shadow: var(--shadow);
-      user-select:none;
-    }
-    .brand .mark{
-      width: 26px; height: 26px;
-      border-radius: 8px;
-      border: 1px solid var(--stroke2);
-      display:grid;
-      place-items:center;
-      background: rgba(255,255,255,.04);
-      overflow:hidden;
-    }
-    .brand .mark img{ width:100%; height:100%; object-fit:cover; display:block; }
-    .brand .title{
-      line-height:1.0;
-    }
-    .brand .title b{
-      letter-spacing:.24em;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      background: rgba(0,0,0,.20);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       font-size: 12px;
-      display:block;
-      color: rgba(255,255,255,.92);
-    }
-    .brand .title span{
-      display:block;
-      font-size: 11px;
-      color: var(--muted);
-      letter-spacing:.08em;
-      margin-top: 3px;
-    }
-
-    .nav{
-      pointer-events:auto;
-      display:flex;
-      align-items:center;
-      gap: 8px;
-      padding: 10px;
-      border-radius: 999px;
-      background: rgba(12,14,18,.46);
-      border: 1px solid var(--stroke);
-      backdrop-filter: blur(var(--blur));
-      box-shadow: var(--shadow);
-    }
-    .btn{
-      appearance:none;
-      border: 1px solid var(--stroke);
-      background: rgba(255,255,255,.04);
-      color: rgba(255,255,255,.90);
-      border-radius: 999px;
-      padding: 10px 12px;
-      font-size: 12px;
-      letter-spacing:.18em;
+      letter-spacing: .16em;
       text-transform: uppercase;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      gap: 8px;
+      color: rgba(255,255,255,.75);
       user-select:none;
-    }
-    .btn:active{ transform: translateY(1px); }
-    .btn .lamp{
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: rgba(255,255,255,.22);
-      box-shadow: 0 0 0 2px rgba(255,255,255,.08);
-    }
-    .btn.active{
-      border-color: rgba(255,255,255,.22);
-      background: rgba(255,255,255,.06);
-    }
-    .btn.active .lamp{
-      background: var(--ok);
-      box-shadow: 0 0 14px rgba(85,255,160,.55), 0 0 0 2px rgba(85,255,160,.20);
+      pointer-events:none;
     }
 
-    /* Bottom sheet */
+    /* Bottom Sheet (single card, minimal) */
     .sheet{
-      position:absolute;
-      left: env(safe-area-inset-left);
-      right: env(safe-area-inset-right);
-      bottom: env(safe-area-inset-bottom);
-      padding: 14px;
-      pointer-events:none;
+      position: fixed;
+      left: 0; right: 0;
+      bottom: 0;
+      z-index: 20;
+      padding: 12px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
     }
 
     .card{
-      pointer-events:auto;
-      width: min(980px, 100%);
+      max-width: 920px;
       margin: 0 auto;
-      border-radius: var(--radius2);
-      background: linear-gradient(180deg, rgba(12,14,18,.72), rgba(12,14,18,.44));
-      border: 1px solid var(--stroke);
-      backdrop-filter: blur(var(--blur));
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.12);
       box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       overflow:hidden;
     }
 
-    .cardhead{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
-      padding: 12px 14px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      background: rgba(255,255,255,.02);
-    }
-
-    .cardhead .left{
-      display:flex;
-      align-items:center;
-      gap: 10px;
-      min-width: 0;
-    }
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap: 8px;
-      padding: 8px 10px;
+    .handle{
+      width: 56px;
+      height: 6px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
-      font-size: 12px;
-      color: rgba(255,255,255,.86);
-      letter-spacing:.06em;
-      white-space:nowrap;
-    }
-    .pill b{ letter-spacing:.14em; }
-    .kbd{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.04);
-      color: rgba(255,255,255,.82);
+      background: rgba(255,255,255,.22);
+      margin: 10px auto 6px auto;
+      opacity:.8;
     }
 
-    .cardbody{
-      max-height: min(58vh, 620px);
-      overflow:auto;
-      padding: 14px;
+    .card-inner{
+      padding: 14px 14px 12px 14px;
     }
 
-    .grid{
-      display:grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 12px;
-    }
-    @media (max-width: 880px){
-      .grid{ grid-template-columns: 1fr; }
-    }
-
-    .panel{
-      border-radius: var(--radius);
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
-      padding: 12px;
-    }
-
-    .h{
-      margin: 0 0 8px;
-      font-size: 12px;
-      letter-spacing:.22em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,.92);
-    }
-    .p{
-      margin: 0;
-      font-size: 13px;
-      line-height: 1.55;
-      color: rgba(255,255,255,.82);
-    }
-    .p small{ color: var(--muted2); }
-
-    .row{
-      display:flex;
-      align-items:center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .input, .select, .miniBtn{
-      appearance:none;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.18);
-      color: rgba(255,255,255,.88);
-      border-radius: 12px;
-      padding: 10px 10px;
-      font-size: 13px;
-      outline:none;
-    }
-    .input{ flex: 1; min-width: 180px; }
-    .select{ padding: 10px 12px; }
-    .miniBtn{
-      cursor:pointer;
-      letter-spacing:.12em;
-      text-transform: uppercase;
-      font-size: 11px;
-      padding: 10px 12px;
-      background: rgba(255,255,255,.05);
-    }
-    .miniBtn:active{ transform: translateY(1px); }
-    .miniBtn.primary{
-      border-color: rgba(255,255,255,.22);
-      background: rgba(255,255,255,.08);
-    }
-
-    .list{
-      display:flex;
-      flex-direction:column;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .item{
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.16);
-      padding: 10px 10px;
+    .brand-row{
       display:flex;
       align-items:flex-start;
       justify-content:space-between;
-      gap: 10px;
+      gap: 12px;
     }
-    .item .meta{
+
+    .brand{
+      display:flex;
+      gap: 12px;
+      align-items:center;
       min-width: 0;
     }
-    .item .meta b{
-      display:block;
-      font-size: 13px;
-      color: rgba(255,255,255,.92);
-      letter-spacing:.04em;
-      margin-bottom: 3px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .item .meta span{
-      display:block;
-      font-size: 12px;
-      color: var(--muted);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
 
-    .tag{
-      display:inline-flex;
-      align-items:center;
-      gap: 6px;
-      padding: 6px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      font-size: 11px;
-      color: rgba(255,255,255,.86);
-      letter-spacing:.10em;
-      text-transform: uppercase;
-      white-space:nowrap;
-    }
-    .tag.ok{ border-color: rgba(85,255,160,.22); }
-    .tag.warn{ border-color: rgba(255,210,85,.22); }
-    .tag.bad{ border-color: rgba(255,95,95,.22); }
-
-    .hr{
-      height: 1px;
-      background: rgba(255,255,255,.10);
-      margin: 12px 0;
-    }
-
-    .footerbar{
+    .brand-mark{
+      width: 62px;
+      height: 62px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: radial-gradient(60px 60px at 30% 30%, rgba(255,255,255,.12), rgba(255,255,255,.02));
       display:flex;
       align-items:center;
-      justify-content:space-between;
-      gap: 10px;
-      padding: 12px 14px;
-      border-top: 1px solid rgba(255,255,255,.08);
-      background: rgba(255,255,255,.02);
+      justify-content:center;
+      overflow:hidden;
+      flex: 0 0 auto;
     }
 
-    .tiny{
-      font-size: 11px;
-      color: var(--muted2);
-      letter-spacing:.06em;
-      line-height:1.4;
-    }
-
-    /* tiny mono readout */
-    .readout{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size: 11px;
-      color: rgba(255,255,255,.80);
+    .brand-mark img{
+      width: 92px;
+      height: 92px;
+      object-fit: contain;
       opacity: .95;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 56vw;
+      transform: translateY(2px);
+      filter: drop-shadow(0 8px 18px rgba(0,0,0,.45));
     }
 
-    /* Tap hint */
-    .hint{
-      position:absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: calc(env(safe-area-inset-bottom) + 140px);
-      padding: 10px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.28);
-      backdrop-filter: blur(var(--blur));
-      color: rgba(255,255,255,.78);
-      font-size: 12px;
-      letter-spacing:.06em;
-      pointer-events:none;
-      opacity:.85;
+    .brand-text{
+      min-width: 0;
     }
-    @media (max-height: 700px){
-      .hint{ display:none; }
+
+    .title{
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin: 2px 0 4px 0;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+
+    .subtitle{
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    .xbtn{
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      color: rgba(255,255,255,.78);
+      font-size: 20px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      flex: 0 0 auto;
+    }
+
+    /* Segmented tabs (Hello / Mission / Start) */
+    .tabs{
+      display:flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .tab{
+      flex: 1 1 auto;
+      padding: 12px 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.14);
+      color: rgba(255,255,255,.86);
+      font-weight: 650;
+      font-size: 14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap: 8px;
+      cursor:pointer;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .tab.active{
+      border-color: rgba(140,255,220,.24);
+      background: rgba(140,255,220,.10);
+      color: rgba(255,255,255,.95);
+      box-shadow: 0 0 0 1px rgba(140,255,220,.10) inset;
+    }
+
+    /* Content */
+    .content{
+      margin-top: 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.12);
+      padding: 12px 12px;
+    }
+
+    .content p{
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .content strong{ color: rgba(255,255,255,.90); }
+
+    /* Minimal action row (only visible in Start) */
+    .actions{
+      margin-top: 12px;
+      display:none;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .actions.show{ display:flex; }
+
+    .btn{
+      flex: 1 1 140px;
+      padding: 12px 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.14);
+      color: rgba(255,255,255,.86);
+      font-weight: 650;
+      font-size: 13px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap: 8px;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn.primary{
+      border-color: rgba(140,255,220,.26);
+      background: rgba(140,255,220,.12);
+    }
+
+    .foot{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 12px;
+      padding: 10px 14px 14px 14px;
+      color: rgba(255,255,255,.55);
+      font-size: 12px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.10);
+    }
+
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      letter-spacing: .02em;
+    }
+
+    /* Small screens */
+    @media (max-width: 420px){
+      .brand-mark{ width: 56px; height: 56px; }
+      .brand-mark img{ width: 86px; height: 86px; }
+      .title{ font-size: 16px; }
     }
   </style>
 </head>
 
 <body>
-  <div class="stage">
-    <div class="stars"></div>
-    <canvas id="globe" aria-label="MAP E.D.E.N. Globe"></canvas>
+  <canvas id="stage"></canvas>
+  <div class="top-badge">MAP E.D.E.N.</div>
 
-    <div class="topbar">
-      <div class="brand" id="brandBtn" title="MAP E.D.E.N.">
-        <div class="mark">
-          <!-- Optional: place a noir logo at /assets/eden-mark.png -->
-          <img src="assets/eden-mark.png" alt="" onerror="this.remove()" />
+  <div class="sheet" id="sheet">
+    <div class="card" role="dialog" aria-label="MAP E.D.E.N. Panel">
+      <div class="handle"></div>
+
+      <div class="card-inner">
+        <div class="brand-row">
+          <div class="brand">
+            <div class="brand-mark" aria-hidden="true">
+              <!-- Logo Architecture (drop in your PNG here): assets/map-eden-logo.png -->
+              <img src="assets/map-eden-logo.png" alt="" onerror="this.style.display='none'; this.parentElement.style.opacity='.85'; this.parentElement.textContent='E.D.E.N.';" />
+            </div>
+            <div class="brand-text">
+              <div class="title">MAP E.D.E.N.</div>
+              <p class="subtitle">Earth Diametric Energy Network • <span class="mono">Signal &gt; Social</span></p>
+            </div>
+          </div>
+
+          <button class="xbtn" id="collapseBtn" title="Minimize panel" aria-label="Minimize panel">×</button>
         </div>
-        <div class="title">
-          <b>MAP</b>
-          <span>E.D.E.N.</span>
+
+        <div class="tabs" role="tablist" aria-label="Sections">
+          <button class="tab active" id="tabHello" role="tab" aria-selected="true">Hello</button>
+          <button class="tab" id="tabMission" role="tab" aria-selected="false">Mission</button>
+          <button class="tab" id="tabStart" role="tab" aria-selected="false">Start</button>
+        </div>
+
+        <div class="content" id="content">
+          <p>
+            <strong>MAP E.D.E.N.</strong> is a signal network — not a social app with maps.
+            It’s built for repeatable field work: minimal UI, clean capture, and comparable results.
+            <br><br>
+            Default ranking is <strong>Signal Score</strong> (data quality), never “likes.” Social is optional.
+          </p>
+        </div>
+
+        <!-- Minimal actions only when Start is selected -->
+        <div class="actions" id="actions">
+          <button class="btn primary" id="toggleAxisBtn">Toggle 42° / 222° Axis</button>
+          <button class="btn" id="addStationBtn">Add Station</button>
+          <button class="btn" id="captureBtn">Capture Receipt</button>
         </div>
       </div>
 
-      <div class="nav" role="navigation" aria-label="Primary">
-        <button class="btn active" id="btnWelcome"><span class="lamp"></span><span>Hello</span></button>
-        <button class="btn" id="btnMission"><span class="lamp"></span><span>Mission</span></button>
-        <button class="btn" id="btnSwitch"><span class="lamp"></span><span>Switchboard</span></button>
-      </div>
-    </div>
-
-    <div class="hint">Drag to rotate • Scroll/Pinch to zoom • Tap buttons above</div>
-
-    <div class="sheet">
-      <div class="card" id="card">
-        <div class="cardhead">
-          <div class="left">
-            <div class="pill"><b>EDEN LOOP</b> <span class="kbd">Capture</span><span class="kbd">Verify</span><span class="kbd">Share</span><span class="kbd">Replicate</span><span class="kbd">Compare</span><span class="kbd">Learn</span></div>
-          </div>
-          <div class="readout" id="readout">Local-first • Noir Glass • Signal &gt; Social • Stations • Overlay+ • Vault</div>
-        </div>
-
-        <div class="cardbody" id="panelWelcome">
-          <div class="grid">
-            <div class="panel">
-              <h3 class="h">Hello</h3>
-              <p class="p">
-                <b>MAP E.D.E.N.</b> is a <b>Signal Network</b> — not a social app with maps.
-                Members create <b>Stations</b> (truth anchors), enable <b>Overlay+</b> (reality lenses),
-                and publish <b>Capture Receipts</b> that can be replicated, compared, and learned from.
-                <br><br>
-                <small>
-                  Default ranking is <b>Signal Score</b> (data quality), never “likes.”
-                  Social reach is separate and optional.
-                </small>
-              </p>
-
-              <div class="hr"></div>
-
-              <div class="row">
-                <span class="tag ok">Signal &gt; Social</span>
-                <span class="tag">Member</span>
-                <span class="tag">Station</span>
-                <span class="tag">Overlay+</span>
-                <span class="tag">Vault</span>
-                <span class="tag">Case Files</span>
-              </div>
-
-              <div class="hr"></div>
-
-              <h3 class="h">Quick Actions</h3>
-              <div class="row">
-                <button class="miniBtn primary" id="qaCreateStation">+ Create Station</button>
-                <button class="miniBtn" id="qaNewNote">+ New Field Note</button>
-                <button class="miniBtn" id="qaEnableAxis">Toggle 42°/222° Axis</button>
-              </div>
-
-              <div class="hr"></div>
-
-              <h3 class="h">Privacy Dials (Always Visible)</h3>
-              <p class="p"><small>Every share uses the same three controls: <b>Location</b> • <b>Time</b> • <b>Access</b>.</small></p>
-              <div class="row" style="margin-top:10px">
-                <select class="select" id="dialLoc">
-                  <option value="exact">Location: Exact</option>
-                  <option value="fuzzed" selected>Location: Fuzzed</option>
-                  <option value="corridor">Location: Corridor-only</option>
-                  <option value="hidden">Location: Hidden</option>
-                </select>
-                <select class="select" id="dialTime">
-                  <option value="live" selected>Time: Live</option>
-                  <option value="delayed">Time: Delayed</option>
-                  <option value="batched">Time: Batched</option>
-                </select>
-                <select class="select" id="dialAccess">
-                  <option value="public">Access: Public</option>
-                  <option value="hub" selected>Access: Hub</option>
-                  <option value="cell">Access: Cell</option>
-                  <option value="direct">Access: Direct</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="panel">
-              <h3 class="h">Network Status</h3>
-              <div class="list" id="statusList"></div>
-
-              <div class="hr"></div>
-
-              <h3 class="h">Signal Feed (Local Demo)</h3>
-              <p class="p"><small>Capture Receipts appear here. In production this becomes your Signal Feed.</small></p>
-              <div class="list" id="feedList"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="cardbody" id="panelMission" style="display:none">
-          <div class="panel">
-            <h3 class="h">Mission</h3>
-            <p class="p">
-              <b>MAP E.D.E.N.</b> is the operational field platform for <b>Project E.D.E.N.</b> (Earth’s Diametric Energy Network) —
-              a secure, repeatable way to run real-world tests along defined Earth corridors, beginning with the <b>42°/222°</b> diametric axis.
-              <br><br>
-              E.D.E.N. is built to separate <b>signal from story</b> using:
-              <br>• Station-anchored capture (UTC + accuracy)
-              <br>• Overlay provenance (source + version + confidence)
-              <br>• Replication requests (others repeat your protocol)
-              <br>• Comparison views (multi-station correlation)
-              <br><br>
-              <small>
-                E.D.E.N. does not claim causality from single events. The network exists to generate datasets that remain valid under skepticism.
-              </small>
-            </p>
-
-            <div class="hr"></div>
-
-            <h3 class="h">The Breakthrough Change</h3>
-            <p class="p">
-              Social networks rank by popularity. <b>MAP E.D.E.N. ranks by evidence.</b>
-              <br><br>
-              <b>Signal Score</b> is computed from receipt completeness (raw export, UTC, accuracy grade, protocol template, replication, peer validation).
-              Social engagement exists, but it never overrides data quality.
-            </p>
-
-            <div class="hr"></div>
-
-            <h3 class="h">Noir Glass (Default)</h3>
-            <p class="p">
-              The interface is permanently <b>black/white Atomic Noir</b> by default — minimal controls, glass transparency, film-like restraint.
-              Members may customize later, but the default remains a clean, serious newsreel aesthetic.
-            </p>
-          </div>
-        </div>
-
-        <div class="cardbody" id="panelSwitch" style="display:none">
-          <div class="grid">
-            <!-- MEMBERS -->
-            <div class="panel">
-              <h3 class="h">Member Profile</h3>
-              <div class="row">
-                <input class="input" id="memberName" placeholder="Member name" />
-                <select class="select" id="memberRole">
-                  <option>Owner</option>
-                  <option selected>Operator</option>
-                  <option>Observer</option>
-                  <option>Analyst</option>
-                </select>
-                <button class="miniBtn primary" id="saveMember">Save</button>
-              </div>
-
-              <div class="hr"></div>
-
-              <h3 class="h">Vault (Local-First Assets)</h3>
-              <div class="row">
-                <input class="input" id="vaultLabel" placeholder="Asset label (e.g., Magnetometer Export)" />
-                <input class="input" type="file" id="vaultFile" />
-                <button class="miniBtn" id="addAsset">Add</button>
-              </div>
-              <div class="list" id="assetList"></div>
-
-              <div class="hr"></div>
-
-              <h3 class="h">Case Files</h3>
-              <div class="row">
-                <input class="input" id="caseTitle" placeholder="Create a Case File (e.g., Axis Run 01)" />
-                <button class="miniBtn" id="addCase">+ Create</button>
-              </div>
-              <div class="list" id="caseList"></div>
-            </div>
-
-            <!-- STATIONS + OVERLAY+ -->
-            <div class="panel">
-              <h3 class="h">Stations</h3>
-              <div class="row">
-                <input class="input" id="stationName" placeholder="Station name (e.g., Staunton Home)" />
-                <button class="miniBtn primary" id="createStation">+ Create</button>
-                <button class="miniBtn" id="surveyMode">Survey Mode</button>
-              </div>
-              <p class="p" style="margin-top:8px"><small>
-                Station grades: <b>C</b> (quick pin) • <b>B</b> (stabilized/averaged) • <b>A</b> (external GNSS/RTK or long survey).
-              </small></p>
-              <div class="list" id="stationList"></div>
-
-              <div class="hr"></div>
-
-              <h3 class="h">Overlay+</h3>
-              <div class="row">
-                <input class="input" id="overlaySearch" placeholder="Search overlays (e.g., geomag, space weather, tectonic)" />
-                <button class="miniBtn" id="toggleOverlayPanel">Manage</button>
-              </div>
-
-              <div id="overlayPanel" style="margin-top:10px; display:none">
-                <div class="row" style="margin-bottom:8px">
-                  <span class="tag">3 Controls: On/Off • Opacity • Mode</span>
-                  <span class="tag ok" id="axisBadge">Axis: Off</span>
-                </div>
-
-                <div class="row">
-                  <select class="select" id="overlayLibrary">
-                    <option value="core">Library: Core (E.D.E.N.)</option>
-                    <option value="geomag">Library: Geomagnetism</option>
-                    <option value="space">Library: Space Weather</option>
-                    <option value="atmo">Library: Atmosphere</option>
-                    <option value="ocean">Library: Ocean</option>
-                    <option value="seismo">Library: Seismo/Volcanic</option>
-                    <option value="bio">Library: Biosphere</option>
-                    <option value="human">Library: Human/Infrastructure</option>
-                    <option value="exp">Library: Experimental</option>
-                  </select>
-
-                  <select class="select" id="overlayMode">
-                    <option value="view" selected>Mode: View</option>
-                    <option value="compare">Mode: Compare</option>
-                    <option value="alert">Mode: Alert</option>
-                  </select>
-
-                  <select class="select" id="overlayOpacity">
-                    <option value="0.25">Opacity: 25%</option>
-                    <option value="0.50" selected>Opacity: 50%</option>
-                    <option value="0.75">Opacity: 75%</option>
-                    <option value="1.00">Opacity: 100%</option>
-                  </select>
-                </div>
-
-                <div class="list" id="overlayList"></div>
-              </div>
-
-              <div class="hr"></div>
-
-              <h3 class="h">Publish</h3>
-              <p class="p"><small>
-                “Publish” in E.D.E.N. means emitting a <b>Capture Receipt</b> with UTC, accuracy, protocol, and optional raw export reference.
-              </small></p>
-              <div class="row" style="margin-top:10px">
-                <input class="input" id="noteText" placeholder="Field Note (short, factual). Example: Magnetometer run, no movement." />
-                <button class="miniBtn primary" id="publishReceipt">Publish Receipt</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="footerbar">
-          <div class="tiny">
-            Local-first demo build. Storage: <b>device only</b> (LocalStorage).<br>
-            Next: connect encrypted sync + signed overlays + multi-station correlation.
-          </div>
-          <div class="tiny" style="text-align:right">
-            MAP E.D.E.N. • Atomic Noir Glass<br>
-            <span class="kbd">Signal</span> is ranked above <span class="kbd">Social</span>
-          </div>
-        </div>
+      <div class="foot">
+        <div>Local-first demo • storage: <strong class="mono">device only</strong></div>
+        <div class="mono" id="statusText">Ready</div>
       </div>
     </div>
   </div>
 
-  <!-- Three.js (CDN). If you prefer self-hosted, replace URLs with your local /assets copies. -->
+  <!-- Three.js -->
   <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
 
   <script>
-    /*****************************************************************
-     * 0) Local-first state (simple demo persistence)
-     *****************************************************************/
-    const STORE_KEY = "mapeden_state_v1";
-    const nowUTC = () => new Date().toISOString().replace(".000","");
+    // =========================
+    // Minimal MAP E.D.E.N. Globe
+    // =========================
+    const $ = (id) => document.getElementById(id);
 
-    const defaultState = {
-      member: { name: "E.D.E.N. Member", role: "Operator" },
-      dials: { loc: "fuzzed", time: "live", access: "hub" },
-      assets: [],
-      cases: [],
-      stations: [],
-      overlays: {
-        enabled: {},
-        favorites: [],
-        opacity: 0.50,
-        mode: "view",
-        library: "core",
-        search: ""
-      },
-      feed: []
-    };
+    const statusText = $("statusText");
+    const canvas = $("stage");
 
-    function loadState(){
-      try{
-        const raw = localStorage.getItem(STORE_KEY);
-        if(!raw) return structuredClone(defaultState);
-        const st = JSON.parse(raw);
-        return { ...structuredClone(defaultState), ...st };
-      }catch(e){
-        return structuredClone(defaultState);
+    // Panel behavior: tap × to shrink to a small bar (minimal)
+    const sheet = $("sheet");
+    const collapseBtn = $("collapseBtn");
+    let collapsed = false;
+
+    collapseBtn.addEventListener("click", () => {
+      collapsed = !collapsed;
+      if (collapsed){
+        sheet.style.transform = "translateY(calc(100% - 68px))";
+        collapseBtn.textContent = "▴";
+        collapseBtn.title = "Expand panel";
+        collapseBtn.setAttribute("aria-label","Expand panel");
+        statusText.textContent = "Panel minimized";
+      } else {
+        sheet.style.transform = "translateY(0)";
+        collapseBtn.textContent = "×";
+        collapseBtn.title = "Minimize panel";
+        collapseBtn.setAttribute("aria-label","Minimize panel");
+        statusText.textContent = "Ready";
       }
-    }
-
-    function saveState(){
-      localStorage.setItem(STORE_KEY, JSON.stringify(state));
-      renderAll();
-    }
-
-    let state = loadState();
-
-    /*****************************************************************
-     * 1) UI: Panels + Lamps (Welcome/Mission/Switchboard)
-     *****************************************************************/
-    const btnWelcome = document.getElementById("btnWelcome");
-    const btnMission = document.getElementById("btnMission");
-    const btnSwitch  = document.getElementById("btnSwitch");
-
-    const panelWelcome = document.getElementById("panelWelcome");
-    const panelMission = document.getElementById("panelMission");
-    const panelSwitch  = document.getElementById("panelSwitch");
-
-    function setActiveTab(tab){
-      const map = {
-        welcome: [btnWelcome, panelWelcome],
-        mission: [btnMission, panelMission],
-        switch:  [btnSwitch,  panelSwitch ]
-      };
-      for(const k of Object.keys(map)){
-        map[k][0].classList.toggle("active", k === tab);
-        map[k][1].style.display = (k === tab) ? "" : "none";
-      }
-    }
-
-    btnWelcome.addEventListener("click", ()=> setActiveTab("welcome"));
-    btnMission.addEventListener("click", ()=> setActiveTab("mission"));
-    btnSwitch.addEventListener("click",  ()=> setActiveTab("switch"));
-
-    /*****************************************************************
-     * 2) Dials (Privacy) — Location / Time / Access
-     *****************************************************************/
-    const dialLoc = document.getElementById("dialLoc");
-    const dialTime = document.getElementById("dialTime");
-    const dialAccess = document.getElementById("dialAccess");
-
-    dialLoc.value = state.dials.loc;
-    dialTime.value = state.dials.time;
-    dialAccess.value = state.dials.access;
-
-    dialLoc.addEventListener("change", ()=>{ state.dials.loc = dialLoc.value; saveState(); });
-    dialTime.addEventListener("change", ()=>{ state.dials.time = dialTime.value; saveState(); });
-    dialAccess.addEventListener("change", ()=>{ state.dials.access = dialAccess.value; saveState(); });
-
-    /*****************************************************************
-     * 3) Members: Profile + Vault + Case Files
-     *****************************************************************/
-    const memberName = document.getElementById("memberName");
-    const memberRole = document.getElementById("memberRole");
-    const saveMemberBtn = document.getElementById("saveMember");
-
-    memberName.value = state.member.name;
-    memberRole.value = state.member.role;
-
-    saveMemberBtn.addEventListener("click", ()=>{
-      state.member.name = (memberName.value || "E.D.E.N. Member").trim();
-      state.member.role = memberRole.value;
-      saveState();
     });
 
-    // Vault
-    const vaultLabel = document.getElementById("vaultLabel");
-    const vaultFile = document.getElementById("vaultFile");
-    const addAssetBtn = document.getElementById("addAsset");
-    const assetList = document.getElementById("assetList");
+    // Tabs (Hello / Mission / Start)
+    const tabHello = $("tabHello");
+    const tabMission = $("tabMission");
+    const tabStart = $("tabStart");
+    const content = $("content");
+    const actions = $("actions");
 
-    addAssetBtn.addEventListener("click", async ()=>{
-      const label = (vaultLabel.value || "Untitled Asset").trim();
-      const file = vaultFile.files?.[0];
-      if(!file){
-        alert("Select a file first.");
-        return;
-      }
+    function setActiveTab(which){
+      [tabHello, tabMission, tabStart].forEach(t => t.classList.remove("active"));
+      [tabHello, tabMission, tabStart].forEach(t => t.setAttribute("aria-selected","false"));
 
-      // Local-first demo: store metadata only (not binary).
-      // Production: store encrypted blob locally + optionally sync to your encrypted vault.
-      const asset = {
-        id: crypto.randomUUID(),
-        label,
-        name: file.name,
-        type: file.type || "application/octet-stream",
-        size: file.size,
-        added_utc: nowUTC(),
-        privacy: { ...state.dials }
-      };
-
-      state.assets.unshift(asset);
-      vaultLabel.value = "";
-      vaultFile.value = "";
-      saveState();
-    });
-
-    // Case files
-    const caseTitle = document.getElementById("caseTitle");
-    const addCaseBtn = document.getElementById("addCase");
-    const caseList = document.getElementById("caseList");
-
-    addCaseBtn.addEventListener("click", ()=>{
-      const title = (caseTitle.value || "").trim();
-      if(!title) return;
-      const cf = {
-        id: crypto.randomUUID(),
-        title,
-        created_utc: nowUTC(),
-        members: [state.member.name],
-        pinnedOverlays: [],
-        stations: [],
-        assets: []
-      };
-      state.cases.unshift(cf);
-      caseTitle.value = "";
-      saveState();
-    });
-
-    /*****************************************************************
-     * 4) Stations: Create + Survey Mode + Grade
-     *****************************************************************/
-    const stationName = document.getElementById("stationName");
-    const createStationBtn = document.getElementById("createStation");
-    const surveyBtn = document.getElementById("surveyMode");
-    const stationList = document.getElementById("stationList");
-
-    function gradeFromAccuracy(meters, surveySeconds=0, external=false){
-      // Simple, user-friendly grading:
-      // A: <= 3m OR external GNSS/RTK OR survey >= 180s and <= 6m
-      // B: <= 12m OR survey >= 90s and <= 20m
-      // C: everything else
-      if(external) return "A";
-      if(meters <= 3) return "A";
-      if(surveySeconds >= 180 && meters <= 6) return "A";
-      if(meters <= 12) return "B";
-      if(surveySeconds >= 90 && meters <= 20) return "B";
-      return "C";
-    }
-
-    async function getPositionOnce(opts){
-      return new Promise((resolve, reject)=>{
-        if(!navigator.geolocation) return reject(new Error("Geolocation not supported."));
-        navigator.geolocation.getCurrentPosition(resolve, reject, opts);
-      });
-    }
-
-    async function createStation({surveySeconds=0} = {}){
-      const name = (stationName.value || "New Station").trim();
-
-      let pos;
-      try{
-        pos = await getPositionOnce({ enableHighAccuracy:true, timeout:12000, maximumAge:0 });
-      }catch(e){
-        alert("Could not get location. Check permissions.\n\n" + e.message);
-        return;
-      }
-
-      const c = pos.coords;
-      const accuracy = Number(c.accuracy || 9999);
-      const altitude = (c.altitude == null) ? null : Number(c.altitude);
-      const altAcc = (c.altitudeAccuracy == null) ? null : Number(c.altitudeAccuracy);
-
-      const grade = gradeFromAccuracy(accuracy, surveySeconds, false);
-
-      const stn = {
-        id: crypto.randomUUID(),
-        name,
-        created_utc: nowUTC(),
-        lat: Number(c.latitude.toFixed(6)),
-        lon: Number(c.longitude.toFixed(6)),
-        alt_m: (altitude==null ? null : Number(altitude.toFixed(1))),
-        acc_m: Number(accuracy.toFixed(1)),
-        alt_acc_m: (altAcc==null ? null : Number(altAcc.toFixed(1))),
-        survey_seconds: surveySeconds,
-        grade,
-        privacy: { ...state.dials },
-        status: "Idle",
-        last_capture_utc: null
-      };
-
-      state.stations.unshift(stn);
-      stationName.value = "";
-      saveState();
-    }
-
-    createStationBtn.addEventListener("click", ()=> createStation({surveySeconds:0}));
-
-    // Survey Mode: gather multiple readings for 90–180s, then average
-    surveyBtn.addEventListener("click", async ()=>{
-      const seconds = 120;   // default; you can expose this later
-      const name = (stationName.value || "Survey Station").trim();
-
-      if(!navigator.geolocation){
-        alert("Geolocation not supported.");
-        return;
-      }
-
-      const samples = [];
-      const started = Date.now();
-      const stopAt = started + seconds*1000;
-
-      alert("Survey Mode started.\n\nHold still for ~2 minutes.\nThis will tighten the station anchor.");
-
-      // Collect samples every ~4 seconds
-      while(Date.now() < stopAt){
-        try{
-          const pos = await getPositionOnce({ enableHighAccuracy:true, timeout:12000, maximumAge:0 });
-          const c = pos.coords;
-          samples.push({
-            lat: c.latitude,
-            lon: c.longitude,
-            acc: c.accuracy || 9999,
-            alt: c.altitude,
-            altAcc: c.altitudeAccuracy
-          });
-        }catch(e){
-          // ignore occasional failures; keep going
-        }
-        await new Promise(r=>setTimeout(r, 4000));
-      }
-
-      if(samples.length < 3){
-        alert("Survey Mode failed to collect enough samples.");
-        return;
-      }
-
-      // Weighted average by 1/accuracy^2
-      let wSum=0, latSum=0, lonSum=0, altSum=0, altWSum=0;
-      let minAcc = Infinity;
-      for(const s of samples){
-        const acc = Math.max(3, Number(s.acc || 9999)); // clamp
-        const w = 1/(acc*acc);
-        wSum += w;
-        latSum += s.lat*w;
-        lonSum += s.lon*w;
-        minAcc = Math.min(minAcc, acc);
-
-        if(s.alt != null && isFinite(s.alt)){
-          altSum += s.alt*w;
-          altWSum += w;
-        }
-      }
-
-      const lat = latSum/wSum;
-      const lon = lonSum/wSum;
-      const alt = (altWSum>0) ? (altSum/altWSum) : null;
-      const estAcc = Math.max(3, minAcc * 0.65); // optimistic improvement indicator
-
-      const grade = gradeFromAccuracy(estAcc, seconds, false);
-
-      const stn = {
-        id: crypto.randomUUID(),
-        name,
-        created_utc: nowUTC(),
-        lat: Number(lat.toFixed(6)),
-        lon: Number(lon.toFixed(6)),
-        alt_m: (alt==null ? null : Number(alt.toFixed(1))),
-        acc_m: Number(estAcc.toFixed(1)),
-        alt_acc_m: null,
-        survey_seconds: seconds,
-        grade,
-        privacy: { ...state.dials },
-        status: "Idle",
-        last_capture_utc: null
-      };
-
-      state.stations.unshift(stn);
-      stationName.value = "";
-      saveState();
-    });
-
-    /*****************************************************************
-     * 5) Overlay+ — Max library, staged (collapsed) + Axis overlay
-     *****************************************************************/
-    const overlaySearch = document.getElementById("overlaySearch");
-    const toggleOverlayPanel = document.getElementById("toggleOverlayPanel");
-    const overlayPanel = document.getElementById("overlayPanel");
-    const overlayLibrary = document.getElementById("overlayLibrary");
-    const overlayMode = document.getElementById("overlayMode");
-    const overlayOpacity = document.getElementById("overlayOpacity");
-    const overlayList = document.getElementById("overlayList");
-    const axisBadge = document.getElementById("axisBadge");
-
-    overlaySearch.value = state.overlays.search || "";
-    overlayLibrary.value = state.overlays.library || "core";
-    overlayMode.value = state.overlays.mode || "view";
-    overlayOpacity.value = String(state.overlays.opacity ?? 0.50);
-
-    toggleOverlayPanel.addEventListener("click", ()=>{
-      overlayPanel.style.display = (overlayPanel.style.display === "none" ? "" : "none");
-    });
-
-    overlaySearch.addEventListener("input", ()=>{
-      state.overlays.search = overlaySearch.value;
-      saveState();
-    });
-
-    overlayLibrary.addEventListener("change", ()=>{
-      state.overlays.library = overlayLibrary.value;
-      saveState();
-    });
-
-    overlayMode.addEventListener("change", ()=>{
-      state.overlays.mode = overlayMode.value;
-      saveState();
-    });
-
-    overlayOpacity.addEventListener("change", ()=>{
-      state.overlays.opacity = Number(overlayOpacity.value);
-      if(axisLine) axisLine.material.opacity = state.overlays.opacity;
-      saveState();
-    });
-
-    const overlayCatalog = {
-      core: [
-        { key:"axis_42_222", name:"42°/222° Axis (Great Circle)", type:"Corridor", desc:"Core E.D.E.N. corridor visualization." },
-        { key:"stations_radius", name:"Station Influence Radius", type:"Station", desc:"Confidence/sensitivity ring (UI placeholder)." },
-        { key:"cluster_mode", name:"Cluster Mode (A/B/C)", type:"Analysis", desc:"Shared context/exposure grouping (UI placeholder)." },
-        { key:"replication_windows", name:"Replication Windows", type:"Protocol", desc:"Time windows when many stations ran same template." },
-        { key:"noise_map", name:"Noise Map", type:"Quality", desc:"Interference risk zones (placeholder)." },
-      ],
-      geomag: [
-        { key:"declination", name:"Magnetic Declination", type:"Geomag", desc:"Model-based declination overlay (placeholder)." },
-        { key:"inclination", name:"Magnetic Inclination", type:"Geomag", desc:"Model-based inclination overlay (placeholder)." },
-        { key:"intensity", name:"Field Intensity", type:"Geomag", desc:"Model-based total intensity overlay (placeholder)." },
-        { key:"local_anoms", name:"Local Anomalies", type:"Geomag", desc:"Known anomaly regions (placeholder)." }
-      ],
-      space: [
-        { key:"kp_index", name:"Kp Index (Geomagnetic Storm)", type:"Space", desc:"Storm severity indicator (placeholder)." },
-        { key:"auroral_oval", name:"Auroral Oval", type:"Space", desc:"Auroral probability ring (placeholder)." },
-        { key:"ionosphere", name:"Ionosphere Disturbance", type:"Space", desc:"GNSS degradation risk (placeholder)." }
-      ],
-      atmo: [
-        { key:"jetstream", name:"Jet Stream", type:"Atmos", desc:"Wind vector overlay (placeholder)." },
-        { key:"pressure", name:"Pressure Systems", type:"Atmos", desc:"High/low systems (placeholder)." }
-      ],
-      ocean: [
-        { key:"currents", name:"Ocean Currents", type:"Ocean", desc:"Major currents/eddies (placeholder)." },
-        { key:"sst", name:"Sea Surface Temp", type:"Ocean", desc:"Temperature anomalies (placeholder)." }
-      ],
-      seismo: [
-        { key:"quakes_live", name:"Earthquakes (Live)", type:"Seismo", desc:"Recent events feed (placeholder)." },
-        { key:"volcano", name:"Volcano Activity", type:"Seismo", desc:"Activity alerts (placeholder)." }
-      ],
-      bio: [
-        { key:"migration", name:"Migration Corridors", type:"Bio", desc:"Known migration corridors (placeholder)." },
-        { key:"light_pollution", name:"Night Sky / Light Pollution", type:"Bio", desc:"Dark-sky overlay (placeholder)." }
-      ],
-      human: [
-        { key:"interference", name:"Urban Metal Density", type:"Human", desc:"High interference zones (placeholder)." },
-        { key:"grid", name:"Power Infrastructure", type:"Human", desc:"Public grid nodes (placeholder)." }
-      ],
-      exp: [
-        { key:"anomaly_heat", name:"Anomaly Heatmap (Station-Derived)", type:"Experimental", desc:"Computed from datasets (placeholder)." },
-        { key:"correlation", name:"Multi-Station Correlation", type:"Experimental", desc:"Cross-station correlation view (placeholder)." }
-      ]
-    };
-
-    function isOverlayEnabled(key){
-      return !!state.overlays.enabled[key];
-    }
-
-    function setOverlayEnabled(key, on){
-      state.overlays.enabled[key] = !!on;
-      // Hook: actual rendering behaviors
-      if(key === "axis_42_222"){
-        setAxisVisible(!!on);
-      }
-      saveState();
-    }
-
-    /*****************************************************************
-     * 6) Publish Capture Receipt (Signal Feed)
-     *****************************************************************/
-    const noteText = document.getElementById("noteText");
-    const publishReceiptBtn = document.getElementById("publishReceipt");
-    const feedList = document.getElementById("feedList");
-
-    function computeSignalScore(receipt){
-      // Simple, ship-ready scoring (0–100)
-      let score = 0;
-
-      // Receipt completeness
-      if(receipt.utc) score += 15;
-      if(receipt.station_id) score += 15;
-      if(receipt.acc_m != null) score += 15;
-      if(receipt.grade) score += 10;
-      if(receipt.protocol) score += 10;
-      if(receipt.raw_export_ref) score += 10;
-
-      // Replication + validation placeholders
-      if(receipt.replications >= 1) score += 10;
-      if(receipt.validations >= 1) score += 5;
-
-      // Cap
-      return Math.min(100, score);
-    }
-
-    publishReceiptBtn.addEventListener("click", ()=>{
-      const text = (noteText.value || "").trim();
-      if(!text){
-        alert("Add a short factual field note.");
-        return;
-      }
-
-      const stn = state.stations?.[0] || null; // demo: most recent station
-      const receipt = {
-        id: crypto.randomUUID(),
-        utc: nowUTC(),
-        member: state.member.name,
-        role: state.member.role,
-        note: text,
-        station_id: stn?.id || null,
-        station_name: stn?.name || null,
-        lat: (stn?.lat ?? null),
-        lon: (stn?.lon ?? null),
-        acc_m: (stn?.acc_m ?? null),
-        grade: (stn?.grade ?? null),
-        protocol: "EDEN-REC-01",
-        raw_export_ref: state.assets?.[0]?.id || null,  // demo: most recent asset
-        replications: 0,
-        validations: 0,
-        privacy: { ...state.dials }
-      };
-
-      receipt.signal_score = computeSignalScore(receipt);
-
-      state.feed.unshift(receipt);
-      noteText.value = "";
-      saveState();
-    });
-
-    /*****************************************************************
-     * 7) Status + rendering lists
-     *****************************************************************/
-    const statusList = document.getElementById("statusList");
-    const readout = document.getElementById("readout");
-
-    function renderStatus(){
-      const stnCount = state.stations.length;
-      const assetCount = state.assets.length;
-      const caseCount = state.cases.length;
-      const overlayOn = Object.values(state.overlays.enabled).filter(Boolean).length;
-
-      const rows = [
-        { title:"Member", sub:`${state.member.name} • ${state.member.role}` , tag:"ok", right:"Verified Mode: Optional" },
-        { title:"Stations", sub:`${stnCount} total • latest: ${state.stations[0]?.grade ?? "—"} grade`, tag: stnCount? "ok":"warn", right:"Survey Mode ready" },
-        { title:"Overlay+", sub:`${overlayOn} enabled • library: ${state.overlays.library}`, tag: overlayOn? "ok":"warn", right:`Mode: ${state.overlays.mode}` },
-        { title:"Vault", sub:`${assetCount} assets • local-first`, tag: assetCount? "ok":"warn", right:`Access: ${state.dials.access}` },
-        { title:"Case Files", sub:`${caseCount} active`, tag: caseCount? "ok":"warn", right:"Replication-ready" },
-      ];
-
-      statusList.innerHTML = rows.map(r=>{
-        return `
-          <div class="item">
-            <div class="meta">
-              <b>${r.title}</b>
-              <span>${r.sub}</span>
-            </div>
-            <div class="row" style="justify-content:flex-end">
-              <span class="tag ${r.tag}">${r.right}</span>
-            </div>
-          </div>
+      if (which === "hello"){
+        tabHello.classList.add("active");
+        tabHello.setAttribute("aria-selected","true");
+        actions.classList.remove("show");
+        content.innerHTML = `
+          <p>
+            <strong>MAP E.D.E.N.</strong> is a signal network — not a social app with maps.
+            It’s built for repeatable field work: minimal UI, clean capture, and comparable results.
+            <br><br>
+            Default ranking is <strong>Signal Score</strong> (data quality), never “likes.” Social is optional.
+          </p>
         `;
-      }).join("");
+        statusText.textContent = "Hello";
+      }
 
-      readout.textContent = `Local-first • Dials: ${state.dials.loc} / ${state.dials.time} / ${state.dials.access} • Stations:${stnCount} • Overlays:${overlayOn} • Vault:${assetCount}`;
-    }
-
-    function renderAssets(){
-      assetList.innerHTML = state.assets.slice(0,12).map(a=>{
-        const sizeKB = Math.round(a.size/1024);
-        return `
-          <div class="item">
-            <div class="meta">
-              <b>${a.label}</b>
-              <span>${a.name} • ${sizeKB} KB • ${a.added_utc}</span>
-            </div>
-            <button class="miniBtn" data-del-asset="${a.id}">−</button>
-          </div>
+      if (which === "mission"){
+        tabMission.classList.add("active");
+        tabMission.setAttribute("aria-selected","true");
+        actions.classList.remove("show");
+        content.innerHTML = `
+          <p>
+            <strong>Mission:</strong> turn the 42° / 222° axis hypothesis into a coordinated, evidence-first experiment
+            by producing datasets that are repeatable, controlled, and comparable across stations and time.
+            <br><br>
+            The interface stays minimal so the work stays clean: <strong>capture → verify → replicate</strong>.
+          </p>
         `;
-      }).join("") || `<div class="tiny">No assets yet. Add files to the Vault.</div>`;
+        statusText.textContent = "Mission";
+      }
 
-      assetList.querySelectorAll("[data-del-asset]").forEach(btn=>{
-        btn.addEventListener("click", ()=>{
-          const id = btn.getAttribute("data-del-asset");
-          state.assets = state.assets.filter(x=>x.id !== id);
-          saveState();
-        });
-      });
-    }
-
-    function renderCases(){
-      caseList.innerHTML = state.cases.slice(0,10).map(c=>{
-        return `
-          <div class="item">
-            <div class="meta">
-              <b>${c.title}</b>
-              <span>${c.created_utc} • Members: ${c.members.length}</span>
-            </div>
-            <button class="miniBtn" data-del-case="${c.id}">−</button>
-          </div>
+      if (which === "start"){
+        tabStart.classList.add("active");
+        tabStart.setAttribute("aria-selected","true");
+        actions.classList.add("show");
+        content.innerHTML = `
+          <p>
+            <strong>Start</strong> is intentionally simple:
+            <br>• Toggle the <strong>42° / 222°</strong> axis overlay
+            <br>• Add a <strong>Station</strong> (truth anchor)
+            <br>• Generate a <strong>Capture Receipt</strong> for replication
+          </p>
         `;
-      }).join("") || `<div class="tiny">No Case Files yet. Create one for an experiment thread.</div>`;
-
-      caseList.querySelectorAll("[data-del-case]").forEach(btn=>{
-        btn.addEventListener("click", ()=>{
-          const id = btn.getAttribute("data-del-case");
-          state.cases = state.cases.filter(x=>x.id !== id);
-          saveState();
-        });
-      });
+        statusText.textContent = "Start";
+      }
     }
 
-    function renderStations(){
-      stationList.innerHTML = state.stations.slice(0,10).map(s=>{
-        const tagClass = (s.grade==="A") ? "ok" : (s.grade==="B") ? "warn" : "bad";
-        const locStr = (state.dials.loc==="hidden") ? "Location hidden" :
-                       (state.dials.loc==="corridor") ? "Corridor-only" :
-                       (state.dials.loc==="fuzzed") ? `${fuzzCoord(s.lat)}, ${fuzzCoord(s.lon)} (fuzzed)` :
-                       `${s.lat}, ${s.lon}`;
+    tabHello.addEventListener("click", () => setActiveTab("hello"));
+    tabMission.addEventListener("click", () => setActiveTab("mission"));
+    tabStart.addEventListener("click", () => setActiveTab("start"));
 
-        return `
-          <div class="item">
-            <div class="meta">
-              <b>${s.name}</b>
-              <span>${locStr} • acc ${s.acc_m}m • survey ${s.survey_seconds || 0}s</span>
-            </div>
-            <div class="row" style="justify-content:flex-end">
-              <span class="tag ${tagClass}">Grade ${s.grade}</span>
-              <button class="miniBtn" data-del-station="${s.id}">−</button>
-            </div>
-          </div>
-        `;
-      }).join("") || `<div class="tiny">No stations yet. Create one to anchor truth.</div>`;
-
-      stationList.querySelectorAll("[data-del-station]").forEach(btn=>{
-        btn.addEventListener("click", ()=>{
-          const id = btn.getAttribute("data-del-station");
-          state.stations = state.stations.filter(x=>x.id !== id);
-          saveState();
-        });
-      });
-    }
-
-    function renderOverlays(){
-      const lib = state.overlays.library || "core";
-      const q = (state.overlays.search || "").toLowerCase().trim();
-      const list = (overlayCatalog[lib] || []).filter(o=>{
-        if(!q) return true;
-        return (o.name + " " + o.type + " " + o.desc).toLowerCase().includes(q);
-      });
-
-      overlayList.innerHTML = list.map(o=>{
-        const on = isOverlayEnabled(o.key);
-        return `
-          <div class="item">
-            <div class="meta">
-              <b>${o.name}</b>
-              <span>${o.type} • ${o.desc}</span>
-            </div>
-            <div class="row" style="justify-content:flex-end">
-              <button class="miniBtn ${on ? "primary":""}" data-toggle-overlay="${o.key}">${on ? "On" : "Off"}</button>
-            </div>
-          </div>
-        `;
-      }).join("") || `<div class="tiny">No overlays found.</div>`;
-
-      overlayList.querySelectorAll("[data-toggle-overlay]").forEach(btn=>{
-        btn.addEventListener("click", ()=>{
-          const key = btn.getAttribute("data-toggle-overlay");
-          setOverlayEnabled(key, !isOverlayEnabled(key));
-        });
-      });
-
-      axisBadge.textContent = `Axis: ${isOverlayEnabled("axis_42_222") ? "On" : "Off"}`;
-      axisBadge.classList.toggle("ok", isOverlayEnabled("axis_42_222"));
-    }
-
-    function renderFeed(){
-      // Sort by Signal Score (default). Social is not part of the feed in this build.
-      const feed = [...state.feed].sort((a,b)=> (b.signal_score||0) - (a.signal_score||0)).slice(0,8);
-
-      feedList.innerHTML = feed.map(r=>{
-        const tagClass = r.signal_score >= 75 ? "ok" : (r.signal_score >= 45 ? "warn":"bad");
-
-        const stationLine = r.station_name ? `${r.station_name} • ${r.grade || "—"} • acc ${r.acc_m ?? "—"}m` : "No station attached";
-        const exportLine = r.raw_export_ref ? "Raw export: linked" : "Raw export: none";
-        const privacyLine = `Privacy: ${r.privacy.loc}/${r.privacy.time}/${r.privacy.access}`;
-
-        return `
-          <div class="item">
-            <div class="meta">
-              <b>${r.note}</b>
-              <span>${r.utc} • ${r.member} • ${stationLine}</span>
-              <span>${exportLine} • ${privacyLine}</span>
-            </div>
-            <div class="row" style="justify-content:flex-end">
-              <span class="tag ${tagClass}">Signal ${r.signal_score}</span>
-            </div>
-          </div>
-        `;
-      }).join("") || `<div class="tiny">No receipts yet. Publish your first Capture Receipt.</div>`;
-    }
-
-    function fuzzCoord(x){
-      // Simple fuzzing for UI: round to ~1–2 km (2 decimals lat/lon ~ 1.1km–2.2km)
-      return Number(x).toFixed(2);
-    }
-
-    function renderAll(){
-      renderStatus();
-      renderAssets();
-      renderCases();
-      renderStations();
-      renderOverlays();
-      renderFeed();
-    }
-
-    /*****************************************************************
-     * 8) Quick Actions (Hello panel buttons)
-     *****************************************************************/
-    document.getElementById("qaCreateStation").addEventListener("click", ()=>{
-      setActiveTab("switch");
-      stationName.focus();
-    });
-
-    document.getElementById("qaNewNote").addEventListener("click", ()=>{
-      setActiveTab("switch");
-      noteText.focus();
-    });
-
-    document.getElementById("qaEnableAxis").addEventListener("click", ()=>{
-      setOverlayEnabled("axis_42_222", !isOverlayEnabled("axis_42_222"));
-    });
-
-    /*****************************************************************
-     * 9) THREE.JS Globe (Noir wire-globe + optional axis great circle)
-     *****************************************************************/
-    const canvas = document.getElementById("globe");
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
-    renderer.setPixelRatio(Math.min(2, devicePixelRatio));
-    renderer.setSize(innerWidth, innerHeight);
-
+    // =========================
+    // Three.js scene (minimal)
+    // =========================
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(42, innerWidth/innerHeight, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.01, 1000);
     camera.position.set(0, 0, 3.2);
 
-    // Lights (noir)
-    const key = new THREE.DirectionalLight(0xffffff, 0.9);
-    key.position.set(3, 2, 2);
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    // Lights
+    const key = new THREE.DirectionalLight(0xffffff, 1.0);
+    key.position.set(2, 1.5, 2);
     scene.add(key);
 
-    const fill = new THREE.AmbientLight(0xffffff, 0.35);
-    scene.add(fill);
+    const rim = new THREE.DirectionalLight(0x88ffee, 0.35);
+    rim.position.set(-2, 0.6, -2);
+    scene.add(rim);
 
-    // Globe sphere
+    const amb = new THREE.AmbientLight(0xffffff, 0.15);
+    scene.add(amb);
+
+    // Stars (subtle, not noisy)
+    function makeStars(count=1200){
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(count * 3);
+      for (let i=0;i<count;i++){
+        const r = 70 * Math.random() + 10;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2*Math.random()-1);
+        pos[i*3+0] = r * Math.sin(phi) * Math.cos(theta);
+        pos[i*3+1] = r * Math.cos(phi);
+        pos[i*3+2] = r * Math.sin(phi) * Math.sin(theta);
+      }
+      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent:true, opacity:0.45 });
+      const pts = new THREE.Points(geo, mat);
+      return pts;
+    }
+    scene.add(makeStars());
+
+    // Globe (clean monochrome)
     const globeGroup = new THREE.Group();
     scene.add(globeGroup);
 
-    const R = 1.08;
-
+    const globeGeo = new THREE.SphereGeometry(1, 64, 64);
     const globeMat = new THREE.MeshStandardMaterial({
-      color: 0x0b0c10,
-      roughness: 0.95,
-      metalness: 0.10
+      color: 0x0b0d11,
+      metalness: 0.2,
+      roughness: 0.85,
+      emissive: 0x000000
     });
+    const globe = new THREE.Mesh(globeGeo, globeMat);
+    globeGroup.add(globe);
 
-    const globeMesh = new THREE.Mesh(
-      new THREE.SphereGeometry(R, 64, 64),
-      globeMat
-    );
-    globeGroup.add(globeMesh);
-
-    // Subtle grid overlay (lat/lon)
-    const grid = new THREE.LineSegments(
-      new THREE.WireframeGeometry(new THREE.SphereGeometry(R+0.002, 22, 18)),
-      new THREE.LineBasicMaterial({ color: 0xffffff, transparent:true, opacity: 0.08 })
-    );
+    // Faint latitude/longitude grid (minimal)
+    const gridMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity: 0.06, wireframe:true });
+    const grid = new THREE.Mesh(new THREE.SphereGeometry(1.002, 36, 18), gridMat);
     globeGroup.add(grid);
 
-    // Noir continents (stylized): use a procedural "land" speckle
-    // NOTE: This is intentionally minimal. If you already have a land texture, replace this with a TextureLoader.
-    const landCanvas = document.createElement("canvas");
-    landCanvas.width = 1024; landCanvas.height = 512;
-    const ctx = landCanvas.getContext("2d");
-    ctx.fillStyle = "#000"; ctx.fillRect(0,0,landCanvas.width, landCanvas.height);
-    // draw stylized noise continents
-    const img = ctx.getImageData(0,0,landCanvas.width, landCanvas.height);
-    for(let y=0;y<img.height;y++){
-      for(let x=0;x<img.width;x++){
-        const nx = x/img.width, ny = y/img.height;
-        // fake continents: banded noise + polar fade
-        const v = (
-          0.55*Math.sin(8*nx) +
-          0.45*Math.cos(6*ny) +
-          0.35*Math.sin(10*(nx+ny)) +
-          0.25*Math.cos(16*(nx-ny))
-        );
-        const polar = Math.abs(ny-0.5)*2;
-        const mask = (v - polar*0.55);
-        const on = mask > 0.10;
-        if(on){
-          const i = (y*img.width+x)*4;
-          img.data[i+0] = 215;
-          img.data[i+1] = 215;
-          img.data[i+2] = 215;
-          img.data[i+3] = 255;
-        }
-      }
-    }
-    ctx.putImageData(img,0,0);
-    const landTex = new THREE.CanvasTexture(landCanvas);
-    landTex.wrapS = landTex.wrapT = THREE.RepeatWrapping;
+    // Atmosphere glow (subtle)
+    const atmMat = new THREE.MeshBasicMaterial({ color: 0x9adcff, transparent:true, opacity: 0.08 });
+    const atm = new THREE.Mesh(new THREE.SphereGeometry(1.03, 64, 64), atmMat);
+    globeGroup.add(atm);
 
-    const landMat = new THREE.MeshBasicMaterial({
-      map: landTex,
-      transparent: true,
-      opacity: 0.60
-    });
-
-    const landMesh = new THREE.Mesh(
-      new THREE.SphereGeometry(R+0.004, 64, 64),
-      landMat
-    );
-    globeGroup.add(landMesh);
-
-    // Axis line (great circle) - toggled by Overlay+ "axis_42_222"
+    // Axis overlay (42° / 222°)
+    let axisOn = false;
     let axisLine = null;
 
-    function latLonToVec3(latDeg, lonDeg, radius){
+    // Simple lat/lon marker (Station)
+    const stationGroup = new THREE.Group();
+    globeGroup.add(stationGroup);
+
+    function latLonToVec3(latDeg, lonDeg, radius=1.01){
       const lat = THREE.MathUtils.degToRad(latDeg);
       const lon = THREE.MathUtils.degToRad(lonDeg);
-      const x = radius * Math.cos(lat) * Math.cos(lon);
+      const x = radius * Math.cos(lat) * Math.sin(lon);
       const y = radius * Math.sin(lat);
-      const z = radius * Math.cos(lat) * Math.sin(lon);
+      const z = radius * Math.cos(lat) * Math.cos(lon);
       return new THREE.Vector3(x,y,z);
     }
 
-    // Destination point on sphere given start (lat,lon), bearing, distance_km
-    function destinationPoint(latDeg, lonDeg, bearingDeg, distKm){
-      const Rkm = 6371.0;
-      const δ = distKm / Rkm;
-      const θ = THREE.MathUtils.degToRad(bearingDeg);
-      const φ1 = THREE.MathUtils.degToRad(latDeg);
-      const λ1 = THREE.MathUtils.degToRad(lonDeg);
+    function makeGreatCircleLine(lat1, lon1, lat2, lon2){
+      const steps = 256;
+      const p1 = latLonToVec3(lat1, lon1, 1.02).normalize();
+      const p2 = latLonToVec3(lat2, lon2, 1.02).normalize();
 
-      const sinφ1 = Math.sin(φ1), cosφ1 = Math.cos(φ1);
-      const sinδ = Math.sin(δ), cosδ = Math.cos(δ);
-
-      const sinφ2 = sinφ1*cosδ + cosφ1*sinδ*Math.cos(θ);
-      const φ2 = Math.asin(sinφ2);
-
-      const y = Math.sin(θ)*sinδ*cosφ1;
-      const x = cosδ - sinφ1*sinφ2;
-      const λ2 = λ1 + Math.atan2(y, x);
-
-      return {
-        lat: THREE.MathUtils.radToDeg(φ2),
-        lon: THREE.MathUtils.radToDeg(λ2)
-      };
-    }
-
-    function buildGreatCircleFromPointAndBearing(lat0, lon0, bearingDeg){
-      // choose a second point 1000km along bearing
-      const p2 = destinationPoint(lat0, lon0, bearingDeg, 1000);
-
-      const a = latLonToVec3(lat0, lon0, 1).normalize();
-      const b = latLonToVec3(p2.lat, p2.lon, 1).normalize();
-
-      const n = new THREE.Vector3().crossVectors(a,b).normalize(); // plane normal
+      // slerp points along arc
       const pts = [];
-      const steps = 512;
-
-      for(let i=0;i<=steps;i++){
-        const t = (i/steps) * Math.PI * 2;
-        // Rotate vector a around normal n by angle t
-        const v = a.clone().applyAxisAngle(n, t).normalize().multiplyScalar(R+0.012);
+      for (let i=0;i<=steps;i++){
+        const t = i/steps;
+        const v = new THREE.Vector3().copy(p1).slerp(p2, t).multiplyScalar(1.02);
         pts.push(v);
       }
 
       const geo = new THREE.BufferGeometry().setFromPoints(pts);
-      const mat = new THREE.LineBasicMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: state.overlays.opacity ?? 0.50
-      });
+      const mat = new THREE.LineBasicMaterial({ color: 0xb8fff0, transparent:true, opacity: 0.65 });
       return new THREE.Line(geo, mat);
     }
 
-    function setAxisVisible(show){
-      if(show){
-        if(!axisLine){
-          // Staunton, VA anchor (you can change this later in UI)
-          const origin = { lat: 38.161, lon: -79.073 };
-          // Great circle defined by initial bearing 42° (opposite is 222°)
-          axisLine = buildGreatCircleFromPointAndBearing(origin.lat, origin.lon, 42);
-          globeGroup.add(axisLine);
-        }
-        axisLine.visible = true;
-      }else{
-        if(axisLine) axisLine.visible = false;
+    function toggleAxis(){
+      axisOn = !axisOn;
+      if (axisOn){
+        // Default demo anchor: Staunton-ish. Replace with your canonical origin if desired.
+        // Origin (lat, lon):
+        const originLat = 38.1608;
+        const originLon = -79.0730;
+
+        // Antipode:
+        const antiLat = -originLat;
+        const antiLon = (originLon + 180) > 180 ? (originLon - 180) : (originLon + 180);
+
+        axisLine = makeGreatCircleLine(originLat, originLon, antiLat, antiLon);
+        globeGroup.add(axisLine);
+        statusText.textContent = "Axis: ON";
+      } else {
+        if (axisLine) globeGroup.remove(axisLine);
+        axisLine = null;
+        statusText.textContent = "Axis: OFF";
       }
-      axisBadge.textContent = `Axis: ${show ? "On" : "Off"}`;
-      axisBadge.classList.toggle("ok", show);
     }
 
-    // Initialize axis from stored state
-    setAxisVisible(isOverlayEnabled("axis_42_222"));
+    function clearStations(){
+      while(stationGroup.children.length) stationGroup.remove(stationGroup.children[0]);
+    }
 
-    // Camera controls (minimal, touch-friendly)
-    let isDown=false, lastX=0, lastY=0;
-    let rotY=0.8, rotX=0.25;
-    let targetRotY=rotY, targetRotX=rotX;
-    let zoom=3.2, targetZoom=3.2;
+    function addStation(lat, lon){
+      const dotGeo = new THREE.SphereGeometry(0.018, 16, 16);
+      const dotMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const dot = new THREE.Mesh(dotGeo, dotMat);
+      dot.position.copy(latLonToVec3(lat, lon, 1.03));
+      stationGroup.add(dot);
 
-    function onDown(x,y){ isDown=true; lastX=x; lastY=y; }
+      // small square frame behind (minimal “truth anchor” look)
+      const frameGeo = new THREE.RingGeometry(0.030, 0.034, 4);
+      const frameMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity: 0.8, side: THREE.DoubleSide });
+      const frame = new THREE.Mesh(frameGeo, frameMat);
+      frame.position.copy(latLonToVec3(lat, lon, 1.028));
+      frame.lookAt(frame.position.clone().multiplyScalar(2));
+      stationGroup.add(frame);
+
+      statusText.textContent = `Station set (${lat.toFixed(3)}, ${lon.toFixed(3)})`;
+    }
+
+    // Minimal “Capture Receipt”
+    function captureReceipt(){
+      const now = new Date();
+      const payload = {
+        app: "MAP E.D.E.N.",
+        ts: now.toISOString(),
+        axis: axisOn ? "ON" : "OFF",
+        stations: stationGroup.children.length ? "1+" : "0",
+        note: "Local-first demo receipt"
+      };
+      try{
+        localStorage.setItem("eden_last_receipt", JSON.stringify(payload, null, 2));
+      }catch(e){}
+      statusText.textContent = "Receipt captured";
+      // Keep it minimal: use alert once; replace later with a dedicated receipt view.
+      alert("Capture Receipt saved locally.\n\n" + JSON.stringify(payload, null, 2));
+    }
+
+    // Hook up buttons
+    $("toggleAxisBtn").addEventListener("click", toggleAxis);
+
+    $("addStationBtn").addEventListener("click", () => {
+      // Minimal input (fast, user-friendly). Replace later with “tap globe to drop pin”.
+      const lat = parseFloat(prompt("Station Latitude (e.g., 38.161):", "38.161"));
+      const lon = parseFloat(prompt("Station Longitude (e.g., -79.073):", "-79.073"));
+      if (Number.isFinite(lat) && Number.isFinite(lon)){
+        clearStations();
+        addStation(lat, lon);
+      } else {
+        statusText.textContent = "Station canceled";
+      }
+    });
+
+    $("captureBtn").addEventListener("click", captureReceipt);
+
+    // Touch/drag rotate (minimal, no heavy controls)
+    let dragging = false;
+    let lastX = 0, lastY = 0;
+
+    function onDown(x,y){ dragging = true; lastX=x; lastY=y; }
     function onMove(x,y){
-      if(!isDown) return;
-      const dx = (x-lastX)/innerWidth;
-      const dy = (y-lastY)/innerHeight;
+      if(!dragging) return;
+      const dx = (x-lastX)/window.innerWidth;
+      const dy = (y-lastY)/window.innerHeight;
       lastX=x; lastY=y;
-      targetRotY += dx*2.2;
-      targetRotX += dy*1.8;
-      targetRotX = Math.max(-1.1, Math.min(1.1, targetRotX));
+
+      globeGroup.rotation.y += dx * 2.8;
+      globeGroup.rotation.x += dy * 1.6;
+      globeGroup.rotation.x = Math.max(-1.1, Math.min(1.1, globeGroup.rotation.x));
     }
-    function onUp(){ isDown=false; }
+    function onUp(){ dragging = false; }
 
-    canvas.addEventListener("pointerdown", (e)=>{ canvas.setPointerCapture(e.pointerId); onDown(e.clientX,e.clientY); });
-    canvas.addEventListener("pointermove", (e)=> onMove(e.clientX,e.clientY));
-    canvas.addEventListener("pointerup", onUp);
-    canvas.addEventListener("pointercancel", onUp);
+    window.addEventListener("pointerdown", (e)=> onDown(e.clientX, e.clientY), {passive:true});
+    window.addEventListener("pointermove", (e)=> onMove(e.clientX, e.clientY), {passive:true});
+    window.addEventListener("pointerup", onUp, {passive:true});
+    window.addEventListener("pointercancel", onUp, {passive:true});
 
-    // Wheel zoom
-    window.addEventListener("wheel", (e)=>{
-      targetZoom += (e.deltaY>0 ? 0.20 : -0.20);
-      targetZoom = Math.max(2.0, Math.min(5.0, targetZoom));
-    }, { passive:true });
-
-    // Pinch zoom
-    let pinchDist = null;
-    canvas.addEventListener("touchstart", (e)=>{
-      if(e.touches.length===2){
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        pinchDist = Math.hypot(dx,dy);
-      }
-    }, { passive:true });
-
-    canvas.addEventListener("touchmove", (e)=>{
-      if(e.touches.length===2 && pinchDist!=null){
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        const d = Math.hypot(dx,dy);
-        const diff = (pinchDist - d) / 220;
-        targetZoom += diff;
-        targetZoom = Math.max(2.0, Math.min(5.0, targetZoom));
-        pinchDist = d;
-      }
-    }, { passive:true });
-
-    canvas.addEventListener("touchend", ()=>{ pinchDist=null; }, { passive:true });
-
+    // Gentle auto-drift (only when not dragging)
     function animate(){
       requestAnimationFrame(animate);
-
-      // Smooth interpolate
-      rotY += (targetRotY - rotY) * 0.08;
-      rotX += (targetRotX - rotX) * 0.08;
-      zoom += (targetZoom - zoom) * 0.10;
-
-      globeGroup.rotation.y = rotY;
-      globeGroup.rotation.x = rotX;
-      camera.position.set(0, 0, zoom);
-      camera.lookAt(0,0,0);
-
+      if(!dragging) globeGroup.rotation.y += 0.0012;
       renderer.render(scene, camera);
     }
     animate();
 
-    window.addEventListener("resize", ()=>{
-      renderer.setSize(innerWidth, innerHeight);
-      camera.aspect = innerWidth/innerHeight;
+    // Resize
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth/window.innerHeight;
       camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    /*****************************************************************
-     * 10) Start
-     *****************************************************************/
-    // Wire the overlay manager open/close defaults
-    overlayPanel.style.display = "none";
-
-    // Render everything
-    renderAll();
-
-    // Set default tab
-    setActiveTab("welcome");
+    // Start view defaults
+    setActiveTab("hello");
+    statusText.textContent = "Ready";
   </script>
 </body>
 </html>
