@@ -287,6 +287,7 @@
       padding: 12px 12px 10px;
       border-bottom: 1px solid rgba(255,255,255,0.10);
       background: rgba(0,0,0,0.10);
+      gap: 10px;
     }
     #modalTitle{
       font: 900 14px/1 -apple-system, system-ui, Segoe UI, Roboto, Arial;
@@ -294,6 +295,9 @@
       color: rgba(255,255,255,0.92);
       padding-left: 6px;
       text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     #modalClose{
       width: 40px;
@@ -303,6 +307,7 @@
       background: rgba(255,255,255,0.06);
       color: rgba(255,255,255,0.92);
       cursor:pointer;
+      flex: 0 0 auto;
     }
 
     #modalBody{
@@ -355,7 +360,7 @@
     .muted{ color: rgba(255,255,255,0.62); }
     .tiny{ font: 700 11px/1.3 -apple-system, system-ui, Segoe UI, Roboto, Arial; color: rgba(255,255,255,0.55); }
 
-    .input, .textarea{
+    .input, .textarea, .select{
       width: 100%;
       max-width: 100%;
       min-width: 0;
@@ -393,6 +398,7 @@
     .btn:active{ transform: translateY(1px); }
     .btn.good{ background: rgba(120,255,200,0.12); border-color: rgba(120,255,200,0.20); }
     .btn.danger{ background: rgba(255,120,120,0.10); border-color: rgba(255,120,120,0.22); }
+    .btn.warn{ background: rgba(246,194,74,0.10); border-color: rgba(246,194,74,0.22); }
     .btn.ghost{ background: rgba(255,255,255,0.04); }
     .btn[disabled]{ opacity:0.55; cursor:not-allowed; }
 
@@ -425,6 +431,85 @@
     }
     .toggle.on{ background: rgba(120,255,200,0.18); border-color: rgba(120,255,200,0.30); }
     .toggle.on .knob{ transform: translateX(22px); background: rgba(120,255,200,0.92); }
+
+    /* ===== Segmented (Modes: Lite / Field / Lab) ===== */
+    .seg{
+      display:flex;
+      gap:0;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.04);
+      border-radius: 16px;
+      overflow:hidden;
+    }
+    .seg button{
+      flex:1 1 0;
+      padding: 10px 10px;
+      border:0;
+      background: transparent;
+      color: rgba(255,255,255,0.82);
+      font: 900 13px/1 -apple-system,system-ui,Segoe UI,Roboto,Arial;
+      letter-spacing: 0.18px;
+      cursor:pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .seg button.on{
+      background: rgba(120,255,200,0.12);
+      color: rgba(255,255,255,0.92);
+      box-shadow: inset 0 0 0 1px rgba(120,255,200,0.16);
+    }
+    .seg button:active{ transform: translateY(1px); }
+
+    /* ===== Accordions (Overlay categories) ===== */
+    .acc{
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      overflow:hidden;
+    }
+    .accTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding: 12px 14px;
+      cursor:pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select:none;
+    }
+    .accTitle{
+      font-weight: 900;
+      letter-spacing: 0.1px;
+      color: rgba(255,255,255,0.92);
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .accHint{ font: 800 11px/1.2 -apple-system,system-ui,Segoe UI,Roboto,Arial; color: rgba(255,255,255,0.55); }
+    .accBody{
+      display:none;
+      padding: 0 14px 14px;
+    }
+    .acc.on .accBody{ display:block; }
+    .accTop:active{ transform: translateY(1px); }
+
+    /* ===== Badges ===== */
+    .badgeRow{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.12);
+      font: 900 11px/1 -apple-system,system-ui,Segoe UI,Roboto,Arial;
+      color: rgba(255,255,255,0.86);
+      letter-spacing: 0.12px;
+    }
+    .badge.good{ border-color: rgba(120,255,200,0.22); background: rgba(120,255,200,0.08); }
+    .badge.warn{ border-color: rgba(246,194,74,0.22); background: rgba(246,194,74,0.08); }
+    .badge.ghost{ background: rgba(255,255,255,0.04); }
 
     /* ===== Hub (X + Discord feel) ===== */
     .hubWrap{
@@ -480,6 +565,7 @@
       #modal{ border-radius: 20px; }
       .hubMain{ padding: 14px 14px 22px; }
       .btn.compact{ padding: 10px 12px; }
+      .seg button{ font-size: 12px; }
     }
     @media (max-width: 380px){
       .gridTop{ grid-template-columns: 1fr; }
@@ -545,7 +631,7 @@
     <div id="drawerTop">
       <div id="titleBlock">
         <div id="title">MAP E.D.E.N.</div>
-        <div id="subtitle">Earth Diametric Energy Network • Tap Station to Start</div>
+        <div id="subtitle">Earth Diametric Energy Network • Progressive UI • Simple → Advanced</div>
       </div>
       <button id="closeBtn" aria-label="Close drawer" title="Close">✕</button>
     </div>
@@ -564,6 +650,21 @@
           <span class="left"><span class="dot"></span><span class="label" id="stationLabel">Start</span></span>
           <span class="hint" id="stationHint">Begin</span>
         </button>
+      </div>
+
+      <!-- ✅ Modes (Lite / Field / Lab) -->
+      <div class="card" style="padding:12px; margin-bottom:10px;">
+        <div class="rowBetween">
+          <div>
+            <div style="font-weight:900;">Mode</div>
+            <div class="tiny">Lite = observe • Field = capture • Lab = analysis/export</div>
+          </div>
+          <div class="seg" style="min-width: 220px;">
+            <button id="modeLiteBtn" type="button">Lite</button>
+            <button id="modeFieldBtn" type="button">Field</button>
+            <button id="modeLabBtn" type="button">Lab</button>
+          </div>
+        </div>
       </div>
 
       <!-- Default Station panel: Core / Stack / Stations / Overlay+ / Clear / Profile -->
@@ -608,18 +709,47 @@
             that are repeatable, controlled, and comparable across stations and time.
           </p>
           <p class="muted">
-            This globe is a visual switchboard for the core overlays while keeping the Earth render clean.
+            This globe is a visual switchboard: microblog-simple on the surface, research-grade underneath.
           </p>
+
+          <div class="card" style="margin-top:12px;">
+            <div style="font-weight:900;">The Research Thread</div>
+            <div class="muted" style="margin-top:6px;">
+              A post type that looks like a normal short post… but can expand into protocol + station metadata, evidence bundle,
+              and replication prompts—so the public view stays simple while the science stays real.
+            </div>
+          </div>
         </div>
 
         <!-- Overlay Library -->
         <div id="overlayContent" class="page" style="display:none;">
-          <h2>Overlay Library</h2>
-          <p class="muted">Add or remove overlays for your Station view. (Prototype-local settings.)</p>
+          <h2>Overlay +</h2>
+          <p class="muted">Enable a few overlays at a time. The library can be huge; UI stays minimal.</p>
+
+          <!-- ✅ NEW: Overlay stacks -->
+          <div class="card" style="margin-top:12px;">
+            <div class="rowBetween">
+              <div>
+                <div style="font-weight:900;">Overlay Stacks</div>
+                <div class="tiny">Save a named preset (Stack). Apply anytime. (Local prototype.)</div>
+              </div>
+              <div class="row" style="gap:8px;">
+                <button class="btn compact ghost" id="stackSaveBtn">Save</button>
+                <button class="btn compact danger" id="stackDeleteBtn">Delete</button>
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:12px;">
+              <select class="select" id="stackSelect"></select>
+              <button class="btn compact good" id="stackApplyBtn">Apply</button>
+            </div>
+
+            <div class="tiny" id="stackMetaTiny" style="margin-top:10px;">Stack: Core</div>
+          </div>
 
           <!-- ✅ NEW: Overlay search bar (locked + full width) -->
           <div class="card" style="margin-top:12px;">
-            <div class="tiny" style="margin-bottom:6px;">SEARCH OVERLAYS</div>
+            <div class="tiny" style="margin-bottom:6px;">SEARCH</div>
             <input class="input" id="overlaySearch" placeholder="Search overlays (e.g., rhumb, aurora, stations, magnetic)..." />
             <div class="tiny" id="overlaySearchCount" style="margin-top:10px;">Showing all overlays</div>
           </div>
@@ -628,7 +758,7 @@
             <div class="rowBetween">
               <div>
                 <div style="font-weight:900;">Quick actions</div>
-                <div class="tiny">Core / Stack use presets. Clear disables everything.</div>
+                <div class="tiny">Core = minimal • Stack = max • Clear = none</div>
               </div>
               <div class="row">
                 <button class="btn compact ghost" id="overlayAllOffBtn">−</button>
@@ -637,26 +767,24 @@
             </div>
           </div>
 
-          <div id="overlayList" style="display:grid; gap:10px; margin-top:12px;"></div>
+          <!-- ✅ Categorized library (A–F) -->
+          <div id="overlayCats" style="display:grid; gap:10px; margin-top:12px;"></div>
         </div>
 
         <!-- Stations -->
         <div id="stationsContent" class="page" style="display:none;">
           <h2>Stations</h2>
           <p class="muted">
-            Join only works near your location. Exit222•Station1 (Axis 42/222) is the only active station right now.
-            Observers / Analysts / Operators require Owner approval to view the Hub.
+            Stations are lab nodes. Public coordinates can be approximate. Exact coordinates remain private unless you choose otherwise.
           </p>
 
           <div class="card" style="margin-top:12px;">
             <div class="tiny" style="margin-bottom:6px;">SEARCH</div>
-            <!-- ✅ LOCK: no leak + role search -->
             <input class="input" id="stationSearch" placeholder="Search stations or roles (Owner / Operator / Analyst / Observer)..." />
             <div class="tiny" style="margin-top:10px;">
               Tip: try “owner”, “operator”, “analyst”, “observer” to search people/roles inside the station.
             </div>
 
-            <!-- ✅ Compact Create/Delete (match Overlay Quick Actions) -->
             <div class="rowBetween" style="margin-top:12px;">
               <div class="row" style="gap:8px;">
                 <button class="btn compact good" id="stationCreateBtn">+ Create</button>
@@ -670,12 +798,11 @@
               <div class="tiny" id="locStateText">Location: Off</div>
             </div>
 
-            <!-- ✅ Results (stations + people/roles) -->
             <div id="stationSearchResults" style="display:grid; gap:10px; margin-top:12px;"></div>
           </div>
 
           <div class="card" style="margin-top:14px;">
-            <div style="font: 900 20px/1.1 -apple-system,system-ui,Segoe UI,Roboto,Arial; color: rgba(255,255,255,0.92);">
+            <div style="font: 900 20px/1.1 -apple-system,system-ui,Segoe UI,Roboto,Arial;">
               Exit222•Station1
             </div>
             <div class="muted" style="margin-top:6px;">
@@ -696,6 +823,61 @@
               Join remains blocked until location is enabled and within radius.
             </div>
           </div>
+
+          <!-- ✅ Station controls (privacy + integrity) -->
+          <div class="card" style="margin-top:14px;">
+            <div style="font-weight:900;">Station Integrity</div>
+            <div class="tiny" style="margin-top:6px;">
+              Multi-mode coordinates + accuracy metadata (prototype fields). Default stays privacy-safe.
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="tiny" style="margin-bottom:6px;">COORDINATE VISIBILITY</div>
+            <select class="select" id="coordPrivacySelect">
+              <option value="public">Public (approximate)</option>
+              <option value="group">Group (medium precision)</option>
+              <option value="private">Private (exact + altitude + metadata)</option>
+            </select>
+
+            <div class="rowBetween" style="margin-top:12px;">
+              <div>
+                <div style="font-weight:900;">Replication beacon</div>
+                <div class="tiny">Opt-in: “Ready to replicate protocol X in next 2 hours.”</div>
+              </div>
+              <div class="toggle" id="replicationToggle"><div class="knob"></div></div>
+            </div>
+
+            <div class="tiny" id="stationIntegrityTiny" style="margin-top:10px;">Saved.</div>
+          </div>
+
+          <!-- ✅ Test spots -->
+          <div class="card" style="margin-top:14px;">
+            <div class="rowBetween">
+              <div>
+                <div style="font-weight:900;">Test Spots</div>
+                <div class="tiny">Sub-pins for repeatability (porch, yard, hilltop). (Local prototype.)</div>
+              </div>
+              <button class="btn compact good" id="spotAddBtn">+ Add</button>
+            </div>
+            <div id="spotsList" style="display:grid; gap:10px; margin-top:12px;"></div>
+          </div>
+
+          <!-- ✅ Loadout -->
+          <div class="card" style="margin-top:14px;">
+            <div style="font-weight:900;">Station Loadout</div>
+            <div class="tiny" style="margin-top:6px;">Track sensors + calibration state. (Local prototype.)</div>
+
+            <div class="divider"></div>
+
+            <div class="row">
+              <input class="input" id="loadoutInput" placeholder="Add item (e.g., iPhone magnetometer, SDR, GNSS receiver)..." />
+              <button class="btn compact good" id="loadoutAddBtn">+</button>
+            </div>
+
+            <div id="loadoutList" style="display:grid; gap:10px; margin-top:12px;"></div>
+          </div>
+
         </div>
 
         <!-- Station Preview -->
@@ -704,7 +886,7 @@
           <div class="card">
             <div class="rowBetween">
               <div>
-                <div style="font-weight:900; color: rgba(255,255,255,0.92);">Exit222•Station1</div>
+                <div style="font-weight:900;">Exit222•Station1</div>
                 <div class="tiny">Axis 42/222 • 38°9′39″ N, 79°4′24″ W</div>
               </div>
               <div class="tiny" id="previewDistanceTiny">0.0 km away</div>
@@ -713,8 +895,7 @@
             <div class="divider"></div>
 
             <div class="muted">
-              A minimal hub for coordinated station work: Feed (field notes), Data (exports), Chat (coordination), Files (assets).
-              Owner approval required to view hub content.
+              Hub = Feed (Research Threads), Data (exports), Chat (coordination), Files (assets). Owner approval required to view hub content.
             </div>
 
             <div class="rowBetween" style="margin-top:14px;">
@@ -740,7 +921,7 @@
             <div class="hubMain">
               <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
                 <div>
-                  <div style="font:900 18px/1.1 -apple-system,system-ui,Segoe UI,Roboto,Arial; color: rgba(255,255,255,0.92);">
+                  <div style="font:900 18px/1.1 -apple-system,system-ui,Segoe UI,Roboto,Arial;">
                     Exit222•Station1
                   </div>
                   <div class="tiny">Hub • Owner approval required • Prototype-local</div>
@@ -752,15 +933,15 @@
 
               <div id="hubTab_feed">
                 <div class="card">
-                  <div style="font-weight:900; color: rgba(255,255,255,0.92);">Feed</div>
-                  <div class="muted" style="margin-top:6px;">Scientific field notes & station updates (microblog).</div>
+                  <div style="font-weight:900;">Feed</div>
+                  <div class="muted" style="margin-top:6px;">Research Threads (microblog) with expandable metadata.</div>
                   <div class="tiny" style="margin-top:10px;">(Preview mode: content hidden until approved.)</div>
                 </div>
               </div>
 
               <div id="hubTab_data" style="display:none;">
                 <div class="card">
-                  <div style="font-weight:900; color: rgba(255,255,255,0.92);">Data</div>
+                  <div style="font-weight:900;">Data</div>
                   <div class="muted" style="margin-top:6px;">Exports, instruments, timestamps, protocols.</div>
                   <div class="tiny" style="margin-top:10px;">(Preview mode: content hidden until approved.)</div>
                 </div>
@@ -768,7 +949,7 @@
 
               <div id="hubTab_chat" style="display:none;">
                 <div class="card">
-                  <div style="font-weight:900; color: rgba(255,255,255,0.92);">Chat</div>
+                  <div style="font-weight:900;">Chat</div>
                   <div class="muted" style="margin-top:6px;">Coordination and requests (owner approvals).</div>
                   <div class="tiny" style="margin-top:10px;">(Preview mode: content hidden until approved.)</div>
                 </div>
@@ -776,8 +957,8 @@
 
               <div id="hubTab_files" style="display:none;">
                 <div class="card">
-                  <div style="font-weight:900; color: rgba(255,255,255,0.92);">Files</div>
-                  <div class="muted" style="margin-top:6px;">Images, audio, video, PDFs, station assets.</div>
+                  <div style="font-weight:900;">Files</div>
+                  <div class="muted" style="margin-top:6px;">Images, audio, video, PDFs, sensor exports.</div>
                   <div class="tiny" style="margin-top:10px;">(Preview mode: content hidden until approved.)</div>
                 </div>
               </div>
@@ -790,21 +971,24 @@
         <div id="profileContent" class="page" style="display:none;">
           <h2>Profile</h2>
           <p class="muted">
-            Minimal, scientific identity + microblog (prototype-local). Stations remain public; profile/research visibility can be private/public.
+            A research passport: identity layers, signed posts (future), and a private-first asset vault. (Prototype-local.)
           </p>
 
           <div class="card" style="margin-top:12px;">
             <div class="tiny" style="margin-bottom:6px;">DISPLAY NAME</div>
             <div class="row">
               <div id="avatarBox" class="card" style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;padding:0;">
-                <div id="avatarText" style="font:900 16px/1 -apple-system,system-ui,Segoe UI,Roboto,Arial;color:rgba(255,255,255,0.92);">M</div>
+                <div id="avatarText" style="font:900 16px/1 -apple-system,system-ui,Segoe UI,Roboto,Arial;">M</div>
                 <img id="avatarImg" alt="profile photo" style="display:none;width:64px;height:64px;border-radius:18px;object-fit:cover;" />
               </div>
               <input class="input" id="displayName" value="Member" />
             </div>
 
-            <div class="tiny" style="margin-top:10px;">
-              Role symbols: ⊙ Owner • ✶ Operator • Σ Analyst • ◌ Observer
+            <div class="badgeRow">
+              <span class="badge ghost">⊙ Owner</span>
+              <span class="badge ghost">✶ Operator</span>
+              <span class="badge ghost">Σ Analyst</span>
+              <span class="badge ghost">◌ Observer</span>
             </div>
 
             <div class="rowBetween" style="margin-top:12px;">
@@ -818,29 +1002,74 @@
             <div class="card" style="margin-top:12px;">
               <div class="rowBetween">
                 <div>
-                  <div style="font-weight:900; color: rgba(255,255,255,0.92);">Account visibility</div>
+                  <div style="font-weight:900;">Account visibility</div>
                   <div class="tiny">Public profiles can be followed. Private profiles require approval to follow.</div>
                 </div>
                 <div class="toggle" id="visibilityToggle"><div class="knob"></div></div>
               </div>
             </div>
-          </div>
 
-          <div class="card" style="margin-top:14px;">
-            <div style="font-weight:900; color: rgba(255,255,255,0.92);">Micro-Post (Field Note)</div>
-            <div class="muted" style="margin-top:6px;">Post a scientific note. (Local-only prototype.)</div>
-
-            <!-- ✅ LOCK: textarea cannot leak + full width -->
-            <textarea class="textarea" id="fieldNote" placeholder="Write a field note…" style="margin-top:10px;"></textarea>
-
-            <div class="rowBetween" style="margin-top:12px;">
-              <button class="btn good" id="postBtn">Post</button>
-              <div class="tiny" id="profileCounts">Posts: 0 • Likes: 0 • Messages: 0</div>
+            <div class="card" style="margin-top:12px;">
+              <div class="rowBetween">
+                <div>
+                  <div style="font-weight:900;">Verification (opt-in)</div>
+                  <div class="tiny">Basic • Station Verified • Research Verified (UI placeholder)</div>
+                </div>
+                <button class="btn compact ghost" id="verifyBtn" type="button">View</button>
+              </div>
+              <div class="badgeRow">
+                <span class="badge warn" id="badgeBasic">Basic</span>
+                <span class="badge ghost" id="badgeStation">Station Verified</span>
+                <span class="badge ghost" id="badgeResearch">Research Verified</span>
+              </div>
             </div>
           </div>
 
+          <!-- ✅ Research Thread composer -->
           <div class="card" style="margin-top:14px;">
-            <div style="font-weight:900; color: rgba(255,255,255,0.92);">Inbox (prototype)</div>
+            <div style="font-weight:900;">Research Thread</div>
+            <div class="muted" style="margin-top:6px;">
+              Looks like a normal short post… expands into protocol + station metadata + evidence notes.
+            </div>
+
+            <textarea class="textarea" id="threadText" placeholder="Write a Research Thread…" style="margin-top:10px;"></textarea>
+
+            <div class="divider"></div>
+
+            <div class="row" style="gap:10px; flex-wrap:wrap;">
+              <input class="input" id="threadProtocol" placeholder="Protocol (e.g., Phone Magnetometer v1.0)" />
+              <input class="input" id="threadProtocolVer" placeholder="Protocol version (e.g., 1.0.3)" />
+            </div>
+
+            <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
+              <input class="input" id="threadStation" placeholder="Station (default: Exit222•Station1)" />
+              <input class="input" id="threadStack" placeholder="Overlay Stack (default: Core)" />
+            </div>
+
+            <div class="rowBetween" style="margin-top:12px;">
+              <button class="btn good" id="threadPostBtn">Post</button>
+              <div class="tiny" id="profileCounts">Posts: 0 • Likes: 0 • Messages: 0</div>
+            </div>
+
+            <div class="tiny" style="margin-top:10px;">
+              Future: signed posts + evidence bundle uploads + replication prompts.
+            </div>
+          </div>
+
+          <!-- ✅ Threads list -->
+          <div class="card" style="margin-top:14px;">
+            <div class="rowBetween">
+              <div>
+                <div style="font-weight:900;">My Threads</div>
+                <div class="tiny">Local-only list (prototype)</div>
+              </div>
+              <button class="btn compact danger" id="threadClearBtn" type="button">Clear</button>
+            </div>
+            <div id="threadsList" style="display:grid; gap:10px; margin-top:12px;"></div>
+          </div>
+
+          <div class="card" style="margin-top:14px;">
+            <div style="font-weight:900;">Inbox (prototype)</div>
             <div class="muted" style="margin-top:6px;">Direct + station messages (counts only for now).</div>
             <div class="tiny" style="margin-top:10px;">Next: threaded messages + approvals.</div>
           </div>
@@ -862,14 +1091,8 @@
     // ✅ SETTINGS
     // ============================
     const WELCOME_FILE = "assets/welcome6.html";
-
-    // ✅ show “0.0 km away” even if location unknown (Join still blocked)
     const DEMO_DISTANCE_MODE = true;
-
-    // Prototype join radius
     const JOIN_RADIUS_KM = 100;
-
-    // Station anchor (Exit 222 • Station 1)
     const ANCHOR = { name: "Exit 222 • Station 1", lat: 38.1608333333, lon: -79.0733333333 };
 
     // ============================
@@ -908,6 +1131,11 @@
     const clearBtn     = document.getElementById("clearBtn");
     const profileBtn   = document.getElementById("profileBtn");
 
+    // Modes
+    const modeLiteBtn  = document.getElementById("modeLiteBtn");
+    const modeFieldBtn = document.getElementById("modeFieldBtn");
+    const modeLabBtn   = document.getElementById("modeLabBtn");
+
     const modalMask  = document.getElementById("modalMask");
     const modalClose = document.getElementById("modalClose");
     const modalTitle = document.getElementById("modalTitle");
@@ -915,12 +1143,20 @@
     const welcomeFrame   = document.getElementById("welcomeFrame");
     const missionContent = document.getElementById("missionContent");
     const overlayContent = document.getElementById("overlayContent");
-    const overlayList    = document.getElementById("overlayList");
     const overlayAllOnBtn = document.getElementById("overlayAllOnBtn");
     const overlayAllOffBtn = document.getElementById("overlayAllOffBtn");
     const overlaySearch = document.getElementById("overlaySearch");
     const overlaySearchCount = document.getElementById("overlaySearchCount");
+    const overlayCats = document.getElementById("overlayCats");
 
+    // Stacks UI
+    const stackSelect = document.getElementById("stackSelect");
+    const stackApplyBtn = document.getElementById("stackApplyBtn");
+    const stackSaveBtn = document.getElementById("stackSaveBtn");
+    const stackDeleteBtn = document.getElementById("stackDeleteBtn");
+    const stackMetaTiny = document.getElementById("stackMetaTiny");
+
+    // Stations
     const stationsContent = document.getElementById("stationsContent");
     const stationSearch = document.getElementById("stationSearch");
     const stationSearchResults = document.getElementById("stationSearchResults");
@@ -933,6 +1169,17 @@
     const previewStationBtn = document.getElementById("previewStationBtn");
     const followStationBtn  = document.getElementById("followStationBtn");
 
+    const coordPrivacySelect = document.getElementById("coordPrivacySelect");
+    const replicationToggle = document.getElementById("replicationToggle");
+    const stationIntegrityTiny = document.getElementById("stationIntegrityTiny");
+
+    const spotsList = document.getElementById("spotsList");
+    const spotAddBtn = document.getElementById("spotAddBtn");
+
+    const loadoutInput = document.getElementById("loadoutInput");
+    const loadoutAddBtn = document.getElementById("loadoutAddBtn");
+    const loadoutList = document.getElementById("loadoutList");
+
     const previewContent = document.getElementById("previewContent");
     const previewDistanceTiny = document.getElementById("previewDistanceTiny");
     const joinStationBtn = document.getElementById("joinStationBtn");
@@ -942,6 +1189,7 @@
     const hubContent = document.getElementById("hubContent");
     const hubAccessTiny = document.getElementById("hubAccessTiny");
 
+    // Profile
     const profileContent = document.getElementById("profileContent");
     const displayNameInput = document.getElementById("displayName");
     const avatarText = document.getElementById("avatarText");
@@ -950,9 +1198,29 @@
     const uploadPhotoBtn = document.getElementById("uploadPhotoBtn");
     const removePhotoBtn = document.getElementById("removePhotoBtn");
     const visibilityToggle = document.getElementById("visibilityToggle");
-    const fieldNote = document.getElementById("fieldNote");
-    const postBtn = document.getElementById("postBtn");
+    const verifyBtn = document.getElementById("verifyBtn");
+    const badgeBasic = document.getElementById("badgeBasic");
+    const badgeStation = document.getElementById("badgeStation");
+    const badgeResearch = document.getElementById("badgeResearch");
+
+    const threadText = document.getElementById("threadText");
+    const threadProtocol = document.getElementById("threadProtocol");
+    const threadProtocolVer = document.getElementById("threadProtocolVer");
+    const threadStation = document.getElementById("threadStation");
+    const threadStack = document.getElementById("threadStack");
+    const threadPostBtn = document.getElementById("threadPostBtn");
+    const threadClearBtn = document.getElementById("threadClearBtn");
+    const threadsList = document.getElementById("threadsList");
+
     const profileCounts = document.getElementById("profileCounts");
+
+    // ============================
+    // Storage helper
+    // ============================
+    const store = {
+      get(k, d=null){ try{ const v = localStorage.getItem(k); return v==null ? d : JSON.parse(v);}catch{ return d; } },
+      set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} }
+    };
 
     // ============================
     // Quiet status system
@@ -983,6 +1251,9 @@
     window.addEventListener("error", (e) => showError("JS Error:\n" + (e.message || e.error || e)));
     window.addEventListener("unhandledrejection", (e) => showError("Promise Rejection:\n" + (e.reason?.message || e.reason || e)));
 
+    // ============================
+    // Drawer open/close + collapse
+    // ============================
     function setDrawerClosed(isClosed){
       drawerEl.classList.toggle("closed", !!isClosed);
       openBtn.style.display = isClosed ? "inline-flex" : "none";
@@ -1005,6 +1276,45 @@
     }
     stationBtn.addEventListener("click", ()=> setStationOpen(!stationOpen));
     setStationOpen(false);
+
+    // ============================
+    // ✅ Modes (Progressive disclosure)
+    // ============================
+    const MODES = ["lite","field","lab"];
+    let mode = store.get("eden_mode", "field");
+    if (!MODES.includes(mode)) mode = "field";
+
+    function setMode(m){
+      if (!MODES.includes(m)) return;
+      mode = m;
+      store.set("eden_mode", mode);
+
+      // Seg UI
+      modeLiteBtn.classList.toggle("on", mode==="lite");
+      modeFieldBtn.classList.toggle("on", mode==="field");
+      modeLabBtn.classList.toggle("on", mode==="lab");
+
+      // Progressive disclosure
+      // Lite: only Core + Stations (no Stack / Overlay+ / Clear / Profile)
+      // Field: Core + Stations + Overlay+ + Profile
+      // Lab: everything
+      const show = (el, yes)=> { if (!el) return; el.style.display = yes ? "" : "none"; };
+
+      show(stackBtn, mode==="lab");
+      show(clearBtn, mode==="lab");
+      show(overlayPlusBtn, mode!=="lite");
+      show(profileBtn, mode!=="lite");
+
+      // Subtitle hint
+      const sub = document.getElementById("subtitle");
+      if (sub){
+        sub.textContent = `Earth Diametric Energy Network • Mode: ${mode.toUpperCase()} • Simple → Advanced`;
+      }
+    }
+    modeLiteBtn.addEventListener("click", ()=> setMode("lite"));
+    modeFieldBtn.addEventListener("click", ()=> setMode("field"));
+    modeLabBtn.addEventListener("click", ()=> setMode("lab"));
+    setMode(mode);
 
     // ============================
     // Modal routing
@@ -1032,8 +1342,6 @@
       if (kind === "welcome"){
         modalTitle.textContent = "HELLO";
         welcomeFrame.style.display = "block";
-
-        // robust URL resolution for GitHub Pages subpaths + cache-bust
         const u = new URL(WELCOME_FILE, window.location.href);
         u.searchParams.set("v", Date.now().toString());
         welcomeFrame.src = u.toString();
@@ -1045,13 +1353,17 @@
       } else if (kind === "overlay"){
         modalTitle.textContent = "OVERLAY +";
         overlayContent.style.display = "block";
-        renderOverlayList(overlaySearch?.value || "");
+        renderOverlayLibrary(overlaySearch?.value || "");
+        refreshStacksUI();
 
       } else if (kind === "stations"){
         modalTitle.textContent = "STATIONS";
         stationsContent.style.display = "block";
         refreshStationUI();
         renderStationSearchResults(stationSearch?.value || "");
+        refreshStationIntegrityUI();
+        renderSpots();
+        renderLoadout();
 
       } else if (kind === "preview"){
         modalTitle.textContent = "STATION PREVIEW";
@@ -1067,12 +1379,12 @@
         modalTitle.textContent = "PROFILE";
         profileContent.style.display = "block";
         refreshProfileUI();
+        renderThreads();
       }
     }
 
     function closeModal(){
       modalMask.classList.remove("on");
-      // stop iframe work (prevents iOS scaling glitches on reopen)
       welcomeFrame.src = "about:blank";
       hideAllViews();
     }
@@ -1103,11 +1415,6 @@
     // ============================
     // Station access + location gating (prototype-local)
     // ============================
-    const store = {
-      get(k, d=null){ try{ const v = localStorage.getItem(k); return v==null ? d : JSON.parse(v);}catch{ return d; } },
-      set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} }
-    };
-
     let locEnabled = false;
     let userLat = null, userLon = null;
 
@@ -1123,7 +1430,6 @@
       if (locEnabled && userLat!=null && userLon!=null){
         return haversineKm(userLat, userLon, ANCHOR.lat, ANCHOR.lon);
       }
-      // ✅ show 0.0 km away even when unknown
       return DEMO_DISTANCE_MODE ? 0.0 : null;
     }
 
@@ -1135,7 +1441,6 @@
 
       locStateText.textContent = `Location: ${locEnabled ? "On" : "Off"}`;
 
-      // Join blocked until location enabled (even if DEMO_DISTANCE_MODE shows 0.0)
       const joinAllowedByLoc = locEnabled && (d != null) && (d <= JOIN_RADIUS_KM);
 
       const access = store.get("station_access", "None");
@@ -1220,7 +1525,6 @@
       { type:"station", name:"Exit222•Station1", desc:"Axis 42/222 • 38°9′39″ N, 79°4′24″ W" }
     ];
 
-    // Prototype local directory (role-search requested)
     const STATION_DIRECTORY = [
       { type:"person", name:"Owner", role:"Owner", symbol:"⊙", note:"Owner approval required" },
       { type:"person", name:"Operator-01", role:"Operator", symbol:"✶", note:"Field capture / instruments" },
@@ -1234,7 +1538,6 @@
       const q = (qRaw || "").trim().toLowerCase();
       stationSearchResults.innerHTML = "";
 
-      // Determine mode
       const roleWords = ["owner","operator","analyst","observer","observers","operators","analysts","owners"];
       const roleMode = roleWords.some(w => q.includes(w));
 
@@ -1250,7 +1553,6 @@
       });
 
       if (!q){
-        // Default: show station card as “quick”
         const s = STATIONS[0];
         const card = document.createElement("div");
         card.className = "card";
@@ -1306,6 +1608,125 @@
     stationSearch?.addEventListener("input", ()=> renderStationSearchResults(stationSearch.value));
 
     // ============================
+    // Station Integrity + spots + loadout (local prototype)
+    // ============================
+    const stationConfigDefault = {
+      coordPrivacy: "public",
+      replicationBeacon: false,
+      spots: [
+        { name:"Origin Pin", note:"Primary anchor (reference point)" }
+      ],
+      loadout: [
+        { name:"Phone internal sensors", note:"Magnetometer / accelerometer (as available)" }
+      ]
+    };
+
+    function getStationConfig(){
+      return store.get("station_config", stationConfigDefault);
+    }
+    function setStationConfig(cfg){
+      store.set("station_config", cfg);
+      if (stationIntegrityTiny) stationIntegrityTiny.textContent = "Saved.";
+    }
+
+    function refreshStationIntegrityUI(){
+      const cfg = getStationConfig();
+      if (coordPrivacySelect) coordPrivacySelect.value = cfg.coordPrivacy || "public";
+      if (replicationToggle) replicationToggle.classList.toggle("on", !!cfg.replicationBeacon);
+    }
+
+    coordPrivacySelect?.addEventListener("change", ()=>{
+      const cfg = getStationConfig();
+      cfg.coordPrivacy = coordPrivacySelect.value;
+      setStationConfig(cfg);
+    });
+
+    replicationToggle?.addEventListener("click", ()=>{
+      const cfg = getStationConfig();
+      cfg.replicationBeacon = !cfg.replicationBeacon;
+      setStationConfig(cfg);
+      refreshStationIntegrityUI();
+    });
+
+    function renderSpots(){
+      if (!spotsList) return;
+      const cfg = getStationConfig();
+      spotsList.innerHTML = "";
+
+      cfg.spots.forEach((s, idx)=>{
+        const card = document.createElement("div");
+        card.className = "card";
+        card.style.padding = "12px 12px";
+        card.innerHTML = `
+          <div class="rowBetween">
+            <div style="min-width:0;">
+              <div style="font-weight:900;">${escapeHtml(s.name || "Test Spot")}</div>
+              <div class="tiny" style="margin-top:6px;">${escapeHtml(s.note || "—")}</div>
+            </div>
+            <button class="btn compact danger" type="button" data-i="${idx}">−</button>
+          </div>
+        `;
+        card.querySelector("button").addEventListener("click", (e)=>{
+          const i = Number(e.currentTarget.dataset.i);
+          const cfg2 = getStationConfig();
+          cfg2.spots.splice(i,1);
+          setStationConfig(cfg2);
+          renderSpots();
+        });
+        spotsList.appendChild(card);
+      });
+    }
+
+    spotAddBtn?.addEventListener("click", ()=>{
+      const name = prompt("New Test Spot name (e.g., Porch, Yard, Hilltop):");
+      if (!name) return;
+      const note = prompt("Optional note (repeatability / setup):") || "";
+      const cfg = getStationConfig();
+      cfg.spots.push({ name: name.trim(), note: note.trim() });
+      setStationConfig(cfg);
+      renderSpots();
+    });
+
+    function renderLoadout(){
+      if (!loadoutList) return;
+      const cfg = getStationConfig();
+      loadoutList.innerHTML = "";
+
+      cfg.loadout.forEach((it, idx)=>{
+        const card = document.createElement("div");
+        card.className = "card";
+        card.style.padding = "12px 12px";
+        card.innerHTML = `
+          <div class="rowBetween">
+            <div style="min-width:0;">
+              <div style="font-weight:900;">${escapeHtml(it.name || "Loadout item")}</div>
+              <div class="tiny" style="margin-top:6px;">${escapeHtml(it.note || "—")}</div>
+            </div>
+            <button class="btn compact danger" type="button" data-i="${idx}">−</button>
+          </div>
+        `;
+        card.querySelector("button").addEventListener("click", (e)=>{
+          const i = Number(e.currentTarget.dataset.i);
+          const cfg2 = getStationConfig();
+          cfg2.loadout.splice(i,1);
+          setStationConfig(cfg2);
+          renderLoadout();
+        });
+        loadoutList.appendChild(card);
+      });
+    }
+
+    loadoutAddBtn?.addEventListener("click", ()=>{
+      const v = (loadoutInput.value || "").trim();
+      if (!v) return;
+      const cfg = getStationConfig();
+      cfg.loadout.push({ name: v, note: "Calibration: N/A (prototype)" });
+      setStationConfig(cfg);
+      loadoutInput.value = "";
+      renderLoadout();
+    });
+
+    // ============================
     // Profile
     // ============================
     function initialsFromName(n){
@@ -1323,10 +1744,22 @@
       const msgs  = store.get("profile_msgs", 0);
       const photo = store.get("profile_photo", null);
 
+      // verification placeholders
+      const v = store.get("profile_verify", { basic:true, station:false, research:false });
+
       displayNameInput.value = name;
       profileCounts.textContent = `Posts: ${posts} • Likes: ${likes} • Messages: ${msgs}`;
 
       visibilityToggle.classList.toggle("on", !isPrivate);
+
+      badgeBasic.classList.toggle("warn", !!v.basic);
+      badgeBasic.classList.toggle("ghost", !v.basic);
+
+      badgeStation.classList.toggle("good", !!v.station);
+      badgeStation.classList.toggle("ghost", !v.station);
+
+      badgeResearch.classList.toggle("good", !!v.research);
+      badgeResearch.classList.toggle("ghost", !v.research);
 
       if (photo){
         avatarImg.src = photo;
@@ -1337,6 +1770,10 @@
         avatarText.style.display = "block";
         avatarText.textContent = initialsFromName(name);
       }
+
+      // defaults for thread composer
+      if (threadStation) threadStation.value = store.get("thread_station_default", "Exit222•Station1");
+      if (threadStack) threadStack.value = store.get("thread_stack_default", "Core");
     }
 
     displayNameInput.addEventListener("input", ()=>{
@@ -1367,13 +1804,120 @@
       refreshProfileUI();
     });
 
-    postBtn.addEventListener("click", ()=>{
-      const t = (fieldNote.value || "").trim();
-      if (!t) return;
+    verifyBtn?.addEventListener("click", ()=>{
+      const cur = store.get("profile_verify", { basic:true, station:false, research:false });
+      const next = confirm("Toggle Station Verified? (OK toggles, Cancel leaves)") ? { ...cur, station: !cur.station } : cur;
+      store.set("profile_verify", next);
+      refreshProfileUI();
+      alert("Prototype: verification updated locally.");
+    });
+
+    // Research Threads (local list)
+    function getThreads(){ return store.get("research_threads", []); }
+    function setThreads(arr){ store.set("research_threads", arr); }
+
+    function renderThreads(){
+      if (!threadsList) return;
+      const arr = getThreads();
+      threadsList.innerHTML = "";
+
+      if (!arr.length){
+        const empty = document.createElement("div");
+        empty.className = "card";
+        empty.style.padding = "12px 12px";
+        empty.innerHTML = `<div style="font-weight:900;">No threads yet</div><div class="tiny" style="margin-top:6px;">Post your first Research Thread above.</div>`;
+        threadsList.appendChild(empty);
+        return;
+      }
+
+      arr.slice().reverse().forEach((t, iRev)=>{
+        const i = arr.length - 1 - iRev;
+        const card = document.createElement("div");
+        card.className = "card";
+        card.style.padding = "12px 12px";
+
+        const expanded = !!t.expanded;
+        card.innerHTML = `
+          <div class="rowBetween">
+            <div style="min-width:0;">
+              <div style="font-weight:900;">${escapeHtml(t.text || "(empty)")}</div>
+              <div class="tiny" style="margin-top:6px;">${escapeHtml(t.ts || "")} • ${escapeHtml(t.station || "—")} • Stack: ${escapeHtml(t.stack || "—")}</div>
+            </div>
+            <div class="row" style="gap:8px;">
+              <button class="btn compact ${expanded ? "warn" : "ghost"}" type="button" data-act="toggle" data-i="${i}">${expanded ? "Hide" : "Expand"}</button>
+              <button class="btn compact danger" type="button" data-act="del" data-i="${i}">−</button>
+            </div>
+          </div>
+          <div class="divider" style="display:${expanded ? "block" : "none"};"></div>
+          <div style="display:${expanded ? "block" : "none"};">
+            <div class="tiny">Protocol: ${escapeHtml(t.protocol || "—")} • v${escapeHtml(t.protocolVer || "—")}</div>
+            <div class="tiny" style="margin-top:8px;">Integrity: (future) signed post • evidence bundle • replication prompt</div>
+          </div>
+        `;
+
+        card.querySelectorAll("button").forEach(btn=>{
+          btn.addEventListener("click", ()=>{
+            const act = btn.dataset.act;
+            const idx = Number(btn.dataset.i);
+            const cur = getThreads();
+            if (act === "del"){
+              cur.splice(idx,1);
+              setThreads(cur);
+              renderThreads();
+              return;
+            }
+            if (act === "toggle"){
+              cur[idx].expanded = !cur[idx].expanded;
+              setThreads(cur);
+              renderThreads();
+              return;
+            }
+          });
+        });
+
+        threadsList.appendChild(card);
+      });
+    }
+
+    threadPostBtn?.addEventListener("click", ()=>{
+      const text = (threadText.value || "").trim();
+      if (!text) return;
+
+      const station = (threadStation.value || "Exit222•Station1").trim();
+      const stack = (threadStack.value || "Core").trim();
+      const protocol = (threadProtocol.value || "").trim();
+      const protocolVer = (threadProtocolVer.value || "").trim();
+
+      // remember defaults
+      store.set("thread_station_default", station);
+      store.set("thread_stack_default", stack);
+
+      const arr = getThreads();
+      arr.push({
+        ts: new Date().toISOString(),
+        text,
+        station,
+        stack,
+        protocol,
+        protocolVer,
+        expanded: false
+      });
+      setThreads(arr);
+
       const posts = store.get("profile_posts", 0) + 1;
       store.set("profile_posts", posts);
-      fieldNote.value = "";
+
+      threadText.value = "";
+      threadProtocol.value = "";
+      threadProtocolVer.value = "";
       refreshProfileUI();
+      renderThreads();
+    });
+
+    threadClearBtn?.addEventListener("click", ()=>{
+      if (!confirm("Clear all threads (local only)?")) return;
+      setThreads([]);
+      renderThreads();
     });
 
     // ============================
@@ -1621,22 +2165,40 @@
     let rafId = 0;
     let running = true;
 
-    // Overlay state keys (full library restored)
+    // ✅ Overlay Library (categorized + provenance)
+    const OVERLAY_CATS = [
+      { id:"A", title:"A) Planetary Physics & Geophysics", hint:"geomagnetic • ionosphere • seismic • terrain" },
+      { id:"B", title:"B) Atmosphere, Ocean, Cryosphere", hint:"weather • lightning • currents • tides" },
+      { id:"C", title:"C) Space Weather & Astronomy Context", hint:"aurora • Kp risk • night sky" },
+      { id:"D", title:"D) Biology & Navigation", hint:"migration • magnetoreception prompts" },
+      { id:"E", title:"E) Human Infrastructure & Noise", hint:"grid • RF quiet • interference stats" },
+      { id:"F", title:"F) E.D.E.N. Network Overlays", hint:"42/222 suite • stations • clusters" },
+    ];
+
     const overlayMeta = [
-      { key:"rhumb222", label:"Rhumb 222 SW" },
-      { key:"rhumb42",  label:"Rhumb 42 NE" },
-      { key:"gc222",    label:"Great Circle 222 SW" },
-      { key:"gc42",     label:"Great Circle 42 NE" },
-      { key:"names222", label:"Names 222 SW" },
-      { key:"names42",  label:"Names 42 NE" },
-      { key:"perpLine", label:"Perpendiculars" },
-      { key:"continents", label:"Continents" },
-      { key:"magField", label:"Magnetic Field" },
-      { key:"corridors", label:"Corridors" },
-      { key:"aurora", label:"Aurora" },
-      { key:"nightLights", label:"Night Lights" },
-      { key:"perpName", label:"Perp Name" },
-      { key:"stations", label:"Stations" }
+      // F) E.D.E.N. suite
+      { cat:"F", key:"rhumb222", label:"Rhumb 222 SW", source:"Local", version:"v1", confidence:"High" },
+      { cat:"F", key:"gc222",    label:"Great Circle 222 SW", source:"Local", version:"v1", confidence:"High" },
+      { cat:"F", key:"rhumb42",  label:"Rhumb 42 NE", source:"Local", version:"v1", confidence:"Med" },
+      { cat:"F", key:"gc42",     label:"Great Circle 42 NE", source:"Local", version:"v1", confidence:"Med" },
+      { cat:"F", key:"corridors", label:"Corridor Offsets ±1/±5/±10 km", source:"Local", version:"v1", confidence:"Med" },
+      { cat:"F", key:"perpLine", label:"Perpendicular Controls 132°/312°", source:"Local", version:"v1", confidence:"Med" },
+      { cat:"F", key:"stations", label:"Stations (pins)", source:"Local", version:"v1", confidence:"High" },
+
+      // Labels
+      { cat:"F", key:"names222", label:"Axis Label: 222 SW", source:"Local", version:"v1", confidence:"High" },
+      { cat:"F", key:"names42",  label:"Axis Label: 42 NE", source:"Local", version:"v1", confidence:"High" },
+      { cat:"F", key:"perpName", label:"Label: 132° / 312°", source:"Local", version:"v1", confidence:"Med" },
+
+      // A/C
+      { cat:"A", key:"magField", label:"Magnetic Field (dipole demo)", source:"Local", version:"v1", confidence:"Low (demo)" },
+      { cat:"C", key:"aurora", label:"Auroral Oval (belt demo)", source:"Local", version:"v1", confidence:"Low (demo)" },
+
+      // A (visual helpers)
+      { cat:"A", key:"continents", label:"Continents (labels)", source:"Local", version:"v1", confidence:"Med" },
+
+      // B (visual)
+      { cat:"B", key:"nightLights", label:"Night Lights", source:"Three.js texture", version:"r161", confidence:"High" },
     ];
 
     // Default: Core is minimal
@@ -1659,88 +2221,263 @@
 
     function saveState(){ store.set("overlay_state", state); }
 
-    function setPreset(p){
-      if (p === "core"){
-        Object.keys(state).forEach(k => state[k]=false);
-        state.rhumb222 = true;
-        state.gc222 = true;
-        state.stations = true;
-        state.nightLights = true;
+    // Built-in stacks + user stacks
+    const BUILTIN_STACKS = [
+      { id:"core", name:"Core", note:"Minimal overlays", state:{
+        rhumb222:true, gc222:true, stations:true, nightLights:true,
+        rhumb42:false, gc42:false, names222:false, names42:false, perpLine:false, perpName:false,
+        continents:false, corridors:false, magField:false, aurora:false
+      }},
+      { id:"stack", name:"Stack", note:"Maximum overlays", state:"ALL_ON" },
+      { id:"clear", name:"Clear", note:"Everything off", state:"ALL_OFF" },
+    ];
 
-      } else if (p === "stack"){
-        Object.keys(state).forEach(k => state[k]=true);
-
-      } else if (p === "clear"){
-        Object.keys(state).forEach(k => state[k]=false);
-      }
-      applyVisibility();
-      saveState();
-      renderOverlayList(overlaySearch?.value || "");
+    function getUserStacks(){
+      return store.get("overlay_stacks", []);
+    }
+    function setUserStacks(arr){
+      store.set("overlay_stacks", arr);
     }
 
-    // ✅ overlay search filter (new)
-    function renderOverlayList(queryRaw=""){
-      if (!overlayList) return;
-      overlayList.innerHTML = "";
+    function buildStackOptions(){
+      const user = getUserStacks();
+      const list = [
+        ...BUILTIN_STACKS.map(s=>({ kind:"builtin", id:s.id, name:s.name, note:s.note })),
+        ...user.map((s,i)=>({ kind:"user", id:`user_${i}`, name:s.name, note:"Saved stack" }))
+      ];
+      return list;
+    }
+
+    function refreshStacksUI(){
+      if (!stackSelect) return;
+      const opts = buildStackOptions();
+      const savedSel = store.get("overlay_stack_selected", "core");
+
+      stackSelect.innerHTML = "";
+      opts.forEach(o=>{
+        const op = document.createElement("option");
+        op.value = o.id;
+        op.textContent = o.name;
+        stackSelect.appendChild(op);
+      });
+
+      // restore selection if possible
+      const exists = opts.some(o=>o.id===savedSel);
+      stackSelect.value = exists ? savedSel : "core";
+      store.set("overlay_stack_selected", stackSelect.value);
+
+      const label = opts.find(o=>o.id===stackSelect.value)?.name || "Core";
+      if (stackMetaTiny) stackMetaTiny.textContent = `Stack: ${label}`;
+    }
+
+    function applyStackById(id){
+      const user = getUserStacks();
+      const builtin = BUILTIN_STACKS.find(s=>s.id===id);
+
+      if (builtin){
+        if (builtin.state === "ALL_ON"){
+          Object.keys(state).forEach(k=> state[k]=true);
+        } else if (builtin.state === "ALL_OFF"){
+          Object.keys(state).forEach(k=> state[k]=false);
+        } else {
+          // start with all false, then apply
+          Object.keys(state).forEach(k=> state[k]=false);
+          Object.assign(state, builtin.state);
+        }
+      } else if (id.startsWith("user_")){
+        const idx = Number(id.replace("user_",""));
+        const s = user[idx];
+        if (s && s.state){
+          Object.keys(state).forEach(k=> state[k]=false);
+          Object.assign(state, s.state);
+        }
+      }
+
+      applyVisibility();
+      saveState();
+      renderOverlayLibrary(overlaySearch?.value || "");
+    }
+
+    stackApplyBtn?.addEventListener("click", ()=>{
+      const id = stackSelect.value;
+      store.set("overlay_stack_selected", id);
+      applyStackById(id);
+      refreshStacksUI();
+    });
+
+    stackSaveBtn?.addEventListener("click", ()=>{
+      const name = prompt("Name this Stack preset:");
+      if (!name) return;
+
+      const user = getUserStacks();
+      user.push({ name: name.trim(), state: { ...state } });
+      setUserStacks(user);
+
+      store.set("overlay_stack_selected", `user_${user.length-1}`);
+      refreshStacksUI();
+      alert("Stack saved (local prototype).");
+    });
+
+    stackDeleteBtn?.addEventListener("click", ()=>{
+      const id = stackSelect.value;
+      if (!id.startsWith("user_")){
+        alert("Only user-saved stacks can be deleted.");
+        return;
+      }
+      if (!confirm("Delete this saved stack?")) return;
+
+      const idx = Number(id.replace("user_",""));
+      const user = getUserStacks();
+      user.splice(idx,1);
+      setUserStacks(user);
+
+      store.set("overlay_stack_selected", "core");
+      refreshStacksUI();
+      applyStackById("core");
+    });
+
+    // Legacy presets (buttons)
+    function setPreset(p){
+      if (p === "core"){
+        applyStackById("core");
+        store.set("overlay_stack_selected", "core");
+      } else if (p === "stack"){
+        applyStackById("stack");
+        store.set("overlay_stack_selected", "stack");
+      } else if (p === "clear"){
+        applyStackById("clear");
+        store.set("overlay_stack_selected", "clear");
+      }
+      refreshStacksUI();
+    }
+
+    // ✅ overlay search filter + categorized render
+    function renderOverlayLibrary(queryRaw=""){
+      if (!overlayCats) return;
+      overlayCats.innerHTML = "";
 
       const q = (queryRaw || "").trim().toLowerCase();
-      const filtered = !q ? overlayMeta : overlayMeta.filter(o=>{
-        const hay = `${o.label} ${o.key}`.toLowerCase();
+      const all = overlayMeta.slice();
+      const filtered = !q ? all : all.filter(o=>{
+        const hay = `${o.label} ${o.key} ${o.cat} ${o.source}`.toLowerCase();
         return hay.includes(q);
       });
 
       if (overlaySearchCount){
         overlaySearchCount.textContent = q
-          ? `Showing ${filtered.length} / ${overlayMeta.length} overlays`
+          ? `Showing ${filtered.length} / ${all.length} overlays`
           : "Showing all overlays";
       }
+
+      // build per category
+      OVERLAY_CATS.forEach(cat=>{
+        const items = filtered.filter(o=>o.cat===cat.id);
+        if (q && !items.length) return; // hide empty cats when searching
+
+        const acc = document.createElement("div");
+        acc.className = "acc";
+        acc.classList.add(q ? "on" : ""); // open while searching
+        if (!q && cat.id==="F") acc.classList.add("on"); // default open: E.D.E.N. suite
+
+        acc.innerHTML = `
+          <div class="accTop">
+            <div style="min-width:0;">
+              <div class="accTitle">${cat.title}</div>
+              <div class="accHint">${cat.hint}</div>
+            </div>
+            <div class="tiny">(${items.length})</div>
+          </div>
+          <div class="accBody"></div>
+        `;
+
+        acc.querySelector(".accTop").addEventListener("click", ()=>{
+          acc.classList.toggle("on");
+        });
+
+        const body = acc.querySelector(".accBody");
+
+        if (!items.length){
+          const empty = document.createElement("div");
+          empty.className = "card";
+          empty.style.marginTop = "10px";
+          empty.style.padding = "12px 12px";
+          empty.innerHTML = `<div style="font-weight:900;">No overlays here</div><div class="tiny" style="margin-top:6px;">Search to reveal more.</div>`;
+          body.appendChild(empty);
+          overlayCats.appendChild(acc);
+          return;
+        }
+
+        items.forEach(o=>{
+          const on = !!state[o.key];
+
+          const row = document.createElement("div");
+          row.className = "card";
+          row.style.marginTop = "10px";
+          row.style.padding = "12px 12px";
+          row.innerHTML = `
+            <div class="rowBetween">
+              <div style="min-width:0;">
+                <div style="font-weight:900;">${escapeHtml(o.label)}</div>
+                <div class="tiny" style="margin-top:6px;">
+                  Source: ${escapeHtml(o.source || "N/A")} • ${escapeHtml(o.version || "N/A")} • Confidence: ${escapeHtml(o.confidence || "N/A")}
+                </div>
+              </div>
+              <button class="btn compact ${on ? "danger" : "good"}" data-k="${o.key}">
+                ${on ? "−" : "+"}
+              </button>
+            </div>
+          `;
+
+          row.querySelector("button").addEventListener("click", (e)=>{
+            const k = e.currentTarget.dataset.k;
+            state[k] = !state[k];
+            applyVisibility();
+            saveState();
+            renderOverlayLibrary(overlaySearch?.value || "");
+          });
+
+          body.appendChild(row);
+        });
+
+        overlayCats.appendChild(acc);
+      });
 
       if (q && !filtered.length){
         const empty = document.createElement("div");
         empty.className = "card";
         empty.style.padding = "12px 12px";
         empty.innerHTML = `<div style="font-weight:900;">No overlays found</div><div class="tiny" style="margin-top:6px;">Try: rhumb, great circle, aurora, stations, magnetic, corridors</div>`;
-        overlayList.appendChild(empty);
-        return;
-      }
-
-      for (const o of filtered){
-        const on = !!state[o.key];
-        const row = document.createElement("div");
-        row.className = "card";
-        row.style.padding = "12px 12px";
-        row.innerHTML = `
-          <div class="rowBetween">
-            <div style="min-width:0;">
-              <div style="font-weight:900; color: rgba(255,255,255,0.92);">${o.label}</div>
-              <div class="tiny">Overlay</div>
-            </div>
-            <button class="btn compact ${on ? "danger" : "good"}" data-k="${o.key}">
-              ${on ? "−" : "+"}
-            </button>
-          </div>
-        `;
-        row.querySelector("button").addEventListener("click", (e)=>{
-          const k = e.currentTarget.dataset.k;
-          state[k] = !state[k];
-          applyVisibility();
-          saveState();
-          renderOverlayList(overlaySearch?.value || "");
-        });
-        overlayList.appendChild(row);
+        overlayCats.appendChild(empty);
       }
     }
 
-    overlaySearch?.addEventListener("input", ()=> renderOverlayList(overlaySearch.value));
+    overlaySearch?.addEventListener("input", ()=> renderOverlayLibrary(overlaySearch.value));
 
     overlayAllOnBtn?.addEventListener("click", ()=>{
       Object.keys(state).forEach(k=> state[k]=true);
-      applyVisibility(); saveState(); renderOverlayList(overlaySearch?.value || "");
+      applyVisibility(); saveState(); renderOverlayLibrary(overlaySearch?.value || "");
     });
     overlayAllOffBtn?.addEventListener("click", ()=>{
       Object.keys(state).forEach(k=> state[k]=false);
-      applyVisibility(); saveState(); renderOverlayList(overlaySearch?.value || "");
+      applyVisibility(); saveState(); renderOverlayLibrary(overlaySearch?.value || "");
     });
+
+    // ============================
+    // Utils
+    // ============================
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    // ============================
+    // Three.js boot
+    // ============================
+    let overlays = null;
 
     (async ()=>{
       try{
@@ -1986,7 +2723,7 @@
         scene.add(globe);
 
         // Overlays groups
-        const overlays = {
+        overlays = {
           rhumb222: new THREE.Group(),
           rhumb42:  new THREE.Group(),
           gc222:    new THREE.Group(),
@@ -2030,7 +2767,7 @@
         }
         overlays.perpLine.add(arcFromBearing(132), arcFromBearing(312));
 
-        // Reduced glow labels
+        // Labels
         const n222 = makeTextSprite("222 SW", { fontSize: 20, glowBlur: 4, glow:"rgba(246,194,74,0.10)" });
         n222.position.copy(latLonToVec3(18, -18, earthRadius*1.10));
         overlays.names222.add(n222);
@@ -2190,6 +2927,7 @@
         }
 
         function applyVisibility(){
+          if (!overlays) return;
           overlays.rhumb222.visible = !!state.rhumb222;
           overlays.rhumb42.visible  = !!state.rhumb42;
           overlays.gc222.visible    = !!state.gc222;
@@ -2206,7 +2944,7 @@
           nightLights.visible = !!state.nightLights;
         }
         window.applyVisibility = applyVisibility;
-        applyVisibility();
+        window.applyVisibility();
 
         // Interaction: drag/zoom globe
         let dragging=false, lastX=0, lastY=0, velY=0, velX=0;
@@ -2338,11 +3076,16 @@
         }
         animate();
 
-        // initial overlay modal render
-        renderOverlayList("");
+        // initial UI refresh
+        refreshStacksUI();
+        renderOverlayLibrary("");
         refreshStationUI();
         refreshProfileUI();
         renderStationSearchResults("");
+        refreshStationIntegrityUI();
+        renderSpots();
+        renderLoadout();
+        renderThreads();
 
       } catch (err){
         showError("Top-level error:\n" + (err?.stack || err?.message || err));
